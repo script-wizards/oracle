@@ -1,0 +1,11 @@
+tables:
+  outside:
+    - "A PC suddenly spots a ghostly owl gazing down from a tree. Save versus spells or fall into a faint for {1d6} turns."
+    - "{1d4} goblin with lanterns climb cautiously out of a trapdoor in the forest floor. They are seeking rare night-fruits."
+    - "A gust of wind whips the branches of the trees. PCs near tree must save versus paralysis or be struck for 1 damage. Light sources may go out: torches 4-in-6 chance {d6<5}, laterns 2-in-6 {d6<3}."
+    - 'A huge toad creeps over, eyes the PCs curiously, and croaks a single word: "Betrayal".'
+  inside:
+    - 'A vision of a woman, dressed in white. She appears and says "The ring... The ring holds the key", before disappearing.'
+    - "The sounds of hounds howling, echoing through the crypt."
+    - "2 dancing skeletons from area 8, waltzing through the air."
+    - "{1d3} worms break through the wall or ceiling, hungry for flesh. [[Wormtongues]]"
