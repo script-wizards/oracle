@@ -5,9 +5,13 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/justinian/dice"
+	"github.com/script-wizards/oracle/internal/table"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,22 +37,73 @@ func main() {
 		}
 	}
 
-	outside := out.Tables["outside"]
 	rand.Seed(time.Now().Unix())
-	message := fmt.Sprint("\n\nRandom Events Outside the Mound (1-in-6 Chance Every Two Turns)\n", chooseFromTable(outside))
-	fmt.Println(message)
+	chosen := table.Choose(out.Tables["outside"])
 
-	fmt.Println("Choose 2 from Outside")
-	for _, s := range chooseNfromTable(outside, 2) {
-		fmt.Println(s)
+	result, nil := parseDice(chosen)
+	if err != nil {
+		log.Fatal(err)
 	}
+	fmt.Println(result)
 }
 
-func chooseFromTable(a []string) string {
-	return a[rand.Intn(len(a))]
+func findIndex(s string) (indices [][]int) {
+	re := regexp.MustCompile(`\{(.*?)\}`)
+	expressions := re.FindAllStringSubmatchIndex(s, -1)
+	for _, ex := range expressions {
+		indices = append(indices, []int{ex[2], ex[3]})
+	}
+	return indices
 }
 
-func chooseNfromTable(a []string, n int) []string {
-	rand.Shuffle(len(a), func(i, j int) { a[i], a[j] = a[j], a[i] })
-	return a[:n]
+func parseDice(s string) (string, error) {
+	exprIdx := findIndex(s)
+
+	offset := 0
+	for _, idx := range exprIdx {
+		start, end := idx[0]+offset, idx[1]+offset
+		expr := s[start:end]
+		compareExpr, comparator, rh, err := compare(expr)
+		if err != nil {
+			return "", fmt.Errorf("parsing comparison: %w", err)
+		}
+		roll, _, err := dice.Roll(compareExpr)
+		if err != nil {
+			return "", fmt.Errorf("parsing dice expression: %w", err)
+		}
+		if comparator != "" {
+			var result string
+			switch comparator {
+			case "<":
+				result = fmt.Sprintf("%d: %t", roll.Int(), roll.Int() < rh)
+			case ">":
+				result = fmt.Sprintf("%d: %t", roll.Int(), roll.Int() > rh)
+			}
+			s = (s[:start] + result + s[end:])
+			offset += len(result) - len(expr)
+		} else {
+			result := fmt.Sprintf("%s: %d", expr, roll.Int())
+			s = (s[:start] + result + s[end:])
+			offset += len(result) - len(expr)
+		}
+	}
+	return s, nil
+}
+
+func compare(s string) (string, string, int, error) {
+	if i := strings.Index(s, "<"); i >= 0 {
+		rh, err := strconv.Atoi(s[i+1:])
+		if err != nil {
+			return "", "", -1, fmt.Errorf("converting to int: %w", err)
+		}
+		return s[:i], "<", rh, nil
+	}
+	if i := strings.Index(s, ">"); i >= 0 {
+		rh, err := strconv.Atoi(s[i+1:])
+		if err != nil {
+			return "", "", -1, fmt.Errorf("converting to int: %w", err)
+		}
+		return s[:i], ">", rh, nil
+	}
+	return s, "", -1, nil
 }

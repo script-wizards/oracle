@@ -1,8 +1,8 @@
 tables:
   outside:
     - "A PC suddenly spots a ghostly owl gazing down from a tree. Save versus spells or fall into a faint for {1d6} turns."
-    - "{1d4} goblin with lanterns climb cautiously out of a trapdoor in the forest floor. They are seeking rare night-fruits."
-    - "A gust of wind whips the branches of the trees. PCs near tree must save versus paralysis or be struck for 1 damage. Light sources may go out: torches 4-in-6 chance {d6<5}, laterns 2-in-6 {d6<3}."
+    - "{1d6} goblins with lanterns climb cautiously out of a trapdoor in the forest floor. They are seeking rare night-fruits."
+    - "Light sources may go out: torches 4-in-6 chance {1d6<5}, lanterns 2-in-6 {1d6<3}."
     - 'A huge toad creeps over, eyes the PCs curiously, and croaks a single word: "Betrayal".'
   inside:
     - 'A vision of a woman, dressed in white. She appears and says "The ring... The ring holds the key", before disappearing.'
