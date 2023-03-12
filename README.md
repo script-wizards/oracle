@@ -8,7 +8,7 @@
 
 Oracle is a tool for picking random items from a table.
 
-![demo](examples/demo.gif)
+![demo](demo.gif)
 
 ## Installation
 
