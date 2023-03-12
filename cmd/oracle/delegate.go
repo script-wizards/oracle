@@ -45,11 +45,11 @@ func oracleStyles() (s list.DefaultItemStyles) {
 	s.SelectedTitle = lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder(), false, false, false, true).
 		BorderForeground(lipgloss.AdaptiveColor{Light: "#F793FF", Dark: "#ffa227"}).
-		Foreground(lipgloss.AdaptiveColor{Light: "#EE6FF8", Dark: "#ffa227"}).
+		Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#dddddd"}).
 		Padding(0, 0, 0, 1)
 
 	s.SelectedDesc = s.SelectedTitle.Copy().
-		Foreground(lipgloss.AdaptiveColor{Light: "#F793FF", Dark: "#ffa227"}).MaxHeight(21)
+		Foreground(lipgloss.AdaptiveColor{Light: "#A49FA5", Dark: "#777777"}).MaxHeight(21)
 
 	s.DimmedTitle = lipgloss.NewStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: "#A49FA5", Dark: "#777777"}).
@@ -67,7 +67,7 @@ func NewDelegate() Delegate {
 	return Delegate{
 		ShowDescription: true,
 		Styles:          oracleStyles(),
-		height:          7,
+		height:          21,
 		spacing:         1,
 	}
 }
@@ -176,13 +176,6 @@ func newItemDelegate(keys *delegateKeyMap) list.ItemDelegate {
 				chosen := table.Choose(data.Tables[title])
 				msg, _ := parseDice(chosen)
 				return m.NewStatusMessage(statusMessageStyle(msg))
-			case key.Matches(msg, keys.remove):
-				index := m.Index()
-				m.RemoveItem(index)
-				if len(m.Items()) == 0 {
-					keys.remove.SetEnabled(false)
-				}
-				return m.NewStatusMessage(statusMessageStyle("Deleted " + title))
 			}
 		}
 
@@ -228,10 +221,6 @@ func newDelegateKeyMap() *delegateKeyMap {
 		choose: key.NewBinding(
 			key.WithKeys("enter"),
 			key.WithHelp("enter", "choose"),
-		),
-		remove: key.NewBinding(
-			key.WithKeys("x", "backspace"),
-			key.WithHelp("x", "delete"),
 		),
 	}
 }

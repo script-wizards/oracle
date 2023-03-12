@@ -2,6 +2,31 @@ package table
 
 import "math/rand"
 
+var DefaultTable = map[string][]string{
+	"Oracle": {
+		"No, and…, and…",
+		"No, and…",
+		"No, and…",
+		"No, and…",
+		"No.",
+		"No, but…",
+		"No, but…",
+		"No, but…",
+		"Maybe, but…",
+		"Maybe.",
+		"Maybe.",
+		"Maybe, and…",
+		"Yes, but…",
+		"Yes, but…",
+		"Yes, but…",
+		"Yes.",
+		"Yes, and…",
+		"Yes, and…",
+		"Yes, and…",
+		"Yes, and…, and…",
+	},
+}
+
 func Choose(a []string) string {
 	return a[rand.Intn(len(a))]
 }

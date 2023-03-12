@@ -17,6 +17,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/script-wizards/oracle/internal/table"
 )
 
 type Data struct {
@@ -67,13 +68,18 @@ type model struct {
 var data Data
 
 func readYAML() []list.Item {
-	file, err := os.ReadFile("random-events.yaml")
-	if err != nil {
-		log.Fatal(err)
-	}
+	args := os.Args[1:]
+	if len(args) > 0 {
+		file, err := os.ReadFile(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	if err := yaml.Unmarshal(file, &data); err != nil {
-		log.Fatal(err)
+		if err := yaml.Unmarshal(file, &data); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		data.Tables = table.DefaultTable
 	}
 
 	var items []list.Item
