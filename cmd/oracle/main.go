@@ -11,40 +11,152 @@ import (
 	"time"
 
 	"github.com/justinian/dice"
-	"github.com/script-wizards/oracle/internal/table"
 	"gopkg.in/yaml.v3"
+
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type Data struct {
 	Tables map[string][]string `yaml:"tables"`
 }
 
-func main() {
+var (
+	appStyle = lipgloss.NewStyle().Padding(1, 2)
+
+	titleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#232323")).
+			Background(lipgloss.Color("#ffa227")).
+			Padding(0, 1)
+
+	statusMessageStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.AdaptiveColor{Light: "#ffa227", Dark: "#ffa227"}).
+				Render
+)
+
+type item struct {
+	title       string
+	description string
+}
+
+func (i item) Title() string       { return i.title }
+func (i item) Description() string { return i.description }
+func (i item) FilterValue() string { return i.title }
+
+type listKeyMap struct {
+	toggleHelpMenu key.Binding
+}
+
+func newListKeyMap() *listKeyMap {
+	return &listKeyMap{
+		toggleHelpMenu: key.NewBinding(
+			key.WithKeys("H"),
+			key.WithHelp("H", "toggle help"),
+		),
+	}
+}
+
+type model struct {
+	list         list.Model
+	keys         *listKeyMap
+	delegateKeys *delegateKeyMap
+}
+
+var data Data
+
+func readYAML() []list.Item {
 	file, err := os.ReadFile("random-events.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	out := Data{}
-	if err := yaml.Unmarshal(file, &out); err != nil {
+	if err := yaml.Unmarshal(file, &data); err != nil {
 		log.Fatal(err)
 	}
 
-	for name, table := range out.Tables {
-		fmt.Println(name)
-		for i, event := range table {
-			fmt.Printf("- %s: %s\n", strconv.Itoa(i+1), event)
+	var items []list.Item
+
+	for title, entries := range data.Tables {
+		var desc string
+		for i, entry := range entries {
+			desc += fmt.Sprintf("- %s: %s\n", strconv.Itoa(i+1), entry)
+		}
+		items = append(items, item{title: title, description: strings.TrimSuffix(desc, "\n")})
+	}
+	return items
+}
+
+func newModel() model {
+	var (
+		delegateKeys = newDelegateKeyMap()
+		listKeys     = newListKeyMap()
+	)
+
+	items := readYAML()
+
+	delegate := newItemDelegate(delegateKeys)
+	m := list.New(items, delegate, 0, 0)
+	m.Title = "Oracle"
+	m.Styles.Title = titleStyle
+	m.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			listKeys.toggleHelpMenu,
+		}
+	}
+	m.StatusMessageLifetime = 10 * time.Minute
+	m.SetShowStatusBar(false)
+
+	return model{
+		list:         m,
+		keys:         listKeys,
+		delegateKeys: delegateKeys,
+	}
+}
+
+func (m model) Init() tea.Cmd {
+	return tea.EnterAltScreen
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		h, v := appStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
+
+	case tea.KeyMsg:
+		if m.list.FilterState() == list.Filtering {
+			break
+		}
+
+		switch {
+		case key.Matches(msg, m.keys.toggleHelpMenu):
+			m.list.SetShowHelp(!m.list.ShowHelp())
+			return m, nil
 		}
 	}
 
-	rand.Seed(time.Now().Unix())
-	chosen := table.Choose(out.Tables["outside"])
+	newListModel, cmd := m.list.Update(msg)
+	m.list = newListModel
+	cmds = append(cmds, cmd)
 
-	result, nil := parseDice(chosen)
-	if err != nil {
-		log.Fatal(err)
+	return m, tea.Batch(cmds...)
+}
+
+func (m model) View() string {
+	return appStyle.Render(m.list.View())
+}
+
+func main() {
+	rand.Seed(time.Now().UTC().UnixNano())
+
+	if _, err := tea.NewProgram(newModel()).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
 	}
-	fmt.Println(result)
 }
 
 func findIndex(s string) (indices [][]int) {
