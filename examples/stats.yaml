@@ -1,0 +1,7 @@
+tables:
+  3d6 down the line:
+    - "\n[STR] {3d6}\n[DEX] {3d6}\n[CON] {3d6}\n[INT] {3d6}\n[WIS] {3d6}\n[CHA] {3d6}"
+  drop lowest:
+    - "\n[STR] {4d6d1}\n[DEX] {4d6d1}\n[CON] {4d6d1}\n[INT] {4d6d1}\n[WIS] {4d6d1}\n[CHA] {4d6d1}"
+  cairn:
+    - "\n[STR] {3d6}\n[DEX] {3d6}\n[WIL] {3d6}"

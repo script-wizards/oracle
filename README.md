@@ -18,7 +18,7 @@ go install github.com/script-wizards/sourcery/cmd/oracle
 
 You can run `oracle` with no arguments and it will load up a Yes/No oracle.
 
-You can create custom tables defined in YAML files. See [example](examples/random-events.yaml). Pass the file path as an argument.
+You can create custom tables defined in YAML files. See [examples](examples). Pass the file path as an argument.
 
 ```sh
 oracle random-events.yaml
