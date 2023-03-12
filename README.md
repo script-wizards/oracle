@@ -6,7 +6,7 @@
  █▄▄▄█ ▀ ▀▀ ▀  ▀ ▀▀▀ ▀▀▀ ▀▀▀
 ```
 
-This tool is designed for picking random items from a table.
+Oracle is a tool for picking random items from a table.
 
 ![demo](examples/demo.gif)
 
