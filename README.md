@@ -8,6 +8,8 @@
 
 This tool is designed for picking random items from a table.
 
+![demo](examples/demo.gif)
+
 ## Installation
 
 ```sh

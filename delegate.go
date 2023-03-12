@@ -67,7 +67,7 @@ func NewDelegate() Delegate {
 	return Delegate{
 		ShowDescription: true,
 		Styles:          oracleStyles(),
-		height:          21,
+		height:          7,
 		spacing:         1,
 	}
 }
