@@ -13,7 +13,7 @@ Oracle is a tool for picking random items from a table.
 ## Installation
 
 ```sh
-go install github.com/script-wizards/sourcery/cmd/oracle
+go install github.com/script-wizards/oracle
 ```
 
 ## Usage
