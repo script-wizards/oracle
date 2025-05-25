@@ -5,10 +5,11 @@
     "lib": ["ES2020"],
     "module": "CommonJS",
     "moduleResolution": "node",
-    "outDir": "dist/main",
+    "outDir": "dist",
+    "rootDir": "src",
     "noEmit": false,
     "jsx": "preserve"
   },
-  "include": ["src/main", "src/shared"],
+  "include": ["src/main/**/*", "src/shared/**/*"],
   "exclude": ["node_modules", "dist", "build", "src/renderer"]
 }

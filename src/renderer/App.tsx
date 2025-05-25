@@ -1,7 +1,8 @@
 import React, {useState, useEffect, useCallback} from "react";
 import {AppInfo, AppState, Table, RollResult} from "../shared/types";
 import {StorageService, createDefaultAppState} from "./services/StorageService";
-import "./services/StorageService.test"; // Import tests to make them available in console
+import {FileService} from "./services/FileService";
+import {rollOnTable} from "../shared/utils/TableRoller";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -11,6 +12,34 @@ const App: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
+
+  // File operation states
+  const [isSelectingVault, setIsSelectingVault] = useState(false);
+  const [isScanningFiles, setIsScanningFiles] = useState(false);
+  const [isParsingCodeBlocks, setIsParsingCodeBlocks] = useState(false);
+  const [isParsingTables, setIsParsingTables] = useState(false);
+  const [scanResults, setScanResults] = useState<{
+    fileCount: number;
+    estimatedSize: string;
+  } | null>(null);
+  const [codeBlockResults, setCodeBlockResults] = useState<{
+    totalFiles: number;
+    filesWithCodeBlocks: number;
+    totalCodeBlocks: number;
+    totalPerchanceBlocks: number;
+    validPerchanceBlocks: number;
+    invalidBlocks: number;
+    languages: string[];
+  } | null>(null);
+  const [parseResults, setParseResults] = useState<{
+    totalTables: number;
+    successfulTables: number;
+    failedTables: number;
+    filesProcessed: number;
+  } | null>(null);
+  const [fileOperationError, setFileOperationError] = useState<string | null>(
+    null
+  );
 
   // Initialize app state with default values
   const [appState, setAppState] = useState<AppState>(createDefaultAppState());
@@ -187,28 +216,229 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSelectVault = async () => {
+    if (!FileService.isElectronAPIAvailable()) {
+      setFileOperationError("File system access not available");
+      return;
+    }
+
+    try {
+      setIsSelectingVault(true);
+      setFileOperationError(null);
+
+      const selectedPath = await FileService.selectVaultFolder();
+
+      if (selectedPath) {
+        // Update app state with new vault path
+        await handleVaultPathChange(selectedPath);
+
+        // Automatically scan files after selection
+        await handleScanFiles(selectedPath);
+      }
+    } catch (error) {
+      console.error("Failed to select vault:", error);
+      setFileOperationError(
+        `Failed to select vault: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setIsSelectingVault(false);
+    }
+  };
+
+  const handleScanFiles = async (vaultPath?: string) => {
+    const pathToScan = vaultPath || appState.vaultPath;
+
+    if (!pathToScan) {
+      setFileOperationError("No vault path available to scan");
+      return;
+    }
+
+    if (!FileService.isElectronAPIAvailable()) {
+      setFileOperationError("File system access not available");
+      return;
+    }
+
+    try {
+      setIsScanningFiles(true);
+      setFileOperationError(null);
+
+      console.log("About to get vault stats for:", pathToScan);
+      const stats = await FileService.getVaultStats(pathToScan);
+      console.log("Received vault stats:", stats);
+
+      const newScanResults = {
+        fileCount: stats.totalFiles,
+        estimatedSize: stats.estimatedSize
+      };
+      console.log("Setting scan results to:", newScanResults);
+      setScanResults(newScanResults);
+
+      // Also parse code blocks automatically
+      console.log("Starting automatic code block parsing...");
+      const codeBlockStats = await FileService.getVaultCodeBlockStats(
+        pathToScan
+      );
+      console.log("Received code block stats:", codeBlockStats);
+
+      setCodeBlockResults({
+        totalFiles: codeBlockStats.totalFiles,
+        filesWithCodeBlocks: codeBlockStats.filesWithCodeBlocks,
+        totalCodeBlocks: codeBlockStats.totalCodeBlocks,
+        totalPerchanceBlocks: codeBlockStats.totalPerchanceBlocks,
+        validPerchanceBlocks: codeBlockStats.validPerchanceBlocks,
+        invalidBlocks: codeBlockStats.invalidBlocks,
+        languages: codeBlockStats.languages
+      });
+
+      // Update last scan time
+      setAppState((prev) => ({
+        ...prev,
+        lastScanTime: new Date()
+      }));
+      console.log(
+        "Updated app state with new scan time and code block analysis"
+      );
+    } catch (error) {
+      console.error("Failed to scan files:", error);
+      setFileOperationError(
+        `Failed to scan files: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+      setScanResults(null);
+      setCodeBlockResults(null);
+    } finally {
+      setIsScanningFiles(false);
+    }
+  };
+
+  const handleParseCodeBlocks = async (vaultPath?: string) => {
+    const pathToScan = vaultPath || appState.vaultPath;
+
+    if (!pathToScan) {
+      setFileOperationError("No vault path available to parse");
+      return;
+    }
+
+    if (!FileService.isElectronAPIAvailable()) {
+      setFileOperationError("File system access not available");
+      return;
+    }
+
+    try {
+      setIsParsingCodeBlocks(true);
+      setFileOperationError(null);
+
+      console.log("Starting to parse code blocks for:", pathToScan);
+      const codeBlockStats = await FileService.getVaultCodeBlockStats(
+        pathToScan
+      );
+      console.log("Received code block stats:", codeBlockStats);
+
+      setCodeBlockResults({
+        totalFiles: codeBlockStats.totalFiles,
+        filesWithCodeBlocks: codeBlockStats.filesWithCodeBlocks,
+        totalCodeBlocks: codeBlockStats.totalCodeBlocks,
+        totalPerchanceBlocks: codeBlockStats.totalPerchanceBlocks,
+        validPerchanceBlocks: codeBlockStats.validPerchanceBlocks,
+        invalidBlocks: codeBlockStats.invalidBlocks,
+        languages: codeBlockStats.languages
+      });
+
+      console.log("Code block parsing completed successfully");
+    } catch (error) {
+      console.error("Failed to parse code blocks:", error);
+      setFileOperationError(
+        `Failed to parse code blocks: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+      setCodeBlockResults(null);
+    } finally {
+      setIsParsingCodeBlocks(false);
+    }
+  };
+
+  const handleParseTables = async (vaultPath?: string) => {
+    const pathToScan = vaultPath || appState.vaultPath;
+
+    if (!pathToScan) {
+      setFileOperationError("No vault path available to parse tables");
+      return;
+    }
+
+    if (!FileService.isElectronAPIAvailable()) {
+      setFileOperationError("File system access not available");
+      return;
+    }
+
+    try {
+      setIsParsingTables(true);
+      setFileOperationError(null);
+
+      console.log("Starting to parse Perchance tables for:", pathToScan);
+      const parsedTables = await FileService.parseAllTablesFromVault(
+        pathToScan
+      );
+      console.log("Received parsed tables:", parsedTables);
+
+      // Count successful vs failed tables
+      const successfulTables = parsedTables.filter(
+        (table) => !table.errors || table.errors.length === 0
+      ).length;
+      const failedTables = parsedTables.filter(
+        (table) => table.errors && table.errors.length > 0
+      ).length;
+
+      // Get unique file paths to count files processed
+      const filesProcessed = new Set(
+        parsedTables.map((table) => table.filePath)
+      ).size;
+
+      setParseResults({
+        totalTables: parsedTables.length,
+        successfulTables,
+        failedTables,
+        filesProcessed
+      });
+
+      // Update app state with parsed tables (replace sample tables)
+      setAppState((prev) => ({
+        ...prev,
+        tables: parsedTables,
+        lastScanTime: new Date()
+      }));
+
+      console.log(
+        `Successfully parsed ${parsedTables.length} tables from vault`
+      );
+    } catch (error) {
+      console.error("Failed to parse tables:", error);
+      setFileOperationError(
+        `Failed to parse tables: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+      setParseResults(null);
+    } finally {
+      setIsParsingTables(false);
+    }
+  };
+
   const simulateRoll = () => {
     if (
       appState.selectedTableIndex >= 0 &&
       appState.tables[appState.selectedTableIndex]
     ) {
       const table = appState.tables[appState.selectedTableIndex];
-      const randomEntry =
-        table.entries[Math.floor(Math.random() * table.entries.length)];
+      console.log(`Rolling on table: "${table.title}"`);
 
-      const rollResult: RollResult = {
-        text: randomEntry,
-        subrolls: [
-          {
-            text: randomEntry,
-            type: "dice",
-            startIndex: 0,
-            endIndex: randomEntry.length
-          }
-        ],
-        errors: undefined
-      };
+      // Use the new table roller that resolves subtables
+      const rollResult = rollOnTable(table, appState.tables);
 
+      console.log("Roll result:", rollResult);
       setLastRollResult(rollResult);
     }
   };
@@ -306,6 +536,71 @@ const App: React.FC = () => {
               <p>
                 <strong>Tables Loaded:</strong> {appState.tables.length}
               </p>
+              {scanResults && (
+                <>
+                  <p>
+                    <strong>Files Found:</strong> {scanResults.fileCount}{" "}
+                    markdown files
+                  </p>
+                  <p>
+                    <strong>Estimated Size:</strong> {scanResults.estimatedSize}
+                  </p>
+                </>
+              )}
+              {codeBlockResults && (
+                <>
+                  <h4>📋 Code Block Analysis</h4>
+                  <p>
+                    <strong>Files with Code Blocks:</strong>{" "}
+                    {codeBlockResults.filesWithCodeBlocks} /{" "}
+                    {codeBlockResults.totalFiles}
+                  </p>
+                  <p>
+                    <strong>Total Code Blocks:</strong>{" "}
+                    {codeBlockResults.totalCodeBlocks}
+                  </p>
+                  <p>
+                    <strong>Perchance Blocks:</strong>{" "}
+                    {codeBlockResults.totalPerchanceBlocks}
+                  </p>
+                  <p>
+                    <strong>Valid Perchance Blocks:</strong>{" "}
+                    {codeBlockResults.validPerchanceBlocks}
+                  </p>
+                  {codeBlockResults.invalidBlocks > 0 && (
+                    <p>
+                      <strong>Invalid Blocks:</strong>{" "}
+                      {codeBlockResults.invalidBlocks}
+                    </p>
+                  )}
+                  {codeBlockResults.languages.length > 0 && (
+                    <p>
+                      <strong>Languages Found:</strong>{" "}
+                      {codeBlockResults.languages.join(", ")}
+                    </p>
+                  )}
+                </>
+              )}
+              {parseResults && (
+                <>
+                  <h4>🎲 Table Parsing Results</h4>
+                  <p>
+                    <strong>Tables Parsed:</strong> {parseResults.totalTables}
+                  </p>
+                  <p>
+                    <strong>Successful:</strong> {parseResults.successfulTables}
+                  </p>
+                  {parseResults.failedTables > 0 && (
+                    <p>
+                      <strong>Failed:</strong> {parseResults.failedTables}
+                    </p>
+                  )}
+                  <p>
+                    <strong>Files Processed:</strong>{" "}
+                    {parseResults.filesProcessed}
+                  </p>
+                </>
+              )}
               <p>
                 <strong>Last Scan:</strong>{" "}
                 {appState.lastScanTime
@@ -315,6 +610,12 @@ const App: React.FC = () => {
               <p>
                 <strong>Storage:</strong>{" "}
                 {storageAvailable ? "Available" : "Not available"}
+              </p>
+              <p>
+                <strong>File Access:</strong>{" "}
+                {FileService.isElectronAPIAvailable()
+                  ? "Available"
+                  : "Not available"}
               </p>
             </div>
           </div>
@@ -329,6 +630,32 @@ const App: React.FC = () => {
               className="vault-input"
             />
             <button
+              onClick={handleSelectVault}
+              disabled={
+                isSelectingVault || !FileService.isElectronAPIAvailable()
+              }
+              className="select-vault-button"
+              title="Select vault folder"
+            >
+              {isSelectingVault ? "🔍 Selecting..." : "📁 Select Vault"}
+            </button>
+            <button
+              onClick={() => handleScanFiles()}
+              disabled={isScanningFiles || !appState.vaultPath}
+              className="scan-files-button"
+              title="Scan vault for markdown files and analyze code blocks"
+            >
+              {isScanningFiles ? "🔄 Scanning..." : "🔍 Scan & Analyze"}
+            </button>
+            <button
+              onClick={() => handleParseTables()}
+              disabled={isParsingTables || !appState.vaultPath}
+              className="parse-tables-button"
+              title="Parse Perchance tables from code blocks"
+            >
+              {isParsingTables ? "🔄 Parsing..." : "🎲 Parse Tables"}
+            </button>
+            <button
               onClick={handleClearStorage}
               disabled={!storageAvailable}
               className="clear-storage-button"
@@ -337,6 +664,19 @@ const App: React.FC = () => {
               🗑️ Clear Storage
             </button>
           </div>
+
+          {/* File Operation Error Display */}
+          {fileOperationError && (
+            <div className="error-message">
+              <p>❌ {fileOperationError}</p>
+              <button
+                onClick={() => setFileOperationError(null)}
+                className="dismiss-error-button"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           {/* Search and Table Selection */}
           <div className="controls-section">

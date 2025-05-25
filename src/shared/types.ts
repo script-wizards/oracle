@@ -20,6 +20,10 @@ export const IPC_CHANNELS = {
     WINDOW_MINIMIZE: 'window-minimize',
     WINDOW_MAXIMIZE: 'window-maximize',
     WINDOW_CLOSE: 'window-close',
+    // File system operations
+    SELECT_VAULT_FOLDER: 'select-vault-folder',
+    SCAN_VAULT_FILES: 'scan-vault-files',
+    READ_FILE_CONTENT: 'read-file-content',
 } as const;
 
 export type IpcChannel = typeof IPC_CHANNELS[keyof typeof IPC_CHANNELS];
@@ -29,6 +33,16 @@ export type IpcChannel = typeof IPC_CHANNELS[keyof typeof IPC_CHANNELS];
 // ============================================================================
 
 /**
+ * Represents a parsed table section from Perchance syntax
+ */
+export interface TableSection {
+    /** The name/identifier of the table section */
+    name: string;
+    /** The entries in this table section */
+    entries: string[];
+}
+
+/**
  * Represents a parsed random table with all its metadata and content
  */
 export interface Table {
@@ -36,8 +50,10 @@ export interface Table {
     id: string;
     /** Display title of the table */
     title: string;
-    /** Array of table entries/outcomes */
+    /** Array of table entries/outcomes (for backward compatibility) */
     entries: string[];
+    /** Parsed sections from the Perchance table */
+    sections?: TableSection[];
     /** Names of subtables referenced by this table */
     subtables: string[];
     /** File path where this table was found */

@@ -1,24 +1,48 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IPC_CHANNELS, AppInfo } from '../shared/types';
+
+console.log('Preload script starting...');
+
+// Define IPC channels directly to avoid import issues
+const IPC_CHANNELS = {
+    GET_APP_INFO: 'get-app-info',
+    WINDOW_MINIMIZE: 'window-minimize',
+    WINDOW_MAXIMIZE: 'window-maximize',
+    WINDOW_CLOSE: 'window-close',
+    // File system operations
+    SELECT_VAULT_FOLDER: 'select-vault-folder',
+    SCAN_VAULT_FILES: 'scan-vault-files',
+    READ_FILE_CONTENT: 'read-file-content',
+};
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
     // App info
-    getAppInfo: (): Promise<AppInfo> => ipcRenderer.invoke(IPC_CHANNELS.GET_APP_INFO),
+    getAppInfo: (): Promise<any> => ipcRenderer.invoke(IPC_CHANNELS.GET_APP_INFO),
 
     // Window controls
     minimizeWindow: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
     maximizeWindow: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MAXIMIZE),
     closeWindow: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
+
+    // File system operations
+    selectVaultFolder: (): Promise<string | null> => ipcRenderer.invoke(IPC_CHANNELS.SELECT_VAULT_FOLDER),
+    scanVaultFiles: (vaultPath: string): Promise<string[]> => ipcRenderer.invoke(IPC_CHANNELS.SCAN_VAULT_FILES, vaultPath),
+    readFileContent: (filePath: string): Promise<string> => ipcRenderer.invoke(IPC_CHANNELS.READ_FILE_CONTENT, filePath),
 });
+
+console.log('Preload script completed. electronAPI should be exposed.');
 
 // Type definitions for the exposed API
 export interface ElectronAPI {
-    getAppInfo: () => Promise<AppInfo>;
+    getAppInfo: () => Promise<any>;
     minimizeWindow: () => Promise<void>;
     maximizeWindow: () => Promise<void>;
     closeWindow: () => Promise<void>;
+    // File system operations
+    selectVaultFolder: () => Promise<string | null>;
+    scanVaultFiles: (vaultPath: string) => Promise<string[]>;
+    readFileContent: (filePath: string) => Promise<string>;
 }
 
 // Extend the Window interface to include our API

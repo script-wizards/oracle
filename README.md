@@ -1,149 +1,159 @@
 # Random Table Roller
 
-A desktop random table roller application built with Electron, React, and TypeScript. Perfect for tabletop gaming enthusiasts who need quick access to random tables and generators.
+A desktop application for tabletop gaming that parses and rolls on random tables using Perchance syntax.
 
 ## Features
 
-- 🎲 **Roll Tables**: Create and roll custom random tables for your games
-- 📚 **Library**: Organize your tables in collections and categories
-- ⚡ **Quick Roll**: Fast access to your most-used tables
-- 💾 **Save Results**: Keep track of your roll history and results
-- 🖥️ **Cross-Platform**: Works on Windows, macOS, and Linux
-- 🎨 **Modern UI**: Beautiful and intuitive interface
+- **Perchance Table Parsing**: Parse tables from markdown files using Perchance syntax
+- **Subtable Resolution**: Automatically resolve nested table references like `[encounter]` and `[treasure]`
+- **Vault Management**: Scan and manage collections of markdown files containing tables
+- **Cross-Platform**: Built with Electron for Windows, macOS, and Linux
+- **Local Storage**: Persistent storage of vault paths and table data
 
-## Tech Stack
+## Quick Start
 
-- **Electron**: Cross-platform desktop app framework
-- **React**: UI library for building user interfaces
-- **TypeScript**: Type-safe JavaScript development
-- **Vite**: Fast build tool and development server
-- **CSS3**: Modern styling with gradients and animations
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd random-table-roller
+
+# Install dependencies
+npm install
+
+# Run in development mode
+npm run dev
+```
+
+### First Use
+
+1. Click "📁 Select Vault" to choose a folder with markdown files
+2. Click "🔍 Scan & Analyze" to find tables
+3. Click "🎲 Parse Tables" to load them
+4. Select a table and click "🎲 Roll Table" to test
+
+## Documentation
+
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Technical architecture and design patterns
+- **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development workflow and testing guide
+
+## Table Format
+
+Tables should be written in Perchance syntax within markdown code blocks:
+
+````markdown
+```perchance
+title
+  Forest Encounters
+
+output
+  You encounter [encounter]
+
+encounter
+  A pack of wolves
+  A wandering merchant
+  An ancient tree spirit
+  Bandits demanding toll
+```
+````
+
+### Subtables
+
+Tables can reference other sections or external tables:
+
+````markdown
+```perchance
+title
+  Minor Treasures
+
+output
+  You find [treasure]
+
+treasure
+  [gold] gold pieces
+  [gems]
+  [items]
+
+gold
+  2d6
+  1d10+5
+  3d4
+
+gems
+  A small ruby
+  An emerald shard
+  A polished sapphire
+
+items
+  A masterwork dagger (+1 to hit)
+  A potion of healing
+  A scroll of magic missile
+```
+````
 
 ## Project Structure
 
 ```
 src/
 ├── main/           # Electron main process
-│   ├── main.ts     # Main application entry point
-│   └── preload.ts  # Preload script for secure IPC
-├── renderer/       # React renderer process
-│   ├── App.tsx     # Main React component
-│   ├── App.css     # Component styles
-│   ├── index.html  # HTML template
-│   ├── index.css   # Global styles
-│   └── main.tsx    # React entry point
+├── renderer/       # React frontend
 └── shared/         # Shared types and utilities
-    └── types.ts    # TypeScript type definitions
+    ├── types.ts    # TypeScript interfaces
+    └── utils/
+        ├── PerchanceParser.ts  # Table parsing logic
+        └── TableRoller.ts      # Rolling and resolution logic
 ```
 
-## Prerequisites
+## Key Components
 
-- Node.js (v16 or higher)
-- npm or yarn package manager
+### PerchanceParser
 
-## Installation
+- Parses Perchance syntax from markdown code blocks
+- Extracts table sections, entries, and subtable references
+- Validates table structure and reports errors
 
-1. Clone the repository:
+### TableRoller
 
-   ```bash
-   git clone <repository-url>
-   cd random-table-roller
-   ```
+- Rolls on tables with proper subtable resolution
+- Supports both local section references and external table references
+- Prevents infinite recursion with depth limits
 
-2. Install dependencies:
+### Table Interface
 
-   ```bash
-   npm install
-   ```
+```typescript
+interface Table {
+  id: string;
+  title: string;
+  entries: string[];           // Backward compatibility
+  sections?: TableSection[];   // Full section structure
+  subtables: string[];
+  filePath: string;
+  codeBlockIndex: number;
+  errors?: string[];
+}
+```
 
 ## Development
 
-Start the development server:
+### Available Scripts
 
-```bash
-npm run dev
-```
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run dist` - Package for distribution
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests
 
-This will:
+### Architecture
 
-- Start the Vite development server for the React app
-- Compile the TypeScript main process
-- Launch Electron with hot reload enabled
-- Open DevTools automatically in development mode
-
-## Building
-
-Build the application for production:
-
-```bash
-npm run build
-```
-
-This creates optimized builds in the `dist/` directory.
-
-## Packaging
-
-Create distributable packages:
-
-```bash
-npm run package
-```
-
-This will create platform-specific installers in the `build/` directory.
-
-## Scripts
-
-- `npm run dev` - Start development mode with hot reload
-- `npm run dev:renderer` - Start only the Vite dev server
-- `npm run dev:main` - Compile and run only the Electron main process
-- `npm run build` - Build both renderer and main processes
-- `npm run build:renderer` - Build only the React app
-- `npm run build:main` - Build only the Electron main process
-- `npm run start` - Start the built application
-- `npm run package` - Create distributable packages
-- `npm run clean` - Clean build artifacts
-
-## Configuration
-
-### Window Settings
-
-The main window is configured with:
-
-- Default size: 800x600 pixels
-- Minimum size: 600x400 pixels
-- Resizable: Yes
-- Title: "Random Table Roller"
-- DevTools: Enabled in development mode only
-
-### Security
-
-The application follows Electron security best practices:
-
-- Context isolation enabled
-- Node integration disabled in renderer
-- Secure preload script for IPC communication
-- Content Security Policy configured
-
-## Development Notes
-
-### TypeScript Configuration
-
-- Strict mode enabled for type safety
-- Separate configurations for main and renderer processes
-- Shared types in the `src/shared` directory
-
-### IPC Communication
-
-The app uses Electron's IPC (Inter-Process Communication) for secure communication between the main and renderer processes. Available channels:
-
-- `get-app-info`: Get application information
-- `window-minimize`: Minimize the window
-- `window-maximize`: Maximize/restore the window
-- `window-close`: Close the window
-
-### Hot Reload
-
-In development mode, the renderer process connects to the Vite dev server for hot module replacement. The main process is recompiled and restarted when changes are detected.
+- **Main Process**: Handles file system operations and window management
+- **Renderer Process**: React-based UI for table management and rolling
+- **IPC Communication**: Secure communication between main and renderer processes
 
 ## Contributing
 
@@ -155,15 +165,10 @@ In development mode, the renderer process connects to the Vite dev server for ho
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+[Add your license here]
 
-## Roadmap
+## Acknowledgments
 
-- [ ] Table creation and editing interface
-- [ ] Import/export functionality
-- [ ] Roll history tracking
-- [ ] Custom dice notation support
-- [ ] Table categories and tags
-- [ ] Search and filter functionality
-- [ ] Backup and sync options
-- [ ] Plugin system for custom generators
+- Built with [Electron](https://electronjs.org/)
+- UI powered by [React](https://reactjs.org/)
+- Inspired by [Perchance](https://perchance.org/) table syntax

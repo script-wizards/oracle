@@ -1,7 +1,7 @@
 {
   "name": "random-table-roller",
   "version": "1.0.0",
-  "description": "A desktop random table roller application built with Electron, React, and TypeScript",
+  "description": "A desktop application for tabletop gaming that parses and rolls on random tables using Perchance syntax",
   "main": "dist/main/main.js",
   "homepage": "./",
   "scripts": {
@@ -22,7 +22,12 @@
     "random",
     "table",
     "roller",
-    "desktop"
+    "desktop",
+    "tabletop",
+    "gaming",
+    "perchance",
+    "rpg",
+    "dnd"
   ],
   "author": "Your Name",
   "license": "MIT",

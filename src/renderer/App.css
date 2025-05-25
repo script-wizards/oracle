@@ -115,12 +115,14 @@
   overflow-y: auto;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  min-height: 0;
 }
 
 .welcome-section {
   max-width: 800px;
   text-align: center;
+  width: 100%;
 }
 
 .welcome-section h2 {
@@ -242,13 +244,36 @@
 
   .action-section {
     flex-direction: column;
-    align-items: center;
   }
 
   .primary-button,
   .secondary-button {
     width: 100%;
-    max-width: 300px;
+  }
+}
+
+/* Additional responsive styles for very small windows */
+@media (max-height: 600px) {
+  .app-main {
+    padding: 1rem 2rem;
+  }
+
+  .welcome-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .welcome-section > p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-card {
+    padding: 1rem;
+  }
+
+  .vault-controls {
+    gap: 0.5rem;
   }
 }
 
@@ -436,6 +461,69 @@
   outline: none;
   border-color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.15);
+}
+
+.select-vault-button,
+.scan-files-button {
+  padding: 0.75rem 1rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.select-vault-button:hover:not(:disabled),
+.scan-files-button:hover:not(:disabled) {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+.select-vault-button:disabled,
+.scan-files-button:disabled {
+  background-color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.scan-files-button {
+  background-color: #2196f3;
+}
+
+.scan-files-button:hover:not(:disabled) {
+  background-color: #1976d2;
+}
+
+.parse-tables-button {
+  padding: 0.75rem 1rem;
+  background-color: #9c27b0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.parse-tables-button:hover:not(:disabled) {
+  background-color: #7b1fa2;
+  transform: translateY(-2px);
+}
+
+.parse-tables-button:disabled {
+  background-color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  transform: none;
 }
 
 .clear-storage-button {
@@ -641,4 +729,40 @@
 .table-card .errors {
   color: #ff6b6b;
   font-weight: bold;
+}
+
+/* Error Message */
+.error-message {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.error-message p {
+  margin: 0;
+  color: #ff6b6b;
+  font-weight: 500;
+}
+
+.dismiss-error-button {
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dismiss-error-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
 }
