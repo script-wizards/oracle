@@ -251,3 +251,114 @@
     max-width: 300px;
   }
 }
+
+/* Controls Section */
+.controls-section {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  min-width: 200px;
+}
+
+.table-select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  min-width: 250px;
+}
+
+.roll-button {
+  padding: 0.5rem 1rem;
+  background-color: #007acc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.roll-button:hover:not(:disabled) {
+  background-color: #005a9e;
+}
+
+.roll-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Roll Result */
+.roll-result {
+  margin: 2rem 0;
+  padding: 1rem;
+  background-color: #f0f8ff;
+  border: 1px solid #007acc;
+  border-radius: 4px;
+}
+
+.result-text {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #005a9e;
+  margin: 0.5rem 0;
+}
+
+/* State Display */
+.state-display {
+  margin: 2rem 0;
+  padding: 1rem;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.state-json {
+  background-color: #fff;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Tables Display */
+.tables-display {
+  margin: 2rem 0;
+}
+
+.table-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.table-card p {
+  margin: 0.25rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.table-card .errors {
+  color: #d32f2f;
+  font-weight: bold;
+}
