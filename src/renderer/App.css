@@ -54,76 +54,6 @@
   flex: 0 0 auto;
 }
 
-.vault-name-button {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 80px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.vault-name-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-1px);
-}
-
-.vault-name-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.table-count {
-  background: var(--accent-color);
-  color: white;
-  padding: 0 0.25rem;
-  border-radius: 3px;
-  font-size: 0.65rem;
-  font-weight: 500;
-  white-space: nowrap;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.refresh-button {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  width: 26px;
-  height: 26px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.refresh-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-1px);
-}
-
-.refresh-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .header-controls {
   display: flex;
   align-items: center;
@@ -450,24 +380,6 @@
   .vault-controls {
     gap: 0.25rem;
     flex-shrink: 0;
-  }
-
-  .vault-name-button {
-    font-size: 0.65rem;
-    padding: 0.15rem 0.3rem;
-    height: 22px;
-    max-width: 70px;
-  }
-
-  .table-count {
-    font-size: 0.6rem;
-    padding: 0 0.2rem;
-  }
-
-  .refresh-button {
-    width: 24px;
-    height: 24px;
-    font-size: 0.7rem;
   }
 
   .header-controls {
