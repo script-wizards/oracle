@@ -301,6 +301,33 @@
     opacity: 0.9;
     color: rgba(255, 255, 255, 0.8);
   }
+
+  /* Make subtables more touch-friendly */
+  .clickable-subtable {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Mobile help icon adjustments */
+  .help-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .help-symbol {
+    font-size: 12px;
+  }
+
+  .help-tooltip {
+    min-width: 220px;
+    padding: 12px 14px;
+  }
+
+  .help-tip {
+    font-size: 12px;
+  }
 }
 
 /* Additional responsive styles for very small windows */
@@ -881,6 +908,25 @@
   text-align: center;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   cursor: default;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.roll-result-spotlight.interactive.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.roll-result-spotlight.interactive.clickable:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.roll-result-spotlight.interactive.clickable:active {
+  transform: translateY(0px);
+  transition: transform 0.1s ease;
 }
 
 .roll-result-spotlight.interactive .result-text {
@@ -963,6 +1009,12 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* Enhanced hover effects for interactive clickable results */
+.roll-result-spotlight.interactive.clickable:hover .reroll-hint {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 /* Mobile adjustments for interactive results */
 @media (max-width: 768px) {
   .roll-result-spotlight.interactive {
@@ -998,4 +1050,126 @@
     align-items: center;
     justify-content: center;
   }
+
+  /* Mobile help icon adjustments */
+  .help-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .help-symbol {
+    font-size: 12px;
+  }
+
+  .help-tooltip {
+    min-width: 220px;
+    padding: 12px 14px;
+  }
+
+  .help-tip {
+    font-size: 12px;
+  }
+}
+
+/* Interactive Result Container */
+.interactive-result-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 700px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Help Icon and Tooltip */
+.result-help {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 999999;
+}
+
+.help-icon {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  z-index: 999999;
+}
+
+.help-icon:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.help-symbol {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.help-tooltip {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 999999;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.help-icon:hover .help-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.help-tooltip::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 12px;
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+.help-tip {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 4px 0;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.help-tip:first-child {
+  margin-top: 0;
+}
+
+.help-tip:last-child {
+  margin-bottom: 0;
+}
+
+/* Interactive result container responsive */
+.interactive-result-container {
+  max-width: 100%;
 }

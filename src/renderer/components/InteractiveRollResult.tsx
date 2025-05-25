@@ -107,25 +107,47 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
   const subtableCount =
     rollResult.subrolls?.filter((s) => s.type === "subtable").length || 0;
 
+  // Handle clicks on the result box (for full reroll)
+  const handleResultBoxClick = (e: React.MouseEvent) => {
+    // Only trigger full reroll if the click wasn't on a subtable element
+    if (!(e.target as HTMLElement).closest(".clickable-subtable")) {
+      onReroll();
+    }
+  };
+
   return (
-    <div className="roll-result-spotlight interactive">
-      <div className="result-content">
-        <div className="result-text">{renderInteractiveText()}</div>
-        <div className="reroll-hints">
-          {subtableCount > 0 ? (
-            <>
-              <div className="reroll-hint primary">
-                🎯 Click highlighted parts to reroll individual results
-              </div>
-              <div className="reroll-hint secondary" onClick={onReroll}>
-                🎲 Click here to reroll everything
-              </div>
-            </>
-          ) : (
-            <div className="reroll-hint primary" onClick={onReroll}>
-              🎲 Click to reroll
+    <div className="interactive-result-container">
+      <div
+        className="roll-result-spotlight interactive clickable"
+        onClick={handleResultBoxClick}
+        title={
+          subtableCount > 0
+            ? "Click anywhere to reroll everything, or click highlighted parts to reroll individual results"
+            : "Click to reroll"
+        }
+      >
+        <div className="result-content">
+          <div className="result-text">{renderInteractiveText()}</div>
+        </div>
+
+        <div className="result-help">
+          <div className="help-icon" title="How to reroll">
+            <span className="help-symbol">?</span>
+            <div className="help-tooltip">
+              {subtableCount > 0 ? (
+                <>
+                  <div className="help-tip">
+                    Click highlighted parts to reroll individual results
+                  </div>
+                  <div className="help-tip">
+                    Click anywhere else to reroll everything
+                  </div>
+                </>
+              ) : (
+                <div className="help-tip">Click to reroll</div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
