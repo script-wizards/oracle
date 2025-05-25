@@ -78,7 +78,6 @@ const TableList: React.FC<TableListProps> = ({
     return (
       <div className="table-list empty">
         <div className="empty-state">
-          <div className="empty-icon">🎲</div>
           <div className="empty-message">
             {searchQuery ? "No tables found" : "No tables loaded"}
           </div>

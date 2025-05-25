@@ -84,7 +84,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className="search-bar spotlight-style">
       <div className="search-input-container">
-        <div className="search-icon">🔍</div>
         <input
           ref={inputRef}
           type="text"

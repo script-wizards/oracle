@@ -389,7 +389,20 @@ const App: React.FC = () => {
         await handleVaultPathChange(selectedPath);
 
         // Automatically scan files after selection
-        await handleScanFiles(selectedPath);
+        try {
+          await handleScanFiles(selectedPath);
+
+          // Automatically parse tables after scanning (only if scanning succeeded)
+          try {
+            await handleParseTables(selectedPath);
+          } catch (parseError) {
+            console.error("Failed to parse tables:", parseError);
+            // Don't throw here, just log the error - scanning was successful
+          }
+        } catch (scanError) {
+          console.error("Failed to scan files:", scanError);
+          // Don't try to parse if scanning failed
+        }
       }
     } catch (error) {
       console.error("Failed to select vault:", error);
@@ -517,8 +530,8 @@ const App: React.FC = () => {
     }
   };
 
-  const handleParseTables = async () => {
-    const pathToScan = appState.vaultPath;
+  const handleParseTables = async (vaultPath?: string) => {
+    const pathToScan = vaultPath || appState.vaultPath;
 
     if (!pathToScan) {
       setFileOperationError("No vault path available to parse tables from");
@@ -645,143 +658,147 @@ const App: React.FC = () => {
         <div className="title-bar">
           <h1 className="app-title">Random Table Roller</h1>
           {appInfo && (
-            <div className="app-info">
-              <span className="version">v{appInfo.version}</span>
-              {appInfo.isDev && <span className="dev-badge">DEV</span>}
-              {storageAvailable && (
-                <span className="storage-status">
-                  {getSaveStatusIcon()} {getSaveStatusText()}
-                </span>
-              )}
+            <div className="app-info-minimal">
+              <span className="version-minimal">v{appInfo.version}</span>
+              {appInfo.isDev && <span className="dev-badge-minimal">DEV</span>}
             </div>
           )}
         </div>
 
-        {/* Custom window controls (optional - for custom title bar) */}
-        <div className="window-controls">
-          <button
-            className="window-control minimize"
-            onClick={handleMinimize}
-            title="Minimize"
-          >
-            −
-          </button>
-          <button
-            className="window-control maximize"
-            onClick={handleMaximize}
-            title="Maximize"
-          >
-            □
-          </button>
-          <button
-            className="window-control close"
-            onClick={handleClose}
-            title="Close"
-          >
-            ×
-          </button>
+        <div className="header-controls">
+          {storageAvailable && (
+            <button
+              onClick={handleClearStorage}
+              className="header-button clear-storage"
+              title="Clear all stored data"
+            >
+              Clear Storage
+            </button>
+          )}
+
+          {/* Custom window controls (optional - for custom title bar) */}
+          {window.electronAPI && (
+            <div className="window-controls">
+              <button
+                className="window-control minimize"
+                onClick={handleMinimize}
+                title="Minimize"
+              >
+                −
+              </button>
+              <button
+                className="window-control maximize"
+                onClick={handleMaximize}
+                title="Maximize"
+              >
+                □
+              </button>
+              <button
+                className="window-control close"
+                onClick={handleClose}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
       <main className="app-main">
         <div className="welcome-section">
-          <h2>Welcome to Random Table Roller</h2>
-          <p>Your desktop companion for tabletop gaming random tables.</p>
-
-          {/* Storage and Vault Info */}
-          <div className="info-section">
-            <div className="info-card">
-              <h3>📁 Vault Status</h3>
-              <p>
-                <strong>Path:</strong> {appState.vaultPath || "Not set"}
+          {/* Welcome and Setup - Only when no vault is selected */}
+          {!appState.vaultPath && (
+            <div className="welcome-setup">
+              <p className="welcome-description">
+                Roll on random tables from your Obsidian vault. Search through
+                your tables, click to roll instantly, and get interactive
+                results with clickable subtables. We support a subset of{" "}
+                <a
+                  href="https://perchance.org/tutorial"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="perchance-link"
+                >
+                  Perchance syntax
+                </a>{" "}
+                for creating dynamic tables.
               </p>
-              <p>
-                <strong>Tables:</strong> {appState.tables.length} loaded
-              </p>
-              {scanResults && (
-                <p>
-                  <strong>Files:</strong> {scanResults.fileCount} markdown files
-                  ({scanResults.estimatedSize})
-                </p>
-              )}
-              {codeBlockResults && (
-                <p>
-                  <strong>Perchance Blocks:</strong>{" "}
-                  {codeBlockResults.validPerchanceBlocks} valid,{" "}
-                  {codeBlockResults.invalidBlocks} invalid
-                </p>
-              )}
-              {parseResults && (
-                <p>
-                  <strong>Parse Results:</strong>{" "}
-                  {parseResults.successfulTables} successful,{" "}
-                  {parseResults.failedTables} failed from{" "}
-                  {parseResults.filesProcessed} files
-                </p>
-              )}
-              <p>
-                <strong>Last Scan:</strong>{" "}
-                {appState.lastScanTime
-                  ? appState.lastScanTime.toLocaleString()
-                  : "Never"}
+              <p className="setup-instruction">
+                Get started by{" "}
+                <button
+                  onClick={handleSelectVault}
+                  disabled={
+                    isSelectingVault || !FileService.isElectronAPIAvailable()
+                  }
+                  className="inline-vault-button"
+                  title="Select vault folder"
+                >
+                  {isSelectingVault ? "selecting..." : "selecting your vault"}
+                </button>{" "}
+                to load your random tables.
               </p>
             </div>
-          </div>
+          )}
 
-          {/* Vault Path Input */}
-          <div className="vault-controls">
-            <input
-              type="text"
-              placeholder="Enter vault path..."
-              value={appState.vaultPath || ""}
-              onChange={(e) => handleVaultPathChange(e.target.value)}
-              className="vault-input"
-            />
-            <button
-              onClick={handleSelectVault}
-              disabled={
-                isSelectingVault || !FileService.isElectronAPIAvailable()
-              }
-              className="select-vault-button"
-              title="Select vault folder"
-            >
-              {isSelectingVault ? "🔍 Selecting..." : "📁 Select Vault"}
-            </button>
-            <button
-              onClick={() => handleScanFiles()}
-              disabled={isScanningFiles || !appState.vaultPath}
-              className="scan-files-button"
-              title="Scan vault for markdown files and analyze code blocks"
-            >
-              {isScanningFiles ? "🔄 Scanning..." : "🔍 Scan & Analyze"}
-            </button>
-            <button
-              onClick={handleParseTables}
-              disabled={isParsingTables || !appState.vaultPath}
-              className="parse-tables-button"
-              title="Parse Perchance tables from code blocks"
-            >
-              {isParsingTables ? "🔄 Parsing..." : "🎲 Parse Tables"}
-            </button>
-            <button
-              onClick={handleClearStorage}
-              disabled={!storageAvailable}
-              className="clear-storage-button"
-              title="Clear all stored data"
-            >
-              🗑️ Clear Storage
-            </button>
-          </div>
+          {/* Quick Actions - Only when vault is selected */}
+          {appState.vaultPath && (
+            <div className="vault-status-compact">
+              <div className="vault-info">
+                <span className="vault-path">
+                  {appState.vaultPath.split("/").pop()}
+                </span>
+                <span className="table-count">
+                  {appState.tables.length} tables
+                </span>
+                <div className="vault-actions">
+                  <button
+                    onClick={async () => {
+                      try {
+                        await handleScanFiles();
+                        // Only parse tables if scanning succeeded
+                        try {
+                          await handleParseTables();
+                        } catch (parseError) {
+                          console.error("Failed to parse tables:", parseError);
+                          // Don't throw here, just log the error - scanning was successful
+                        }
+                      } catch (scanError) {
+                        console.error("Failed to scan files:", scanError);
+                        // Don't try to parse if scanning failed
+                      }
+                    }}
+                    disabled={
+                      isScanningFiles || isParsingTables || !appState.vaultPath
+                    }
+                    className="vault-icon-button refresh-vault"
+                    title="Refresh vault and parse tables"
+                  >
+                    {isScanningFiles || isParsingTables ? "⟳" : "↻"}
+                  </button>
+
+                  <button
+                    onClick={handleSelectVault}
+                    disabled={isSelectingVault}
+                    className="vault-icon-button change-vault"
+                    title="Select a different vault"
+                  >
+                    📁
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* File Operation Error Display */}
           {fileOperationError && (
-            <div className="error-message">
-              <p>❌ {fileOperationError}</p>
+            <div className="error-message-compact">
+              <span>❌ {fileOperationError}</span>
               <button
                 onClick={() => setFileOperationError(null)}
-                className="dismiss-error-button"
+                className="dismiss-error"
               >
-                Dismiss
+                ×
               </button>
             </div>
           )}
@@ -846,15 +863,6 @@ const App: React.FC = () => {
           </div>
         </div>
       </main>
-
-      <footer className="app-footer">
-        <p>Ready to enhance your tabletop gaming experience!</p>
-        {!storageAvailable && (
-          <p className="storage-warning">
-            ⚠️ Local storage is not available. Settings will not persist.
-          </p>
-        )}
-      </footer>
     </div>
   );
 };

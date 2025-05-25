@@ -4,20 +4,20 @@
 }
 
 .search-bar.spotlight-style {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 16px 20px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .search-bar.spotlight-style:focus-within {
-  background: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .search-input-container {
@@ -27,28 +27,19 @@
   position: relative;
 }
 
-.search-icon {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.6);
-  transition: color 0.2s ease;
-  flex-shrink: 0;
-}
-
-.search-bar.spotlight-style:focus-within .search-icon {
-  color: rgba(255, 255, 255, 0.9);
-}
-
 .search-input {
   flex: 1;
   border: none;
   outline: none;
-  background: transparent;
+  background: transparent !important;
   font-size: 17px;
-  padding: 0;
-  color: white;
+  padding: 0 0 0 4px;
+  color: white !important;
   font-weight: 400;
   line-height: 1.4;
   min-height: 24px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .search-input::placeholder {
@@ -87,21 +78,21 @@
 
 .search-hint {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
   text-align: center;
   margin-top: 12px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 10px;
   font-weight: 300;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   transition: all 0.2s ease;
 }
 
 .search-bar.spotlight-style:focus-within .search-hint {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Responsive design */
@@ -115,10 +106,7 @@
     font-size: 16px; /* Prevent zoom on iOS */
     min-height: 24px; /* Better touch target */
     line-height: 1.4;
-  }
-
-  .search-icon {
-    font-size: 18px; /* Slightly larger for mobile */
+    padding: 0 0 0 6px; /* Slightly more padding on mobile */
   }
 
   .clear-button {
@@ -165,41 +153,10 @@
   }
 
   .search-input {
-    color: #000;
+    color: #000 !important;
   }
 
   .search-input::placeholder {
-    color: #666;
-  }
-
-  .search-icon {
-    color: #333;
-  }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .search-input {
-    background: #2c3e50;
-    color: #ecf0f1;
-    border-color: #34495e;
-  }
-
-  .search-input:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-  }
-
-  .search-input::placeholder {
-    color: #7f8c8d;
-  }
-
-  .clear-button {
-    color: #7f8c8d;
-  }
-
-  .clear-button:hover {
-    color: #e74c3c;
-    background: rgba(231, 76, 60, 0.2);
+    color: #666 !important;
   }
 }
