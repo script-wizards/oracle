@@ -864,3 +864,138 @@
 }
 
 /* Show reroll hint on mobile since there's no hover */
+.roll-result-spotlight.clickable .reroll-hint {
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Interactive Roll Result Styles */
+.roll-result-spotlight.interactive {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  padding: 24px 28px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInFromTop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  cursor: default;
+}
+
+.roll-result-spotlight.interactive .result-text {
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Clickable subtable results */
+.clickable-subtable {
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin: 0 1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-block;
+  position: relative;
+}
+
+.clickable-subtable:hover {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: rgba(76, 175, 80, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.clickable-subtable:active {
+  transform: translateY(0);
+  background: rgba(76, 175, 80, 0.4);
+}
+
+/* Static text parts */
+.static-text {
+  color: white;
+}
+
+.full-result-text.clickable-text {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.full-result-text.clickable-text:hover {
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Reroll hints for interactive results */
+.reroll-hints {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reroll-hint.primary {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.reroll-hint.secondary {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.reroll-hint.secondary:hover {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Mobile adjustments for interactive results */
+@media (max-width: 768px) {
+  .roll-result-spotlight.interactive {
+    padding: 20px 24px;
+  }
+
+  .roll-result-spotlight.interactive .result-text {
+    font-size: 18px;
+  }
+
+  .clickable-subtable {
+    padding: 3px 8px;
+    margin: 0 2px;
+    border-radius: 8px;
+  }
+
+  .reroll-hints {
+    margin-top: 14px;
+  }
+
+  .reroll-hint.primary {
+    font-size: 12px;
+  }
+
+  .reroll-hint.secondary {
+    font-size: 11px;
+  }
+
+  /* Make subtables more touch-friendly */
+  .clickable-subtable {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

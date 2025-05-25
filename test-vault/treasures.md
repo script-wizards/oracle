@@ -15,9 +15,7 @@ treasure
   [items]
 gold
   2d6
-  3d4
   1d10+5
-  1d8+2
 gems
   a small gem worth 50 gold
   a polished stone worth 25 gold

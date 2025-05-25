@@ -2,10 +2,11 @@ import React, {useState, useEffect, useCallback} from "react";
 import {AppInfo, AppState, Table, RollResult} from "../shared/types";
 import {StorageService, createDefaultAppState} from "./services/StorageService";
 import {FileService} from "./services/FileService";
-import {rollOnTable} from "../shared/utils/TableRoller";
+import {rollOnTable, rerollSubtable} from "../shared/utils/TableRoller";
 import "./App.css";
 import SearchBar from "./components/SearchBar";
 import TableList from "./components/TableList";
+import InteractiveRollResult from "./components/InteractiveRollResult";
 import {useTableSearch} from "./hooks/useTableSearch";
 
 const App: React.FC = () => {
@@ -53,29 +54,96 @@ const App: React.FC = () => {
       id: "sample-1",
       title: "Random Encounters",
       entries: [
-        "A group of bandits blocks the road",
-        "A merchant caravan approaches",
-        "Wild animals cross your path",
-        "An abandoned campsite with mysterious clues"
+        "You find a [item] and a [item]",
+        "A [npc] approaches with [reaction]",
+        "The weather turns [weather] as you travel",
+        "An abandoned [location] contains [treasure]"
       ],
-      subtables: ["weather-table", "npc-reactions"],
+      sections: [
+        {
+          name: "output",
+          entries: [
+            "You find a [item] and a [item]",
+            "A [npc] approaches with [reaction]",
+            "The weather turns [weather] as you travel",
+            "An abandoned [location] contains [treasure]"
+          ]
+        },
+        {
+          name: "item",
+          entries: [
+            "rusty sword",
+            "healing potion",
+            "mysterious scroll",
+            "bag of coins",
+            "enchanted ring"
+          ]
+        },
+        {
+          name: "npc",
+          entries: [
+            "traveling merchant",
+            "lost child",
+            "wounded soldier",
+            "mysterious stranger"
+          ]
+        },
+        {
+          name: "reaction",
+          entries: [
+            "friendly greetings",
+            "suspicious glances",
+            "urgent warnings",
+            "requests for help"
+          ]
+        },
+        {
+          name: "weather",
+          entries: ["stormy", "foggy", "clear and bright", "cold and windy"]
+        },
+        {
+          name: "location",
+          entries: ["watchtower", "cottage", "shrine", "campsite"]
+        },
+        {
+          name: "treasure",
+          entries: [
+            "a chest of gold",
+            "ancient artifacts",
+            "magical components",
+            "old maps"
+          ]
+        }
+      ],
+      subtables: ["item", "npc", "reaction", "weather", "location", "treasure"],
       filePath: "/sample/encounters.md",
       codeBlockIndex: 0,
       errors: undefined
     },
     {
       id: "sample-2",
-      title: "Weather Conditions",
+      title: "Simple Weather",
       entries: [
         "Clear skies and pleasant weather",
         "Light rain begins to fall",
         "Heavy fog reduces visibility",
         "Strong winds make travel difficult"
       ],
+      sections: [
+        {
+          name: "output",
+          entries: [
+            "Clear skies and pleasant weather",
+            "Light rain begins to fall",
+            "Heavy fog reduces visibility",
+            "Strong winds make travel difficult"
+          ]
+        }
+      ],
       subtables: [],
       filePath: "/sample/weather.md",
       codeBlockIndex: 1,
-      errors: ["Missing dice notation in entry 2"]
+      errors: undefined
     }
   ]);
 
@@ -145,6 +213,19 @@ const App: React.FC = () => {
     if (lastRolledTable) {
       const rollResult = rollOnTable(lastRolledTable, appState.tables);
       setLastRollResult(rollResult);
+    }
+  };
+
+  // Reroll specific subtable
+  const handleSubtableReroll = (subrollIndex: number) => {
+    if (lastRollResult && lastRolledTable) {
+      const newRollResult = rerollSubtable(
+        lastRollResult,
+        subrollIndex,
+        lastRolledTable,
+        appState.tables
+      );
+      setLastRollResult(newRollResult);
     }
   };
 
@@ -719,16 +800,12 @@ const App: React.FC = () => {
 
             {/* Immediate Roll Result - Most Important */}
             {lastRollResult && (
-              <div
-                className="roll-result-spotlight clickable"
-                onClick={handleReroll}
-                title="Click to reroll"
-              >
-                <div className="result-content">
-                  <div className="result-text">{lastRollResult.text}</div>
-                  <div className="reroll-hint">🎲 Click to reroll</div>
-                </div>
-              </div>
+              <InteractiveRollResult
+                rollResult={lastRollResult}
+                onReroll={handleReroll}
+                onSubtableReroll={handleSubtableReroll}
+                lastRolledTable={lastRolledTable}
+              />
             )}
 
             {/* Table List - Always visible, filtered by search */}
