@@ -362,3 +362,283 @@
   color: #d32f2f;
   font-weight: bold;
 }
+
+/* Storage Status */
+.storage-status {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Info Section */
+.info-section {
+  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 100%;
+}
+
+.info-card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  color: white;
+}
+
+.info-card p {
+  margin: 0.5rem 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.info-card strong {
+  color: white;
+}
+
+/* Vault Controls */
+.vault-controls {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.vault-input {
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 1rem;
+  min-width: 300px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.vault-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.vault-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.clear-storage-button {
+  padding: 0.75rem 1rem;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clear-storage-button:hover:not(:disabled) {
+  background-color: #ff5252;
+  transform: translateY(-2px);
+}
+
+.clear-storage-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Storage Warning */
+.storage-warning {
+  color: #ffeb3b;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+/* Enhanced Controls Section */
+.controls-section {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-input {
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 1rem;
+  min-width: 200px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.table-select {
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 1rem;
+  min-width: 250px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.table-select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.table-select option {
+  background: #333;
+  color: white;
+}
+
+.roll-button {
+  padding: 0.75rem 1.5rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roll-button:hover:not(:disabled) {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+.roll-button:disabled {
+  background-color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Enhanced Roll Result */
+.roll-result {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.roll-result h3 {
+  margin: 0 0 1rem 0;
+  color: white;
+}
+
+.result-text {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #4caf50;
+  margin: 0.5rem 0;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+/* Enhanced State Display */
+.state-display {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+}
+
+.state-display h3 {
+  margin: 0 0 1rem 0;
+  color: white;
+}
+
+.state-json {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  max-height: 300px;
+  overflow-y: auto;
+  color: #e0e0e0;
+  font-family: "Courier New", monospace;
+}
+
+/* Enhanced Tables Display */
+.tables-display {
+  margin: 2rem 0;
+}
+
+.tables-display h3 {
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.table-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.table-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.table-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: white;
+  font-size: 1.1rem;
+}
+
+.table-card p {
+  margin: 0.25rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.table-card .errors {
+  color: #ff6b6b;
+  font-weight: bold;
+}

@@ -1,19 +1,19 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import {AppInfo, AppState, Table, RollResult} from "../shared/types";
+import {StorageService, createDefaultAppState} from "./services/StorageService";
+import "./services/StorageService.test"; // Import tests to make them available in console
 import "./App.css";
 
 const App: React.FC = () => {
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [storageAvailable, setStorageAvailable] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
 
   // Initialize app state with default values
-  const [appState, setAppState] = useState<AppState>({
-    vaultPath: undefined,
-    tables: [],
-    searchQuery: "",
-    selectedTableIndex: -1,
-    lastScanTime: undefined
-  });
+  const [appState, setAppState] = useState<AppState>(createDefaultAppState());
 
   // Sample data for demonstration
   const [sampleTables] = useState<Table[]>([
@@ -49,32 +49,82 @@ const App: React.FC = () => {
 
   const [lastRollResult, setLastRollResult] = useState<RollResult | null>(null);
 
-  useEffect(() => {
-    // Get app info from Electron main process
-    const loadAppInfo = async () => {
+  // Auto-save functionality
+  const saveAppState = useCallback(
+    async (state: AppState) => {
+      if (!storageAvailable) return;
+
       try {
+        setSaveStatus("saving");
+        await StorageService.saveAppState(state);
+        setSaveStatus("saved");
+
+        // Reset status after 2 seconds
+        setTimeout(() => setSaveStatus("idle"), 2000);
+      } catch (error) {
+        console.error("Failed to save app state:", error);
+        setSaveStatus("error");
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }
+    },
+    [storageAvailable]
+  );
+
+  // Load initial state and app info
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Check if storage is available
+        const isStorageAvailable = StorageService.isStorageAvailable();
+        setStorageAvailable(isStorageAvailable);
+
+        // Load app info from Electron
         if (window.electronAPI) {
           const info = await window.electronAPI.getAppInfo();
           setAppInfo(info);
         }
+
+        // Load stored state if available
+        if (isStorageAvailable) {
+          const storedState = await StorageService.loadAppState();
+          if (storedState) {
+            setAppState(storedState);
+            console.log("Loaded state from storage:", storedState);
+          } else {
+            // No stored state, use sample data
+            const defaultState = createDefaultAppState();
+            defaultState.tables = sampleTables;
+            defaultState.lastScanTime = new Date();
+            setAppState(defaultState);
+          }
+        } else {
+          // Storage not available, use sample data
+          const defaultState = createDefaultAppState();
+          defaultState.tables = sampleTables;
+          defaultState.lastScanTime = new Date();
+          setAppState(defaultState);
+        }
       } catch (error) {
-        console.error("Failed to load app info:", error);
+        console.error("Failed to initialize app:", error);
+        // Fallback to default state with sample data
+        const defaultState = createDefaultAppState();
+        defaultState.tables = sampleTables;
+        defaultState.lastScanTime = new Date();
+        setAppState(defaultState);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadAppInfo();
-  }, []);
-
-  // Load sample tables into app state
-  useEffect(() => {
-    setAppState((prev) => ({
-      ...prev,
-      tables: sampleTables,
-      lastScanTime: new Date()
-    }));
+    initializeApp();
   }, [sampleTables]);
+
+  // Auto-save when state changes
+  useEffect(() => {
+    if (!isLoading && storageAvailable) {
+      saveAppState(appState);
+    }
+  }, [appState, isLoading, storageAvailable, saveAppState]);
 
   const handleMinimize = async () => {
     if (window.electronAPI) {
@@ -108,6 +158,35 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleVaultPathChange = async (path: string) => {
+    try {
+      await StorageService.setVaultPath(path);
+      setAppState((prev) => ({
+        ...prev,
+        vaultPath: path,
+        lastScanTime: new Date()
+      }));
+    } catch (error) {
+      console.error("Failed to set vault path:", error);
+    }
+  };
+
+  const handleClearStorage = async () => {
+    if (!storageAvailable) return;
+
+    try {
+      await StorageService.clearAppState();
+      const defaultState = createDefaultAppState();
+      defaultState.tables = sampleTables;
+      defaultState.lastScanTime = new Date();
+      setAppState(defaultState);
+      alert("Storage cleared successfully!");
+    } catch (error) {
+      console.error("Failed to clear storage:", error);
+      alert("Failed to clear storage");
+    }
+  };
+
   const simulateRoll = () => {
     if (
       appState.selectedTableIndex >= 0 &&
@@ -134,6 +213,32 @@ const App: React.FC = () => {
     }
   };
 
+  const getSaveStatusIcon = () => {
+    switch (saveStatus) {
+      case "saving":
+        return "💾";
+      case "saved":
+        return "✅";
+      case "error":
+        return "❌";
+      default:
+        return "";
+    }
+  };
+
+  const getSaveStatusText = () => {
+    switch (saveStatus) {
+      case "saving":
+        return "Saving...";
+      case "saved":
+        return "Saved";
+      case "error":
+        return "Save failed";
+      default:
+        return "";
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="app loading">
@@ -151,6 +256,11 @@ const App: React.FC = () => {
             <div className="app-info">
               <span className="version">v{appInfo.version}</span>
               {appInfo.isDev && <span className="dev-badge">DEV</span>}
+              {storageAvailable && (
+                <span className="storage-status">
+                  {getSaveStatusIcon()} {getSaveStatusText()}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -185,6 +295,48 @@ const App: React.FC = () => {
         <div className="welcome-section">
           <h2>Welcome to Random Table Roller</h2>
           <p>Your desktop companion for tabletop gaming random tables.</p>
+
+          {/* Storage and Vault Info */}
+          <div className="info-section">
+            <div className="info-card">
+              <h3>📁 Vault Information</h3>
+              <p>
+                <strong>Current Path:</strong> {appState.vaultPath || "Not set"}
+              </p>
+              <p>
+                <strong>Tables Loaded:</strong> {appState.tables.length}
+              </p>
+              <p>
+                <strong>Last Scan:</strong>{" "}
+                {appState.lastScanTime
+                  ? appState.lastScanTime.toLocaleString()
+                  : "Never"}
+              </p>
+              <p>
+                <strong>Storage:</strong>{" "}
+                {storageAvailable ? "Available" : "Not available"}
+              </p>
+            </div>
+          </div>
+
+          {/* Vault Path Input */}
+          <div className="vault-controls">
+            <input
+              type="text"
+              placeholder="Enter vault path..."
+              value={appState.vaultPath || ""}
+              onChange={(e) => handleVaultPathChange(e.target.value)}
+              className="vault-input"
+            />
+            <button
+              onClick={handleClearStorage}
+              disabled={!storageAvailable}
+              className="clear-storage-button"
+              title="Clear all stored data"
+            >
+              🗑️ Clear Storage
+            </button>
+          </div>
 
           {/* Search and Table Selection */}
           <div className="controls-section">
@@ -253,6 +405,11 @@ const App: React.FC = () => {
 
       <footer className="app-footer">
         <p>Ready to enhance your tabletop gaming experience!</p>
+        {!storageAvailable && (
+          <p className="storage-warning">
+            ⚠️ Local storage is not available. Settings will not persist.
+          </p>
+        )}
       </footer>
     </div>
   );
