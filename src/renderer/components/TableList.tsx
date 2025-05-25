@@ -7,20 +7,22 @@ interface TableListProps {
   selectedIndex: number;
   onTableSelect: (index: number) => void;
   searchQuery?: string;
+  isKeyboardNavigating?: boolean;
 }
 
 const TableList: React.FC<TableListProps> = ({
   tables,
   selectedIndex,
   onTableSelect,
-  searchQuery = ""
+  searchQuery = "",
+  isKeyboardNavigating = false
 }) => {
   const listRef = useRef<HTMLDivElement>(null);
   const selectedItemRef = useRef<HTMLDivElement>(null);
 
   // Scroll selected item into view
   useEffect(() => {
-    if (selectedItemRef.current && listRef.current) {
+    if (selectedItemRef.current && listRef.current && isKeyboardNavigating) {
       const listRect = listRef.current.getBoundingClientRect();
       const itemRect = selectedItemRef.current.getBoundingClientRect();
 
@@ -31,7 +33,7 @@ const TableList: React.FC<TableListProps> = ({
         });
       }
     }
-  }, [selectedIndex]);
+  }, [selectedIndex, isKeyboardNavigating]);
 
   const highlightSearchTerm = (
     text: string,
@@ -74,9 +76,17 @@ const TableList: React.FC<TableListProps> = ({
     return parts.join(" • ");
   };
 
+  const getTableIcon = (index: number): string => {
+    // Show numbers 1-9 for the first 9 tables, then use a generic icon
+    if (index < 9) {
+      return (index + 1).toString();
+    }
+    return "•";
+  };
+
   if (tables.length === 0) {
     return (
-      <div className="table-list empty">
+      <div className="table-list empty" role="listbox" aria-label="Table list">
         <div className="empty-state">
           <div className="empty-message">
             {searchQuery ? "No tables found" : "No tables loaded"}
@@ -90,17 +100,34 @@ const TableList: React.FC<TableListProps> = ({
   }
 
   return (
-    <div className="table-list" ref={listRef}>
+    <div
+      className="table-list"
+      ref={listRef}
+      role="listbox"
+      aria-label={`Table list, ${tables.length} tables`}
+      aria-activedescendant={
+        selectedIndex >= 0 ? `table-item-${selectedIndex}` : undefined
+      }
+    >
       {tables.map((table, index) => (
         <div
           key={table.id}
+          id={`table-item-${index}`}
           ref={index === selectedIndex ? selectedItemRef : null}
           className={`table-item ${index === selectedIndex ? "selected" : ""} ${
-            table.errors && table.errors.length > 0 ? "has-errors" : ""
-          }`}
+            isKeyboardNavigating && index === selectedIndex
+              ? "keyboard-selected"
+              : ""
+          } ${table.errors && table.errors.length > 0 ? "has-errors" : ""}`}
           onClick={() => onTableSelect(index)}
+          role="option"
+          aria-selected={index === selectedIndex}
+          aria-label={`Table ${index + 1}: ${table.title}, ${getTableSubtitle(
+            table
+          )}`}
+          tabIndex={-1}
         >
-          <div className="table-item-icon">🎲</div>
+          <div className="table-item-icon">{getTableIcon(index)}</div>
           <div className="table-item-content">
             <div className="table-item-title">
               {highlightSearchTerm(table.title, searchQuery)}

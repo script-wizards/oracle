@@ -7,9 +7,13 @@ interface SearchBarProps {
   onEnter?: () => void;
   onArrowUp?: () => void;
   onArrowDown?: () => void;
+  onTab?: (event: KeyboardEvent) => void;
+  onNumberKey?: (number: number) => void;
   placeholder?: string;
   autoFocus?: boolean;
   value?: string;
+  resultCount?: number;
+  selectedIndex?: number;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -18,9 +22,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onEnter,
   onArrowUp,
   onArrowDown,
+  onTab,
+  onNumberKey,
   placeholder = "Search tables...",
   autoFocus = true,
-  value
+  value,
+  resultCount = 0,
+  selectedIndex = -1
 }) => {
   const [query, setQuery] = useState(value || "");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -36,6 +44,58 @@ const SearchBar: React.FC<SearchBarProps> = ({
       inputRef.current.focus();
     }
   }, [autoFocus]);
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+      const isSearchFocused = document.activeElement === inputRef.current;
+
+      // Ctrl/Cmd + K to focus search
+      if (isCtrlOrCmd && e.key === "k") {
+        e.preventDefault();
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.select();
+        }
+        return;
+      }
+
+      // Ctrl/Cmd + L to clear search
+      if (isCtrlOrCmd && e.key === "l") {
+        e.preventDefault();
+        handleClear();
+        return;
+      }
+
+      // Number keys 1-9 for quick selection (only when search is NOT focused)
+      if (
+        e.key >= "1" &&
+        e.key <= "9" &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey &&
+        !isSearchFocused // Only when search is not focused
+      ) {
+        const number = parseInt(e.key);
+        if (onNumberKey) {
+          e.preventDefault();
+          onNumberKey(number);
+          return;
+        }
+      }
+
+      // Tab navigation when search is focused
+      if (e.key === "Tab" && isSearchFocused && onTab) {
+        e.preventDefault();
+        onTab(e);
+        return;
+      }
+    };
+
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [onNumberKey, onTab, query]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
@@ -54,9 +114,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
       case "Escape":
-        if (query) {
-          handleClear();
-        } else if (onEscape) {
+        // Always unfocus on escape, don't clear the search
+        if (inputRef.current) {
+          inputRef.current.blur();
+        }
+        if (onEscape) {
           onEscape();
         }
         break;
@@ -78,7 +140,42 @@ const SearchBar: React.FC<SearchBarProps> = ({
           onArrowDown();
         }
         break;
+      case "Tab":
+        // Let the global handler deal with this
+        break;
     }
+  };
+
+  const getAriaLabel = () => {
+    if (query && resultCount > 0) {
+      const selectedText =
+        selectedIndex >= 0
+          ? `, ${selectedIndex + 1} of ${resultCount} selected`
+          : "";
+      return `Search tables, ${resultCount} results found${selectedText}`;
+    } else if (query && resultCount === 0) {
+      return "Search tables, no results found";
+    }
+    return "Search tables";
+  };
+
+  const getSearchHint = () => {
+    const hints = [];
+    if (query) {
+      hints.push("↑↓ navigate", "Enter to roll");
+    }
+    hints.push("Ctrl+K focus", "Ctrl+L clear");
+
+    // Show number shortcut hint when search is not focused (regardless of query)
+    const isSearchFocused = document.activeElement === inputRef.current;
+    if (!isSearchFocused) {
+      hints.push("1-9 quick select");
+    } else {
+      // Only show "Esc back" when search is actually focused
+      hints.push("Esc back");
+    }
+
+    return hints.join(" • ");
   };
 
   return (
@@ -92,23 +189,31 @@ const SearchBar: React.FC<SearchBarProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="search-input"
+          aria-label={getAriaLabel()}
+          aria-describedby="search-hint"
+          role="combobox"
+          aria-expanded={!!(query && resultCount > 0)}
+          aria-activedescendant={
+            selectedIndex >= 0 ? `table-item-${selectedIndex}` : undefined
+          }
+          autoComplete="off"
+          spellCheck={false}
         />
         {query && (
           <button
             onClick={handleClear}
             className="clear-button"
-            title="Clear search (Esc)"
+            title="Clear search (Ctrl+L)"
             type="button"
+            aria-label="Clear search"
           >
             ×
           </button>
         )}
       </div>
-      {query && (
-        <div className="search-hint">
-          Use ↑↓ to navigate, Enter to roll, Esc to clear
-        </div>
-      )}
+      <div id="search-hint" className="search-hint">
+        {getSearchHint()}
+      </div>
     </div>
   );
 };

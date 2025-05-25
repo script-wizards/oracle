@@ -8,6 +8,7 @@ import SearchBar from "./components/SearchBar";
 import TableList from "./components/TableList";
 import InteractiveRollResult from "./components/InteractiveRollResult";
 import {useTableSearch} from "./hooks/useTableSearch";
+import {useKeyboardNav} from "./hooks/useKeyboardNav";
 
 const App: React.FC = () => {
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
@@ -159,75 +160,36 @@ const App: React.FC = () => {
     resultCount
   } = useTableSearch(appState.tables);
 
-  // Spotlight-style navigation
-  const [spotlightSelectedIndex, setSpotlightSelectedIndex] =
-    useState<number>(-1);
-
-  // Reset spotlight selection when search changes
-  useEffect(() => {
-    setSpotlightSelectedIndex(
-      hasActiveSearch && filteredTables.length > 0 ? 0 : -1
-    );
-  }, [searchQuery, hasActiveSearch, filteredTables.length]);
-
-  const handleSpotlightArrowUp = () => {
-    if (filteredTables.length === 0) return;
-    setSpotlightSelectedIndex((prev) =>
-      prev <= 0 ? filteredTables.length - 1 : prev - 1
-    );
-  };
-
-  const handleSpotlightArrowDown = () => {
-    if (filteredTables.length === 0) return;
-    setSpotlightSelectedIndex((prev) =>
-      prev >= filteredTables.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const handleSpotlightEnter = () => {
-    if (spotlightSelectedIndex >= 0 && filteredTables[spotlightSelectedIndex]) {
-      const selectedTable = filteredTables[spotlightSelectedIndex];
+  // Keyboard navigation
+  const keyboardNav = useKeyboardNav({
+    itemCount: filteredTables.length,
+    onSelect: (index: number) => {
+      const actualTable = filteredTables[index];
       const actualIndex = appState.tables.findIndex(
-        (table) => table.id === selectedTable.id
+        (table: Table) => table.id === actualTable.id
       );
-
-      // Select the table
       handleTableSelect(actualIndex);
 
-      // Roll on it immediately
+      // Automatically roll on the selected table
       setTimeout(() => {
-        const rollResult = rollOnTable(selectedTable, appState.tables);
+        const rollResult = rollOnTable(actualTable, appState.tables);
         setLastRollResult(rollResult);
-        setLastRolledTable(selectedTable);
+        setLastRolledTable(actualTable);
       }, 100);
-    }
-  };
+    },
+    enableNumberShortcuts: true,
+    maxNumberShortcuts: 9,
+    loop: true
+  });
 
-  const handleSpotlightEscape = () => {
-    setSearchQuery("");
-    setSpotlightSelectedIndex(-1);
-  };
-
-  // Reroll function for mouse users
-  const handleReroll = () => {
-    if (lastRolledTable) {
-      const rollResult = rollOnTable(lastRolledTable, appState.tables);
-      setLastRollResult(rollResult);
+  // Reset keyboard navigation when search changes
+  useEffect(() => {
+    if (hasActiveSearch && filteredTables.length > 0) {
+      keyboardNav.setSelectedIndex(0);
+    } else {
+      keyboardNav.resetNavigation();
     }
-  };
-
-  // Reroll specific subtable
-  const handleSubtableReroll = (subrollIndex: number) => {
-    if (lastRollResult && lastRolledTable) {
-      const newRollResult = rerollSubtable(
-        lastRollResult,
-        subrollIndex,
-        lastRolledTable,
-        appState.tables
-      );
-      setLastRollResult(newRollResult);
-    }
-  };
+  }, [searchQuery, hasActiveSearch, filteredTables.length]);
 
   // Auto-save functionality
   const saveAppState = useCallback(
@@ -325,6 +287,7 @@ const App: React.FC = () => {
   };
 
   const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
     setAppState((prev) => ({
       ...prev,
       searchQuery: query
@@ -644,6 +607,27 @@ const App: React.FC = () => {
     }
   };
 
+  // Reroll function for mouse users
+  const handleReroll = () => {
+    if (lastRolledTable) {
+      const rollResult = rollOnTable(lastRolledTable, appState.tables);
+      setLastRollResult(rollResult);
+    }
+  };
+
+  // Reroll specific subtable
+  const handleSubtableReroll = (subrollIndex: number) => {
+    if (lastRollResult && lastRolledTable) {
+      const newRollResult = rerollSubtable(
+        lastRollResult,
+        subrollIndex,
+        lastRolledTable,
+        appState.tables
+      );
+      setLastRollResult(newRollResult);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="app loading">
@@ -666,13 +650,48 @@ const App: React.FC = () => {
         </div>
 
         <div className="header-controls">
+          {/* Vault Controls as Header Buttons */}
+          {appState.vaultPath && (
+            <>
+              <button
+                onClick={handleSelectVault}
+                disabled={isSelectingVault}
+                className="header-button vault-name"
+                title="Click to change vault"
+              >
+                {appState.vaultPath.split("/").pop()}
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await handleScanFiles();
+                    try {
+                      await handleParseTables();
+                    } catch (parseError) {
+                      console.error("Failed to parse tables:", parseError);
+                    }
+                  } catch (scanError) {
+                    console.error("Failed to scan files:", scanError);
+                  }
+                }}
+                disabled={
+                  isScanningFiles || isParsingTables || !appState.vaultPath
+                }
+                className="header-button refresh-vault"
+                title="Refresh vault and parse tables"
+              >
+                {isScanningFiles || isParsingTables ? "⟳" : "↻"}
+              </button>
+            </>
+          )}
+
           {storageAvailable && (
             <button
               onClick={handleClearStorage}
               className="header-button clear-storage"
               title="Clear all stored data"
             >
-              Clear Storage
+              🗑️
             </button>
           )}
 
@@ -741,55 +760,6 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {/* Quick Actions - Only when vault is selected */}
-          {appState.vaultPath && (
-            <div className="vault-status-compact">
-              <div className="vault-info">
-                <span className="vault-path">
-                  {appState.vaultPath.split("/").pop()}
-                </span>
-                <span className="table-count">
-                  {appState.tables.length} tables
-                </span>
-                <div className="vault-actions">
-                  <button
-                    onClick={async () => {
-                      try {
-                        await handleScanFiles();
-                        // Only parse tables if scanning succeeded
-                        try {
-                          await handleParseTables();
-                        } catch (parseError) {
-                          console.error("Failed to parse tables:", parseError);
-                          // Don't throw here, just log the error - scanning was successful
-                        }
-                      } catch (scanError) {
-                        console.error("Failed to scan files:", scanError);
-                        // Don't try to parse if scanning failed
-                      }
-                    }}
-                    disabled={
-                      isScanningFiles || isParsingTables || !appState.vaultPath
-                    }
-                    className="vault-icon-button refresh-vault"
-                    title="Refresh vault and parse tables"
-                  >
-                    {isScanningFiles || isParsingTables ? "⟳" : "↻"}
-                  </button>
-
-                  <button
-                    onClick={handleSelectVault}
-                    disabled={isSelectingVault}
-                    className="vault-icon-button change-vault"
-                    title="Select a different vault"
-                  >
-                    📁
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* File Operation Error Display */}
           {fileOperationError && (
             <div className="error-message-compact">
@@ -807,12 +777,16 @@ const App: React.FC = () => {
           <div className="spotlight-search-section">
             <SearchBar
               onSearch={setSearchQuery}
-              onArrowUp={handleSpotlightArrowUp}
-              onArrowDown={handleSpotlightArrowDown}
-              onEnter={handleSpotlightEnter}
-              onEscape={handleSpotlightEscape}
+              onArrowUp={keyboardNav.handleArrowUp}
+              onArrowDown={keyboardNav.handleArrowDown}
+              onEnter={keyboardNav.handleEnter}
+              onEscape={keyboardNav.handleEscape}
+              onTab={keyboardNav.handleTab}
+              onNumberKey={keyboardNav.handleNumberKey}
               placeholder="Search tables... (↑↓ to navigate, Enter to roll)"
               value={searchQuery}
+              resultCount={resultCount}
+              selectedIndex={keyboardNav.selectedIndex}
             />
 
             {/* Immediate Roll Result - Most Important */}
@@ -829,14 +803,7 @@ const App: React.FC = () => {
             <div className="tables-display">
               <TableList
                 tables={filteredTables}
-                selectedIndex={
-                  hasActiveSearch
-                    ? spotlightSelectedIndex
-                    : filteredTables.findIndex(
-                        (table: Table) =>
-                          table === appState.tables[appState.selectedTableIndex]
-                      )
-                }
+                selectedIndex={keyboardNav.selectedIndex}
                 onTableSelect={(index: number) => {
                   const actualTable = filteredTables[index];
                   const actualIndex = appState.tables.findIndex(
@@ -844,8 +811,8 @@ const App: React.FC = () => {
                   );
                   handleTableSelect(actualIndex);
 
-                  // Update spotlight selection to match
-                  setSpotlightSelectedIndex(index);
+                  // Update keyboard navigation to match
+                  keyboardNav.setSelectedIndex(index);
 
                   // Automatically roll on the selected table
                   setTimeout(() => {
@@ -858,6 +825,7 @@ const App: React.FC = () => {
                   }, 100);
                 }}
                 searchQuery={searchQuery}
+                isKeyboardNavigating={keyboardNav.isNavigating}
               />
             </div>
           </div>
