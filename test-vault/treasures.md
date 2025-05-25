@@ -58,7 +58,7 @@ item
 title
   Cursed Items
 output
-  You find a [item]
+  You find a [item] and a [item]
 item
   Sword of Berserking (must attack nearest creature)
   Armor of Vulnerability (double damage from one type)

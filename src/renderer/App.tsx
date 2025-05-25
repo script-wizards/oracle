@@ -4,6 +4,9 @@ import {StorageService, createDefaultAppState} from "./services/StorageService";
 import {FileService} from "./services/FileService";
 import {rollOnTable} from "../shared/utils/TableRoller";
 import "./App.css";
+import SearchBar from "./components/SearchBar";
+import TableList from "./components/TableList";
+import {useTableSearch} from "./hooks/useTableSearch";
 
 const App: React.FC = () => {
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
@@ -77,6 +80,73 @@ const App: React.FC = () => {
   ]);
 
   const [lastRollResult, setLastRollResult] = useState<RollResult | null>(null);
+  const [lastRolledTable, setLastRolledTable] = useState<Table | null>(null);
+
+  // Search functionality
+  const {
+    searchQuery,
+    setSearchQuery,
+    filteredTables,
+    hasActiveSearch,
+    resultCount
+  } = useTableSearch(appState.tables);
+
+  // Spotlight-style navigation
+  const [spotlightSelectedIndex, setSpotlightSelectedIndex] =
+    useState<number>(-1);
+
+  // Reset spotlight selection when search changes
+  useEffect(() => {
+    setSpotlightSelectedIndex(
+      hasActiveSearch && filteredTables.length > 0 ? 0 : -1
+    );
+  }, [searchQuery, hasActiveSearch, filteredTables.length]);
+
+  const handleSpotlightArrowUp = () => {
+    if (filteredTables.length === 0) return;
+    setSpotlightSelectedIndex((prev) =>
+      prev <= 0 ? filteredTables.length - 1 : prev - 1
+    );
+  };
+
+  const handleSpotlightArrowDown = () => {
+    if (filteredTables.length === 0) return;
+    setSpotlightSelectedIndex((prev) =>
+      prev >= filteredTables.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const handleSpotlightEnter = () => {
+    if (spotlightSelectedIndex >= 0 && filteredTables[spotlightSelectedIndex]) {
+      const selectedTable = filteredTables[spotlightSelectedIndex];
+      const actualIndex = appState.tables.findIndex(
+        (table) => table.id === selectedTable.id
+      );
+
+      // Select the table
+      handleTableSelect(actualIndex);
+
+      // Roll on it immediately
+      setTimeout(() => {
+        const rollResult = rollOnTable(selectedTable, appState.tables);
+        setLastRollResult(rollResult);
+        setLastRolledTable(selectedTable);
+      }, 100);
+    }
+  };
+
+  const handleSpotlightEscape = () => {
+    setSearchQuery("");
+    setSpotlightSelectedIndex(-1);
+  };
+
+  // Reroll function for mouse users
+  const handleReroll = () => {
+    if (lastRolledTable) {
+      const rollResult = rollOnTable(lastRolledTable, appState.tables);
+      setLastRollResult(rollResult);
+    }
+  };
 
   // Auto-save functionality
   const saveAppState = useCallback(
@@ -185,6 +255,11 @@ const App: React.FC = () => {
       ...prev,
       selectedTableIndex: index
     }));
+
+    // Set the selected table as the last rolled table for rerolling
+    if (index >= 0 && appState.tables[index]) {
+      setLastRolledTable(appState.tables[index]);
+    }
   };
 
   const handleVaultPathChange = async (path: string) => {
@@ -361,11 +436,11 @@ const App: React.FC = () => {
     }
   };
 
-  const handleParseTables = async (vaultPath?: string) => {
-    const pathToScan = vaultPath || appState.vaultPath;
+  const handleParseTables = async () => {
+    const pathToScan = appState.vaultPath;
 
     if (!pathToScan) {
-      setFileOperationError("No vault path available to parse tables");
+      setFileOperationError("No vault path available to parse tables from");
       return;
     }
 
@@ -378,42 +453,48 @@ const App: React.FC = () => {
       setIsParsingTables(true);
       setFileOperationError(null);
 
-      console.log("Starting to parse Perchance tables for:", pathToScan);
+      console.log("Starting to parse tables from vault:", pathToScan);
       const parsedTables = await FileService.parseAllTablesFromVault(
         pathToScan
       );
-      console.log("Received parsed tables:", parsedTables);
 
-      // Count successful vs failed tables
-      const successfulTables = parsedTables.filter(
-        (table) => !table.errors || table.errors.length === 0
-      ).length;
-      const failedTables = parsedTables.filter(
-        (table) => table.errors && table.errors.length > 0
-      ).length;
+      console.log(
+        `Successfully parsed ${parsedTables.length} tables from vault`
+      );
 
-      // Get unique file paths to count files processed
-      const filesProcessed = new Set(
-        parsedTables.map((table) => table.filePath)
-      ).size;
-
-      setParseResults({
-        totalTables: parsedTables.length,
-        successfulTables,
-        failedTables,
-        filesProcessed
-      });
-
-      // Update app state with parsed tables (replace sample tables)
+      // Update app state with parsed tables
       setAppState((prev) => ({
         ...prev,
         tables: parsedTables,
         lastScanTime: new Date()
       }));
 
-      console.log(
-        `Successfully parsed ${parsedTables.length} tables from vault`
-      );
+      // Update parse results
+      setParseResults({
+        totalTables: parsedTables.length,
+        successfulTables: parsedTables.filter(
+          (table) => !table.errors || table.errors.length === 0
+        ).length,
+        failedTables: parsedTables.filter(
+          (table) => table.errors && table.errors.length > 0
+        ).length,
+        filesProcessed: new Set(parsedTables.map((table) => table.filePath))
+          .size
+      });
+
+      // Clear selection if current table is no longer available
+      if (
+        appState.selectedTableIndex >= 0 &&
+        appState.selectedTableIndex >= parsedTables.length
+      ) {
+        setAppState((prev) => ({
+          ...prev,
+          selectedTableIndex: -1
+        }));
+        setLastRollResult(null);
+      }
+
+      console.log("Table parsing completed successfully");
     } catch (error) {
       console.error("Failed to parse tables:", error);
       setFileOperationError(
@@ -529,93 +610,39 @@ const App: React.FC = () => {
           {/* Storage and Vault Info */}
           <div className="info-section">
             <div className="info-card">
-              <h3>📁 Vault Information</h3>
+              <h3>📁 Vault Status</h3>
               <p>
-                <strong>Current Path:</strong> {appState.vaultPath || "Not set"}
+                <strong>Path:</strong> {appState.vaultPath || "Not set"}
               </p>
               <p>
-                <strong>Tables Loaded:</strong> {appState.tables.length}
+                <strong>Tables:</strong> {appState.tables.length} loaded
               </p>
               {scanResults && (
-                <>
-                  <p>
-                    <strong>Files Found:</strong> {scanResults.fileCount}{" "}
-                    markdown files
-                  </p>
-                  <p>
-                    <strong>Estimated Size:</strong> {scanResults.estimatedSize}
-                  </p>
-                </>
+                <p>
+                  <strong>Files:</strong> {scanResults.fileCount} markdown files
+                  ({scanResults.estimatedSize})
+                </p>
               )}
               {codeBlockResults && (
-                <>
-                  <h4>📋 Code Block Analysis</h4>
-                  <p>
-                    <strong>Files with Code Blocks:</strong>{" "}
-                    {codeBlockResults.filesWithCodeBlocks} /{" "}
-                    {codeBlockResults.totalFiles}
-                  </p>
-                  <p>
-                    <strong>Total Code Blocks:</strong>{" "}
-                    {codeBlockResults.totalCodeBlocks}
-                  </p>
-                  <p>
-                    <strong>Perchance Blocks:</strong>{" "}
-                    {codeBlockResults.totalPerchanceBlocks}
-                  </p>
-                  <p>
-                    <strong>Valid Perchance Blocks:</strong>{" "}
-                    {codeBlockResults.validPerchanceBlocks}
-                  </p>
-                  {codeBlockResults.invalidBlocks > 0 && (
-                    <p>
-                      <strong>Invalid Blocks:</strong>{" "}
-                      {codeBlockResults.invalidBlocks}
-                    </p>
-                  )}
-                  {codeBlockResults.languages.length > 0 && (
-                    <p>
-                      <strong>Languages Found:</strong>{" "}
-                      {codeBlockResults.languages.join(", ")}
-                    </p>
-                  )}
-                </>
+                <p>
+                  <strong>Perchance Blocks:</strong>{" "}
+                  {codeBlockResults.validPerchanceBlocks} valid,{" "}
+                  {codeBlockResults.invalidBlocks} invalid
+                </p>
               )}
               {parseResults && (
-                <>
-                  <h4>🎲 Table Parsing Results</h4>
-                  <p>
-                    <strong>Tables Parsed:</strong> {parseResults.totalTables}
-                  </p>
-                  <p>
-                    <strong>Successful:</strong> {parseResults.successfulTables}
-                  </p>
-                  {parseResults.failedTables > 0 && (
-                    <p>
-                      <strong>Failed:</strong> {parseResults.failedTables}
-                    </p>
-                  )}
-                  <p>
-                    <strong>Files Processed:</strong>{" "}
-                    {parseResults.filesProcessed}
-                  </p>
-                </>
+                <p>
+                  <strong>Parse Results:</strong>{" "}
+                  {parseResults.successfulTables} successful,{" "}
+                  {parseResults.failedTables} failed from{" "}
+                  {parseResults.filesProcessed} files
+                </p>
               )}
               <p>
                 <strong>Last Scan:</strong>{" "}
                 {appState.lastScanTime
                   ? appState.lastScanTime.toLocaleString()
                   : "Never"}
-              </p>
-              <p>
-                <strong>Storage:</strong>{" "}
-                {storageAvailable ? "Available" : "Not available"}
-              </p>
-              <p>
-                <strong>File Access:</strong>{" "}
-                {FileService.isElectronAPIAvailable()
-                  ? "Available"
-                  : "Not available"}
               </p>
             </div>
           </div>
@@ -648,7 +675,7 @@ const App: React.FC = () => {
               {isScanningFiles ? "🔄 Scanning..." : "🔍 Scan & Analyze"}
             </button>
             <button
-              onClick={() => handleParseTables()}
+              onClick={handleParseTables}
               disabled={isParsingTables || !appState.vaultPath}
               className="parse-tables-button"
               title="Parse Perchance tables from code blocks"
@@ -678,67 +705,67 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {/* Search and Table Selection */}
-          <div className="controls-section">
-            <input
-              type="text"
-              placeholder="Search tables..."
-              value={appState.searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="search-input"
+          {/* Spotlight Search Interface */}
+          <div className="spotlight-search-section">
+            <SearchBar
+              onSearch={setSearchQuery}
+              onArrowUp={handleSpotlightArrowUp}
+              onArrowDown={handleSpotlightArrowDown}
+              onEnter={handleSpotlightEnter}
+              onEscape={handleSpotlightEscape}
+              placeholder="Search tables... (↑↓ to navigate, Enter to roll)"
+              value={searchQuery}
             />
 
-            <select
-              value={appState.selectedTableIndex}
-              onChange={(e) => handleTableSelect(parseInt(e.target.value))}
-              className="table-select"
-            >
-              <option value={-1}>Select a table...</option>
-              {appState.tables.map((table, index) => (
-                <option key={table.id} value={index}>
-                  {table.title} ({table.entries.length} entries)
-                </option>
-              ))}
-            </select>
-
-            <button
-              onClick={simulateRoll}
-              disabled={appState.selectedTableIndex === -1}
-              className="roll-button"
-            >
-              🎲 Roll Table
-            </button>
-          </div>
-
-          {/* Last Roll Result */}
-          {lastRollResult && (
-            <div className="roll-result">
-              <h3>Last Roll Result:</h3>
-              <p className="result-text">{lastRollResult.text}</p>
-            </div>
-          )}
-
-          {/* App State Display */}
-          <div className="state-display">
-            <h3>Current App State (JSON):</h3>
-            <pre className="state-json">
-              {JSON.stringify(appState, null, 2)}
-            </pre>
-          </div>
-
-          {/* Sample Tables Display */}
-          <div className="tables-display">
-            <h3>Loaded Tables:</h3>
-            {appState.tables.map((table, index) => (
-              <div key={table.id} className="table-card">
-                <h4>{table.title}</h4>
-                <p>Entries: {table.entries.length}</p>
-                <p>File: {table.filePath}</p>
-                {table.errors && (
-                  <p className="errors">Errors: {table.errors.join(", ")}</p>
-                )}
+            {/* Immediate Roll Result - Most Important */}
+            {lastRollResult && (
+              <div
+                className="roll-result-spotlight clickable"
+                onClick={handleReroll}
+                title="Click to reroll"
+              >
+                <div className="result-content">
+                  <div className="result-text">{lastRollResult.text}</div>
+                  <div className="reroll-hint">🎲 Click to reroll</div>
+                </div>
               </div>
-            ))}
+            )}
+
+            {/* Table List - Always visible, filtered by search */}
+            <div className="tables-display">
+              <TableList
+                tables={filteredTables}
+                selectedIndex={
+                  hasActiveSearch
+                    ? spotlightSelectedIndex
+                    : filteredTables.findIndex(
+                        (table: Table) =>
+                          table === appState.tables[appState.selectedTableIndex]
+                      )
+                }
+                onTableSelect={(index: number) => {
+                  const actualTable = filteredTables[index];
+                  const actualIndex = appState.tables.findIndex(
+                    (table: Table) => table.id === actualTable.id
+                  );
+                  handleTableSelect(actualIndex);
+
+                  // Update spotlight selection to match
+                  setSpotlightSelectedIndex(index);
+
+                  // Automatically roll on the selected table
+                  setTimeout(() => {
+                    const rollResult = rollOnTable(
+                      actualTable,
+                      appState.tables
+                    );
+                    setLastRollResult(rollResult);
+                    setLastRolledTable(actualTable);
+                  }, 100);
+                }}
+                searchQuery={searchQuery}
+              />
+            </div>
           </div>
         </div>
       </main>
