@@ -15,7 +15,7 @@ output
 
 feature
   long beard of [color] feathers
-  pair of butterfly wings
+  pair of [color] butterfly wings
   third eye on your forehead
   tail like a cat
   scales on your arms

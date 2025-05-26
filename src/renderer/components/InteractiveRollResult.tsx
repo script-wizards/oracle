@@ -65,28 +65,55 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
       return depth;
     };
 
-    // Render nested clickable boxes properly
-    const renderNestedClickableBoxes = () => {
-      // Helper function to render text with nested subrolls
-      const renderTextWithNesting = (
-        text: string, 
-        startOffset: number, 
-        relevantSubrolls: typeof allClickableSubrolls
+    // Nested approach with proper recursion bounds and termination conditions
+    const renderNestedClickable = () => {
+      // Helper function with proper bounds checking and termination
+      const renderTextSegment = (
+        text: string,
+        startOffset: number,
+        relevantSubrolls: typeof allClickableSubrolls,
+        depth: number = 0
       ): React.ReactNode[] => {
+        // Base case 1: Prevent infinite recursion with max depth
+        if (depth > 10) {
+          return [<span key="max-depth" className="static-text">{text}</span>];
+        }
+
+        // Base case 2: No subrolls to process
+        if (!relevantSubrolls || relevantSubrolls.length === 0) {
+          return [<span key="no-subrolls" className="static-text">{text}</span>];
+        }
+
+        // Base case 3: Empty or invalid text
+        if (!text || text.length === 0) {
+          return [];
+        }
+
         const elements: React.ReactNode[] = [];
         let lastIndex = 0;
 
-        // Sort by start position
-        const sortedSubrolls = relevantSubrolls
-          .filter(subroll => 
-            subroll.startIndex >= startOffset && 
-            subroll.endIndex <= startOffset + text.length
-          )
+        // Filter and sort subrolls that are valid for this text segment
+        const validSubrolls = relevantSubrolls
+          .filter(subroll => {
+            // Bounds checking: subroll must be within the current text segment
+            const relativeStart = subroll.startIndex - startOffset;
+            const relativeEnd = subroll.endIndex - startOffset;
+            return relativeStart >= 0 && 
+                   relativeEnd <= text.length && 
+                   relativeStart < relativeEnd &&
+                   subroll.startIndex >= startOffset &&
+                   subroll.endIndex <= startOffset + text.length;
+          })
           .sort((a, b) => a.startIndex - b.startIndex);
 
-        sortedSubrolls.forEach((subroll, index) => {
+        validSubrolls.forEach((subroll, index) => {
           const relativeStart = subroll.startIndex - startOffset;
           const relativeEnd = subroll.endIndex - startOffset;
+
+          // Skip if this overlaps with what we've already rendered
+          if (relativeStart < lastIndex) {
+            return;
+          }
 
           // Add text before this subroll
           if (relativeStart > lastIndex) {
@@ -109,22 +136,37 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
               s.source === subroll.source
           );
 
-          // Calculate depth for visual styling
-          const depth = getSubrollDepth(subroll);
-          const depthClass = depth > 0 ? `depth-${Math.min(depth, 3)}` : '';
-
-          // Get the text content of this subroll
-          const subrollText = text.substring(relativeStart, relativeEnd);
-
+          // Calculate visual depth
+          const visualDepth = getSubrollDepth(subroll);
+          
           // Find child subrolls that are completely contained within this subroll
           const childSubrolls = allClickableSubrolls.filter(child =>
             child !== subroll &&
             child.startIndex >= subroll.startIndex &&
-            child.endIndex <= subroll.endIndex
+            child.endIndex <= subroll.endIndex &&
+            child.startIndex < child.endIndex // Valid child
           );
-
-          // If this subroll has children, render them nested inside
+          
+          // Determine styling
+          let depthClass = '';
           if (childSubrolls.length > 0) {
+            depthClass = 'container-element'; // Containers 
+          } else {
+            depthClass = 'leaf-element'; // Leaf nodes
+          }
+
+          // Get the text content of this subroll
+          const subrollText = text.substring(relativeStart, relativeEnd);
+
+          if (childSubrolls.length > 0) {
+            // This subroll has children - render them nested inside with recursion
+            const nestedContent = renderTextSegment(
+              subrollText, 
+              subroll.startIndex, 
+              childSubrolls,
+              depth + 1 // Increment depth to prevent infinite recursion
+            );
+            
             elements.push(
               <span
                 key={`subroll-${index}`}
@@ -138,9 +180,9 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
                   subroll.source || ""
                 )}
                 data-source={subroll.source}
-                data-depth={depth}
+                data-depth={visualDepth}
               >
-                {renderTextWithNesting(subrollText, subroll.startIndex, childSubrolls)}
+                {nestedContent}
               </span>
             );
           } else {
@@ -158,7 +200,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
                   subroll.source || ""
                 )}
                 data-source={subroll.source}
-                data-depth={depth}
+                data-depth={visualDepth}
               >
                 {subrollText}
               </span>
@@ -183,7 +225,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
         return elements;
       };
 
-      // Start with the full text and all top-level subrolls
+      // Start with the full text and top-level subrolls
       const topLevelSubrolls = allClickableSubrolls.filter(subroll => {
         // A subroll is top-level if no other subroll completely contains it
         return !allClickableSubrolls.some(otherSubroll =>
@@ -193,10 +235,10 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
         );
       });
 
-      return renderTextWithNesting(rollResult.text, 0, topLevelSubrolls);
+      return renderTextSegment(rollResult.text, 0, topLevelSubrolls, 0);
     };
 
-    return <>{renderNestedClickableBoxes()}</>;
+    return <>{renderNestedClickable()}</>;
   };
 
   // Count clickable subtables using the same logic as the filtering above

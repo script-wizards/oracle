@@ -823,10 +823,12 @@ export function rerollSubtable(
             // Keep subrolls before the rerolled one unchanged
             newSubrolls.push(subroll);
         } else {
-            // This subroll overlaps with the target - this shouldn't happen in normal cases
-            // but if it does, we'll keep it unchanged and log a warning
-            console.warn(`Overlapping subroll detected at index ${i}`);
-            newSubrolls.push(subroll);
+            // This subroll overlaps with the target - remove nested subrolls to prevent stacking
+            // Only keep subrolls that are NOT completely contained within the target
+            if (!(subroll.startIndex >= targetSubroll.startIndex && subroll.endIndex <= targetSubroll.endIndex)) {
+                newSubrolls.push(subroll);
+            }
+            // If it's completely contained, skip it (it will be replaced by new nested subrolls)
         }
     }
 

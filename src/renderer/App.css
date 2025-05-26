@@ -1083,73 +1083,102 @@ body {
   width: 100%;
 }
 
+/* Overlapping boxes for nested clickable elements */
 .clickable-subtable {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  margin: 0;
   cursor: pointer;
   transition: all 0.15s ease;
   display: inline;
-  color: var(--accent-primary);
   font-size: inherit;
   position: relative;
-}
-
-.clickable-subtable:hover {
-  background: var(--accent-primary);
-  color: var(--bg-primary);
-}
-
-/* Overlapping boxes for nested clickable elements */
-.clickable-subtable {
-  border: 1px solid rgba(255, 140, 0, 0.4);
+  border: 1px solid rgba(255, 140, 0, 0.5);
   border-radius: 3px;
   padding: 2px 4px;
   margin: 1px;
-  background: rgba(255, 140, 0, 0.05);
+  background: rgba(255, 140, 0, 0.08);
+  color: rgba(255, 140, 0, 1) !important;
 }
 
 .clickable-subtable:hover {
-  border-color: rgba(255, 140, 0, 0.8);
-  background: rgba(255, 140, 0, 0.15);
+  border-color: rgba(255, 140, 0, 0.9);
+  background: rgba(255, 140, 0, 0.2);
   color: var(--text-primary);
 }
 
 /* Different colors for different nesting depths */
 .clickable-subtable.depth-1 {
-  border-color: rgba(255, 165, 0, 0.5);
-  background: rgba(255, 165, 0, 0.08);
+  border-color: rgba(255, 165, 0, 0.6);
+  background: rgba(255, 165, 0, 0.1);
+  color: rgba(255, 165, 0, 1);
 }
 
 .clickable-subtable.depth-1:hover {
-  border-color: rgba(255, 165, 0, 0.9);
-  background: rgba(255, 165, 0, 0.2);
+  border-color: rgba(255, 165, 0, 1);
+  background: rgba(255, 165, 0, 0.25);
+  color: var(--text-primary);
 }
 
 .clickable-subtable.depth-2 {
-  border-color: rgba(0, 200, 255, 0.5);
-  background: rgba(0, 200, 255, 0.08);
+  border-color: rgba(255, 140, 0, 0.7);
+  background: rgba(255, 140, 0, 0.15);
+  color: rgba(255, 140, 0, 1) !important;
 }
 
 .clickable-subtable.depth-2:hover {
-  border-color: rgba(0, 200, 255, 0.9);
-  background: rgba(0, 200, 255, 0.2);
+  border-color: rgba(255, 140, 0, 1);
+  background: rgba(255, 140, 0, 0.3);
+  color: var(--text-primary);
 }
 
 .clickable-subtable.depth-3 {
-  border-color: rgba(255, 100, 255, 0.5);
-  background: rgba(255, 100, 255, 0.08);
+  border-color: rgba(255, 100, 255, 0.6);
+  background: rgba(255, 100, 255, 0.1);
+  color: rgba(255, 100, 255, 1);
 }
 
 .clickable-subtable.depth-3:hover {
-  border-color: rgba(255, 100, 255, 0.9);
-  background: rgba(255, 100, 255, 0.2);
+  border-color: rgba(255, 100, 255, 1);
+  background: rgba(255, 100, 255, 0.25);
+  color: var(--text-primary);
+}
+
+/* Simple clickable styling */
+.container-element {
+  border: 1px solid rgba(255, 165, 0, 0.6);
+  background: rgba(255, 165, 0, 0.1);
+  color: var(--text-primary) !important;
+  border-radius: 3px;
+  padding: 1px 3px;
+  margin: 0 1px;
+}
+
+.container-element:hover {
+  border-color: rgba(255, 165, 0, 1);
+  background: rgba(255, 165, 0, 0.25);
+  color: var(--text-primary) !important;
+}
+
+.leaf-element {
+  border: 1px solid rgba(255, 140, 0, 0.7);
+  background: rgba(255, 140, 0, 0.15);
+  color: var(--text-primary) !important;
+  border-radius: 3px;
+  padding: 1px 3px;
+  margin: 0 1px;
+}
+
+.leaf-element:hover {
+  border-color: rgba(255, 140, 0, 1);
+  background: rgba(255, 140, 0, 0.3);
+  color: var(--text-primary) !important;
 }
 
 .static-text {
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
+}
+
+/* Ensure static text inside clickable elements stays white */
+.clickable-subtable .static-text {
+  color: var(--text-primary) !important;
 }
 
 .full-result-text {
