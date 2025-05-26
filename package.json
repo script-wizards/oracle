@@ -1,6 +1,6 @@
 {
   "name": "oracle",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A desktop application for tabletop gaming that parses and rolls on random tables using Perchance syntax",
   "main": "dist/main/main.js",
   "homepage": "./",
