@@ -74,6 +74,26 @@ export interface RollResult {
 }
 
 /**
+ * Represents a forced selection for a specific section
+ */
+export interface ForcedSelection {
+    /** The section name to force */
+    sectionName: string;
+    /** The index of the entry to force */
+    entryIndex: number;
+}
+
+/**
+ * Represents a forced selection for a specific section
+ */
+export interface ForcedSelection {
+    /** The section name to force */
+    sectionName: string;
+    /** The index of the entry to force */
+    entryIndex: number;
+}
+
+/**
  * Represents individual subtable resolutions within a roll result
  */
 export interface SubrollData {

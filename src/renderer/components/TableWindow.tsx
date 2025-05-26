@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Table, RollResult } from '../../shared/types';
-import { rollOnTable, rerollSubtable } from '../../shared/utils/TableRoller';
+import { Table, RollResult, ForcedSelection } from '../../shared/types';
+import { rollOnTable, rerollSubtable, rollOnTableWithForcedSelections, forceSubtableEntry } from '../../shared/utils/TableRoller';
 import InteractiveRollResult from './InteractiveRollResult';
 import TableEntryViewer from './TableEntryViewer';
 import { DraggableWindow } from './DraggableWindow';
@@ -98,6 +98,36 @@ export const TableWindow: React.FC<TableWindowProps> = ({
         ...prev.slice(0, 4)
       ]);
     }
+    
+    setCurrentResult(rollResult);
+  };
+
+  // Handle forced entry selection
+  const handleForceEntry = (sectionName: string, entryIndex: number) => {
+    if (!currentResult) {
+      // If no current result, start fresh with forced selection
+      const forcedSelections: ForcedSelection[] = [
+        { sectionName, entryIndex }
+      ];
+      const rollResult = rollOnTableWithForcedSelections(table, allTables, forcedSelections);
+      setCurrentResult(rollResult);
+      return;
+    }
+
+    // If we have a current result, force just this subtable entry
+    const rollResult = forceSubtableEntry(
+      currentResult,
+      sectionName,
+      entryIndex,
+      table,
+      allTables
+    );
+    
+    // Add current result to history
+    setRollHistory(prev => [
+      { result: currentResult, timestamp: new Date() },
+      ...prev.slice(0, 4)
+    ]);
     
     setCurrentResult(rollResult);
   };
@@ -246,6 +276,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
           <TableEntryViewer 
             table={table}
             rollResult={currentResult || undefined}
+            onForceEntry={handleForceEntry}
           />
         </div>
       </div>

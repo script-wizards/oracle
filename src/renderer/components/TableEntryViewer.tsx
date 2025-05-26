@@ -6,6 +6,7 @@ interface TableEntryViewerProps {
   table: Table;
   searchQuery?: string;
   rollResult?: RollResult;
+  onForceEntry?: (sectionName: string, entryIndex: number) => void;
 }
 
 interface SectionViewState {
@@ -15,7 +16,8 @@ interface SectionViewState {
 const TableEntryViewer: React.FC<TableEntryViewerProps> = ({ 
   table, 
   searchQuery = '',
-  rollResult
+  rollResult,
+  onForceEntry
 }) => {
   const [expandedSections, setExpandedSections] = useState<SectionViewState>(() => {
     // Auto-expand output section and sections with few entries
@@ -72,6 +74,23 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
     );
     
     return subroll ? subroll.text : null;
+  };
+
+  // Helper function to check if a section was rolled (and thus allows forced entry selection)
+  const wasSectionRolled = (sectionName: string): boolean => {
+    if (!rollResult) return false;
+    
+    return rollResult.subrolls.some(subroll => 
+      subroll.source === sectionName && 
+      subroll.type === 'subtable'
+    );
+  };
+
+  // Handle clicking on an entry to force it
+  const handleEntryClick = (sectionName: string, entryIndex: number) => {
+    if (onForceEntry && wasSectionRolled(sectionName)) {
+      onForceEntry(sectionName, entryIndex);
+    }
   };
 
   const highlightSearchTerm = (text: string, query: string): React.ReactNode => {
@@ -174,9 +193,16 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
                 <div className="section-entries">
                   {section.entries.map((entry, entryIndex) => {
                     const isRolled = isEntryRolled(section.name, entryIndex);
+                    const sectionWasRolled = wasSectionRolled(section.name);
+                    const isClickable = sectionWasRolled && onForceEntry;
                     
                     return (
-                      <div key={entryIndex} className={`entry-item ${isRolled ? 'rolled-entry' : ''}`}>
+                      <div 
+                        key={entryIndex} 
+                        className={`entry-item ${isRolled ? 'rolled-entry' : ''} ${isClickable ? 'clickable-entry' : ''}`}
+                        onClick={isClickable ? () => handleEntryClick(section.name, entryIndex) : undefined}
+                        title={isClickable ? 'Click to force this entry to be rolled' : undefined}
+                      >
                         <div className="entry-bullet">
                           •
                         </div>

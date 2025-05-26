@@ -181,6 +181,22 @@
   }
 }
 
+/* Clickable Entry Styling */
+.entry-item.clickable-entry {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.entry-item.clickable-entry:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.entry-item.clickable-entry.rolled-entry:hover {
+  background: rgba(255, 140, 0, 0.25);
+  border-color: rgba(255, 140, 0, 0.6);
+}
+
 .entry-bullet {
   color: var(--text-muted);
   font-size: 12px;
