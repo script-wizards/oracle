@@ -115,9 +115,35 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     return parts.join(' • ');
   };
 
+  const getWindowTitle = (): string => {
+    const subtitle = getTableSubtitle();
+    const filename = table.filePath ? table.filePath.split('/').pop() : '';
+    
+    if (subtitle && filename) {
+      return `${table.title} • ${subtitle} • ${filename}`;
+    } else if (subtitle) {
+      return `${table.title} • ${subtitle}`;
+    } else if (filename) {
+      return `${table.title} • ${filename}`;
+    }
+    
+    return table.title;
+  };
+
+  const headerContent = rollHistory.length > 0 ? (
+    <button
+      className="history-toggle-button"
+      onClick={() => setShowHistory(!showHistory)}
+      title={showHistory ? "Hide history" : "Show history"}
+    >
+      <i className="fas fa-clock-rotate-left"></i>
+    </button>
+  ) : null;
+
   return (
     <DraggableWindow
-      title={table.title}
+      title={getWindowTitle()}
+      headerContent={headerContent}
       initialPosition={position}
       initialSize={size}
       onClose={onClose}
@@ -135,26 +161,6 @@ export const TableWindow: React.FC<TableWindowProps> = ({
         onClick={!currentResult && rollHistory.length === 0 ? handleRoll : undefined}
         style={{ cursor: !currentResult && rollHistory.length === 0 ? 'pointer' : 'default' }}
       >
-        {/* Table Info */}
-        <div className="table-window-header">
-          <div className="table-info">
-            <div className="table-subtitle">
-              {getTableSubtitle()}
-              {table.filePath && (
-                <span className="table-path-inline">{table.filePath.split('/').pop()}</span>
-              )}
-            </div>
-          </div>
-          {rollHistory.length > 0 && (
-            <button
-              className="history-toggle-button"
-              onClick={() => setShowHistory(!showHistory)}
-              title={showHistory ? "Hide history" : "Show history"}
-            >
-              <i className="fas fa-clock-rotate-left"></i>
-            </button>
-          )}
-        </div>
 
         {/* Current Result - no wrapper box */}
         {currentResult && (

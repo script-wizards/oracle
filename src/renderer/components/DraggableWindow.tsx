@@ -28,7 +28,7 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
   minWidth = 250,
   minHeight = 150,
   maxWidth = 800,
-  maxHeight = 600,
+  maxHeight = window.innerHeight - 100,
   resizable = true,
   onClose,
   onPositionChange,
@@ -146,15 +146,18 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
         <span className="window-title">{title}</span>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="window-close-button"
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <i className="fas fa-times"></i>
-          </button>
-        )}
+        <div className="window-header-content">
+          {headerContent}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="window-close-button"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="window-content" style={{ height: 'calc(100% - 32px)', overflow: 'auto' }}>

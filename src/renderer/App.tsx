@@ -1399,7 +1399,6 @@ const App: React.FC = () => {
                 title="Search"
                 initialPosition={windowStates.search.position}
                 initialSize={windowStates.search.size}
-                maxHeight={800}
                 onClose={() => closeWindow('search')}
                 onPositionChange={(position) => updateWindowPosition('search', position)}
                 onSizeChange={(size) => updateWindowSize('search', size)}
@@ -1510,7 +1509,7 @@ const App: React.FC = () => {
             {/* Current Result Window */}
             {openWindows.currentResult && lastRollResult && (
               <DraggableWindow
-                title="Roll Result"
+                title="Current Roll"
                 initialPosition={windowStates.currentResult.position}
                 initialSize={windowStates.currentResult.size}
                 onClose={() => closeWindow('currentResult')}

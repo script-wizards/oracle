@@ -74,29 +74,28 @@
 }
 
 .history-toggle-button {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-primary);
-  padding: 2px 4px;
-  border-radius: 2px;
-  font-size: 9px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
   cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 .history-toggle-button:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  color: var(--text-secondary);
+  background: var(--bg-primary);
 }
 
 .history-toggle-button i {
-  font-size: 9px;
+  font-size: 12px;
 }
 
 /* Roll Button */

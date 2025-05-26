@@ -35,11 +35,21 @@ export const useTableSearch = (
             },
             {
                 name: 'entries',
-                weight: 0.2 // Entry content matches are less important
+                weight: 0.15 // Legacy entry content matches
+            },
+            {
+                // Search in section names
+                name: 'sections.name',
+                weight: 0.3 // Section names are important
+            },
+            {
+                // Search in all section entries
+                name: 'sections.entries',
+                weight: 0.2 // Section entry content matches
             },
             {
                 name: 'filePath',
-                weight: 0.1 // File path matches are least important
+                weight: 0.05 // File path matches are least important
             }
         ],
 

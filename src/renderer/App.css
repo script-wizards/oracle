@@ -306,6 +306,7 @@ body {
 .window-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 8px 12px;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-primary);
@@ -316,12 +317,21 @@ body {
   font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.window-header-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .window-close-button {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -335,7 +345,6 @@ body {
   justify-content: center;
   width: 20px;
   height: 20px;
-  z-index: 10;
 }
 
 .window-close-button:hover {
@@ -1180,7 +1189,6 @@ body {
   align-items: center;
   flex: 1;
   min-height: 0;
-  max-height: calc(100vh - 180px);
   overflow: hidden;
 }
 
@@ -1380,7 +1388,6 @@ body {
   border-radius: 3px;
   overflow-x: auto;
   font-size: 11px;
-  max-height: 300px;
   overflow-y: auto;
   color: var(--text-secondary);
   font-family: inherit;
