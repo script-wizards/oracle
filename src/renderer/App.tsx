@@ -53,6 +53,35 @@ const App: React.FC = () => {
   const [sampleTables] = useState<Table[]>([
     {
       id: "sample-1",
+      title: "Basic Weather",
+      entries: [
+        "Sunny and warm",
+        "Cloudy with light breeze",
+        "Rainy and cool",
+        "Foggy and mysterious",
+        "Stormy with heavy winds",
+        "Clear and cold"
+      ],
+      sections: [
+        {
+          name: "output",
+          entries: [
+            "Sunny and warm",
+            "Cloudy with light breeze",
+            "Rainy and cool",
+            "Foggy and mysterious",
+            "Stormy with heavy winds",
+            "Clear and cold"
+          ]
+        }
+      ],
+      subtables: [],
+      filePath: "/sample/basic-weather.md",
+      codeBlockIndex: 0,
+      errors: undefined
+    },
+    {
+      id: "sample-2",
       title: "Random Encounters",
       entries: [
         "You find a [item] and a [item]",
@@ -118,32 +147,36 @@ const App: React.FC = () => {
       ],
       subtables: ["item", "npc", "reaction", "weather", "location", "treasure"],
       filePath: "/sample/encounters.md",
-      codeBlockIndex: 0,
+      codeBlockIndex: 1,
       errors: undefined
     },
     {
-      id: "sample-2",
-      title: "Simple Weather",
+      id: "sample-3",
+      title: "Tavern Names",
       entries: [
-        "Clear skies and pleasant weather",
-        "Light rain begins to fall",
-        "Heavy fog reduces visibility",
-        "Strong winds make travel difficult"
+        "The Prancing Pony",
+        "The Golden Griffin",
+        "The Drunken Dragon",
+        "The Silver Stag",
+        "The Laughing Maiden",
+        "The Rusty Anchor"
       ],
       sections: [
         {
           name: "output",
           entries: [
-            "Clear skies and pleasant weather",
-            "Light rain begins to fall",
-            "Heavy fog reduces visibility",
-            "Strong winds make travel difficult"
+            "The Prancing Pony",
+            "The Golden Griffin",
+            "The Drunken Dragon",
+            "The Silver Stag",
+            "The Laughing Maiden",
+            "The Rusty Anchor"
           ]
         }
       ],
       subtables: [],
-      filePath: "/sample/weather.md",
-      codeBlockIndex: 1,
+      filePath: "/sample/taverns.md",
+      codeBlockIndex: 2,
       errors: undefined
     }
   ]);

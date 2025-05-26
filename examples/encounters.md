@@ -1,6 +1,27 @@
 # Forest Encounters
 
-A simple example showcasing Oracle's interactive subtable features.
+Examples showcasing Oracle's table features, from simple to complex.
+
+## Weather
+
+The simplest possible table - just multiple entries in the output section.
+
+```perchance
+title
+  Weather
+
+output
+  Sunny and warm
+  Cloudy with light breeze
+  Rainy and cool
+  Foggy and mysterious
+  Stormy with heavy winds
+  Clear and cold
+```
+
+**Try this**: This is the most basic table format. Each roll picks one random entry from the output section.
+
+## Forest Encounters
 
 ```perchance
 title
@@ -24,7 +45,7 @@ location
   a magical spring
 ```
 
-**Try this**: Roll the table, then click on `[creature]` or `[location]` in the result to reroll just that part!
+**Try this**: This shows subtables in action. Roll the table, then click on `[creature]` or `[location]` in the result to reroll just that part!
 
 ## Weather Generator
 
