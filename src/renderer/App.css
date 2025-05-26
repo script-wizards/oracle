@@ -1094,11 +1094,58 @@ body {
   display: inline;
   color: var(--accent-primary);
   font-size: inherit;
+  position: relative;
 }
 
 .clickable-subtable:hover {
   background: var(--accent-primary);
   color: var(--bg-primary);
+}
+
+/* Overlapping boxes for nested clickable elements */
+.clickable-subtable {
+  border: 1px solid rgba(255, 140, 0, 0.4);
+  border-radius: 3px;
+  padding: 2px 4px;
+  margin: 1px;
+  background: rgba(255, 140, 0, 0.05);
+}
+
+.clickable-subtable:hover {
+  border-color: rgba(255, 140, 0, 0.8);
+  background: rgba(255, 140, 0, 0.15);
+  color: var(--text-primary);
+}
+
+/* Different colors for different nesting depths */
+.clickable-subtable.depth-1 {
+  border-color: rgba(255, 165, 0, 0.5);
+  background: rgba(255, 165, 0, 0.08);
+}
+
+.clickable-subtable.depth-1:hover {
+  border-color: rgba(255, 165, 0, 0.9);
+  background: rgba(255, 165, 0, 0.2);
+}
+
+.clickable-subtable.depth-2 {
+  border-color: rgba(0, 200, 255, 0.5);
+  background: rgba(0, 200, 255, 0.08);
+}
+
+.clickable-subtable.depth-2:hover {
+  border-color: rgba(0, 200, 255, 0.9);
+  background: rgba(0, 200, 255, 0.2);
+}
+
+.clickable-subtable.depth-3 {
+  border-color: rgba(255, 100, 255, 0.5);
+  background: rgba(255, 100, 255, 0.08);
+}
+
+.clickable-subtable.depth-3:hover {
+  border-color: rgba(255, 100, 255, 0.9);
+  background: rgba(255, 100, 255, 0.2);
 }
 
 .static-text {

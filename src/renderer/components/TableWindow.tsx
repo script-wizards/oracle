@@ -36,6 +36,12 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     timestamp: Date;
   }>>([]);
   const [showHistory, setShowHistory] = useState(true);
+  const [currentSection, setCurrentSection] = useState<string>(() => {
+    // Auto-select the first section, or "output" if it exists
+    const sections = table.sections || [];
+    const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
+    return outputSection ? outputSection.name : (sections[0]?.name || 'output');
+  });
 
   // Roll on a specific section
   const handleRollSection = (sectionName: string) => {
@@ -50,17 +56,13 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     }
     
     setCurrentResult(rollResult);
+    setCurrentSection(sectionName); // Track which section we rolled from
   };
 
-  // Reroll the current result (use output section by default)
+  // Reroll the current result (use the current section)
   const handleReroll = () => {
     if (currentResult) {
-      // Auto-select the first section, or "output" if it exists
-      const sections = table.sections || [];
-      const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-      const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
-      
-      const rollResult = rollOnTableSection(table, defaultSection, allTables);
+      const rollResult = rollOnTableSection(table, currentSection, allTables);
       
       // Add current result to history
       setRollHistory(prev => [
@@ -121,6 +123,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
       ];
       const rollResult = rollOnTableWithForcedSelections(table, allTables, forcedSelections);
       setCurrentResult(rollResult);
+      setCurrentSection(sectionName); // Track which section we're now rolling from
       return;
     }
 
@@ -140,6 +143,8 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     ]);
     
     setCurrentResult(rollResult);
+    // Note: Don't update currentSection here since we're just forcing a specific entry,
+    // not changing which section we're rolling from
   };
 
   const getTableSubtitle = (): string => {
@@ -173,14 +178,9 @@ export const TableWindow: React.FC<TableWindowProps> = ({
 
   // Initial roll when component mounts
   useEffect(() => {
-    // Auto-select the first section, or "output" if it exists
-    const sections = table.sections || [];
-    const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-    const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
-    
-    const rollResult = rollOnTableSection(table, defaultSection, allTables);
+    const rollResult = rollOnTableSection(table, currentSection, allTables);
     setCurrentResult(rollResult);
-  }, [table, allTables]);
+  }, [table, allTables, currentSection]);
 
   const headerContent = rollHistory.length > 0 ? (
     <button
