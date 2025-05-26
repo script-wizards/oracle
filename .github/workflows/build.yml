@@ -32,19 +32,19 @@ jobs:
 
       - name: Package for macOS
         if: matrix.os == 'macos-latest'
-        run: npm run package:mac
+        run: npx electron-builder --mac zip
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package for Windows
         if: matrix.os == 'windows-latest'
-        run: npm run package:win
+        run: npx electron-builder --win portable
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package for Linux
         if: matrix.os == 'ubuntu-latest'
-        run: npm run package:linux
+        run: npx electron-builder --linux AppImage
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
