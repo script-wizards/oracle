@@ -9,9 +9,11 @@ import TableList from "./components/TableList";
 import InteractiveRollResult from "./components/InteractiveRollResult";
 import {useTableSearch} from "./hooks/useTableSearch";
 import {useKeyboardNav} from "./hooks/useKeyboardNav";
+import {useTranslations, initializeLanguage} from "./i18n";
 
 const App: React.FC = () => {
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
+  const t = useTranslations();
   const [isLoading, setIsLoading] = useState(true);
   const [storageAvailable, setStorageAvailable] = useState(false);
   const [saveStatus, setSaveStatus] = useState<
@@ -347,6 +349,9 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        // Initialize language system (renderer process only)
+        initializeLanguage();
+
         // Detect platform for styling
         setIsMacOS(navigator.platform.toLowerCase().includes("mac"));
 
@@ -907,15 +912,15 @@ const App: React.FC = () => {
               className="header-button vault-name"
               title={
                 appState.vaultPath
-                  ? "Click to change vault"
-                  : "Click to select vault"
+                  ? t.header.tooltips.changeVault
+                  : t.header.tooltips.selectVault
               }
             >
               {appState.vaultPath
                 ? appState.vaultPath.split("/").pop()
                 : isSelectingVault
                 ? "..."
-                : "load vault"}
+                : t.header.loadVault}
             </button>
             <button
               onClick={async () => {
@@ -938,8 +943,8 @@ const App: React.FC = () => {
               }`}
               title={
                 appState.vaultPath
-                  ? "Refresh vault and parse tables"
-                  : "Select a vault first"
+                  ? t.header.tooltips.refreshVault
+                  : t.header.tooltips.selectVaultFirst
               }
             >
               <i
@@ -956,8 +961,8 @@ const App: React.FC = () => {
               className="header-button"
               title={
                 showHistory
-                  ? "Hide roll history (Ctrl+H)"
-                  : "Show roll history (Ctrl+H)"
+                  ? t.header.tooltips.hideHistory
+                  : t.header.tooltips.showHistory
               }
             >
               <i
@@ -972,7 +977,7 @@ const App: React.FC = () => {
               <button
                 onClick={handleClearStorage}
                 className="header-button clear-storage"
-                title="Clear all stored data"
+                title={t.header.tooltips.clearStorage}
               >
                 <i className="fas fa-trash"></i>
               </button>
@@ -984,7 +989,7 @@ const App: React.FC = () => {
             <button
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               className="header-button hamburger-menu"
-              title="Menu"
+              title={t.mobileMenu.menu}
             >
               <i className="fas fa-bars"></i>
             </button>
@@ -1003,10 +1008,12 @@ const App: React.FC = () => {
               >
                 <i className="fas fa-folder"></i>
                 {appState.vaultPath
-                  ? `Change vault (${appState.vaultPath.split("/").pop()})`
+                  ? `${t.mobileMenu.changeVault} (${appState.vaultPath
+                      .split("/")
+                      .pop()})`
                   : isSelectingVault
                   ? "..."
-                  : "Load vault"}
+                  : t.mobileMenu.loadVault}
               </button>
 
               <button
@@ -1035,7 +1042,7 @@ const App: React.FC = () => {
                       : "fa-sync-alt"
                   }`}
                 ></i>
-                Refresh vault
+                {t.mobileMenu.refreshVault}
               </button>
 
               <button
@@ -1046,7 +1053,9 @@ const App: React.FC = () => {
                 className="mobile-menu-item"
               >
                 <i className="fas fa-clock-rotate-left"></i>
-                {showHistory ? "Hide" : "Show"} history
+                {showHistory
+                  ? t.mobileMenu.hideHistory
+                  : t.mobileMenu.showHistory}
               </button>
 
               {storageAvailable && (
@@ -1058,7 +1067,7 @@ const App: React.FC = () => {
                   className="mobile-menu-item clear-storage"
                 >
                   <i className="fas fa-trash"></i>
-                  Clear storage
+                  {t.mobileMenu.clearStorage}
                 </button>
               )}
             </div>
@@ -1312,7 +1321,6 @@ location
               onEscape={keyboardNav.handleEscape}
               onTab={keyboardNav.handleTab}
               onNumberKey={keyboardNav.handleNumberKey}
-              placeholder="Search..."
               value={searchQuery}
               resultCount={resultCount}
               selectedIndex={keyboardNav.selectedIndex}

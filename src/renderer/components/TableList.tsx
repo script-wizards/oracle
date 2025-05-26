@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Table} from "../../shared/types";
 import "./TableList.css";
+import {useTranslations} from "../i18n";
 
 interface TableListProps {
   tables: Table[];
@@ -20,6 +21,7 @@ const TableList: React.FC<TableListProps> = ({
   const [expandedTableId, setExpandedTableId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const selectedItemRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations();
 
   // Generate Perchance table definition for viewing
   const generateTableDefinition = (table: Table): string => {
@@ -92,15 +94,15 @@ const TableList: React.FC<TableListProps> = ({
     const parts = [];
 
     if (table.entries.length > 0) {
-      parts.push(`${table.entries.length} entries`);
+      parts.push(`${table.entries.length} ${t.tables.entries}`);
     }
 
     if (table.subtables && table.subtables.length > 0) {
-      parts.push(`${table.subtables.length} subtables`);
+      parts.push(`${table.subtables.length} ${t.tables.subtables}`);
     }
 
     if (table.errors && table.errors.length > 0) {
-      parts.push(`${table.errors.length} errors`);
+      parts.push(`${table.errors.length} ${t.tables.errors}`);
     }
 
     return parts.join(" • ");
@@ -119,10 +121,10 @@ const TableList: React.FC<TableListProps> = ({
       <div className="table-list empty" role="listbox" aria-label="Table list">
         <div className="empty-state">
           <div className="empty-message">
-            {searchQuery ? "No tables found" : "No tables loaded"}
+            {searchQuery ? t.tables.noTablesFound : t.tables.noTablesLoaded}
           </div>
           {searchQuery && (
-            <div className="empty-hint">Try a different search term</div>
+            <div className="empty-hint">{t.tables.tryDifferentSearch}</div>
           )}
         </div>
       </div>
@@ -184,8 +186,8 @@ const TableList: React.FC<TableListProps> = ({
                 }}
                 title={
                   expandedTableId === table.id
-                    ? "Hide table definition"
-                    : "View table definition"
+                    ? t.tables.hideDefinition
+                    : t.tables.viewDefinition
                 }
                 aria-label={`${
                   expandedTableId === table.id ? "Hide" : "View"
