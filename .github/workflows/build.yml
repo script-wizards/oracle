@@ -32,27 +32,53 @@ jobs:
 
       - name: Package for macOS
         if: matrix.os == 'macos-latest'
-        run: npx electron-builder --mac zip
+        run: npx electron-builder --mac dmg zip
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package for Windows
         if: matrix.os == 'windows-latest'
-        run: npx electron-builder --win portable
+        run: npx electron-builder --win portable zip
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package for Linux
         if: matrix.os == 'ubuntu-latest'
-        run: npx electron-builder --linux AppImage
+        run: npx electron-builder --linux AppImage tar.gz
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts
+      - name: Upload macOS artifacts
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: oracle-${{ matrix.os }}
-          path: build/
+          name: oracle-macos
+          path: |
+            build/*.dmg
+            build/*-mac.zip
+            !build/*.blockmap
+          retention-days: 30
+
+      - name: Upload Windows artifacts
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-windows
+          path: |
+            build/*.exe
+            build/*-win.zip
+            !build/*.blockmap
+          retention-days: 30
+
+      - name: Upload Linux artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-linux
+          path: |
+            build/*.AppImage
+            build/*.tar.gz
+            !build/*.blockmap
           retention-days: 30
 
   release:
@@ -69,10 +95,18 @@ jobs:
         with:
           path: artifacts/
 
+      - name: List artifacts for debugging
+        run: find artifacts/ -type f -name "*" | head -20
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: |
+            artifacts/**/*.dmg
+            artifacts/**/*.zip
+            artifacts/**/*.exe
+            artifacts/**/*.AppImage
+            artifacts/**/*.tar.gz
           draft: false
           prerelease: false
           generate_release_notes: true
