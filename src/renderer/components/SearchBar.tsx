@@ -164,7 +164,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     if (query) {
       hints.push("↑↓ navigate", "Enter to roll");
     }
-    hints.push("Ctrl+K focus", "Ctrl+L clear");
+    hints.push("Ctrl+K focus", "Ctrl+L clear", "Ctrl+H history");
 
     // Show number shortcut hint when search is not focused (regardless of query)
     const isSearchFocused = document.activeElement === inputRef.current;
@@ -199,17 +199,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
           autoComplete="off"
           spellCheck={false}
         />
-        {query && (
-          <button
-            onClick={handleClear}
-            className="clear-button"
-            title="Clear search (Ctrl+L)"
-            type="button"
-            aria-label="Clear search"
-          >
-            ×
-          </button>
-        )}
       </div>
       <div id="search-hint" className="search-hint">
         {getSearchHint()}

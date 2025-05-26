@@ -5,10 +5,14 @@ A desktop application for tabletop gaming that parses and rolls on random tables
 ## Features
 
 - **Perchance Table Parsing**: Parse tables from markdown files using Perchance syntax
+- **Interactive Results**: Click on subtable references in results to reroll just that part
 - **Subtable Resolution**: Automatically resolve nested table references like `[encounter]` and `[treasure]`
+- **Spotlight Search**: Fast table search with keyboard navigation and shortcuts
+- **Roll History**: Track previous rolls with timestamps and easy rerolling
+- **Keyboard Shortcuts**: Full keyboard navigation and quick actions
 - **Vault Management**: Scan and manage collections of markdown files containing tables
 - **Cross-Platform**: Built with Electron for Windows, macOS, and Linux
-- **Local Storage**: Persistent storage of vault paths and table data
+- **Local Storage**: Persistent storage of vault paths, table data, and user preferences
 
 ## Quick Start
 
@@ -33,10 +37,60 @@ npm run dev
 
 ### First Use
 
-1. Click "📁 Select Vault" to choose a folder with markdown files
-2. Click "🔍 Scan & Analyze" to find tables
-3. Click "🎲 Parse Tables" to load them
-4. Select a table and click "🎲 Roll Table" to test
+1. Click "load vault" in the header to choose a folder with markdown files
+2. The app will automatically scan and parse tables from your vault
+3. Use the search bar to find tables or browse the list
+4. Click on a table or press Enter to roll
+5. Click on bracketed text in results to reroll just that subtable
+
+## Keyboard Shortcuts
+
+### Global Shortcuts
+
+- **Ctrl/Cmd + K**: Focus search bar
+- **Ctrl/Cmd + L**: Clear search
+- **Ctrl/Cmd + H**: Toggle roll history
+
+### Navigation
+
+- **↑/↓ Arrow Keys**: Navigate table list
+- **Enter**: Roll selected table
+- **Esc**: Clear selection and unfocus search
+- **Tab**: Cycle through UI elements
+- **1-9**: Quick select tables (when search not focused)
+
+### Interaction
+
+- **Click**: Roll table or reroll subtable
+- **Mouse**: Resize history panel by dragging the grip handle
+
+## User Interface
+
+### Search Bar
+
+- **Spotlight-style search** with real-time filtering
+- **Keyboard hints** showing available shortcuts
+- **Result count** and navigation indicators
+
+### Roll Results
+
+- **Interactive subtables**: Click bracketed text like `[creature]` to reroll
+- **Help tooltip**: Hover over the ? icon for interaction tips
+- **Reroll entire result**: Click anywhere else in the result box
+
+### Roll History
+
+- **Chronological history** with timestamps
+- **Resizable panel**: Drag to adjust height
+- **Full interaction**: Reroll entire results or individual subtables
+- **Toggle visibility**: Use Ctrl+H or the header button
+
+### Header Controls
+
+- **Vault selector**: Shows current vault name, click to change
+- **Refresh button**: Rescan and reparse tables
+- **History toggle**: Show/hide roll history
+- **Clear storage**: Reset all data (with confirmation)
 
 ## Documentation
 

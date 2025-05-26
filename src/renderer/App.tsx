@@ -376,6 +376,29 @@ const App: React.FC = () => {
     localStorage.setItem("oracle-history-height", historyHeight.toString());
   }, [historyHeight]);
 
+  // Keyboard shortcut for toggling history (Ctrl+H / Cmd+H)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Ctrl+H (Windows/Linux) or Cmd+H (macOS)
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "h") {
+        // Prevent default browser behavior (like opening history)
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Toggle history visibility
+        setShowHistory((prev: boolean) => !prev);
+      }
+    };
+
+    // Add event listener to document
+    document.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []); // Empty dependency array since we only want to set this up once
+
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setAppState((prev) => ({
@@ -411,6 +434,13 @@ const App: React.FC = () => {
 
   const handleClearStorage = async () => {
     if (!storageAvailable) return;
+
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      "Are you sure you want to clear all stored data?\n\nThis will:\n• Remove your vault path\n• Clear all parsed tables\n• Reset all settings\n• Clear roll history\n\nThis action cannot be undone."
+    );
+
+    if (!confirmed) return;
 
     try {
       await StorageService.clearAppState();
@@ -847,7 +877,11 @@ const App: React.FC = () => {
           <button
             onClick={() => setShowHistory(!showHistory)}
             className="header-button"
-            title={showHistory ? "Hide roll history" : "Show roll history"}
+            title={
+              showHistory
+                ? "Hide roll history (Ctrl+H)"
+                : "Show roll history (Ctrl+H)"
+            }
           >
             <i
               className={`fas ${
@@ -863,7 +897,7 @@ const App: React.FC = () => {
               className="header-button clear-storage"
               title="Clear all stored data"
             >
-              <i className="fas fa-bomb"></i>
+              <i className="fas fa-trash"></i>
             </button>
           )}
         </div>
@@ -873,18 +907,18 @@ const App: React.FC = () => {
         <div className="welcome-section">
           {/* Welcome and Setup - Only when no vault is selected and welcome is visible */}
           {!appState.vaultPath && showWelcome && (
-            <div className="welcome-setup">
-              <div className="welcome-header">
-                <span className="welcome-title">Welcome to Oracle</span>
+            <div className="window-container">
+              <div className="window-header">
+                <span className="window-title">Welcome to Oracle</span>
                 <button
                   onClick={() => setShowWelcome(false)}
-                  className="welcome-close-button"
+                  className="window-close-button"
                   title="Close welcome screen"
                 >
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              <div className="welcome-content">
+              <div className="window-content">
                 <p className="welcome-description">
                   A random table roller for your Obsidian vault. Search through
                   your tables, click to roll, get interactive results with
