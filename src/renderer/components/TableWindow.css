@@ -98,6 +98,39 @@
   font-size: 12px;
 }
 
+/* Current Result Section */
+.current-result-section {
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+
+/* Table Structure Section */
+.table-structure-section {
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.table-structure-section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.table-structure-section::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 0;
+}
+
+.table-structure-section::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 2px;
+  transition: background 0.15s ease;
+}
+
+.table-structure-section::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
 /* Roll Button */
 .table-roll-button {
   background: var(--bg-tertiary);
@@ -128,12 +161,13 @@
   font-size: 14px;
 }
 
-/* Recent History Section - simplified, no extra box */
+/* Recent History Section - very compact, below result */
 .table-recent-history {
-  flex: 1;
-  min-height: 0;
+  flex-shrink: 0;
+  max-height: 50px;
   display: flex;
   flex-direction: column;
+  margin-bottom: 8px;
 }
 
 .history-list {
@@ -143,18 +177,20 @@
   overflow-y: auto;
   flex: 1;
   min-height: 0;
-  padding: 6px;
+  padding: 0 6px;
 }
 
 .history-item {
   position: relative;
   opacity: 0.7;
   transition: opacity 0.15s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .history-item.no-timestamp {
-  margin-top: 2px;
-  /* Reduced spacing when no timestamp */
+  /* No special styling needed when timestamp is inline */
 }
 
 .history-item:hover {
@@ -164,9 +200,17 @@
 .history-timestamp {
   font-size: 10px;
   color: var(--text-muted);
-  margin-bottom: 2px;
-  text-align: center;
   font-weight: 500;
+  flex-shrink: 0;
+  width: 45px;
+  text-align: right;
+  padding-top: 2px;
+  white-space: nowrap;
+}
+
+.history-item-content {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Empty State */
@@ -179,6 +223,44 @@
   text-align: center;
   padding: 16px;
   color: var(--text-secondary);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.table-empty-state.clickable-empty {
+  border: 1px dashed var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.table-empty-state.clickable-empty:hover {
+  border-color: var(--accent-primary);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Compact Empty Banner */
+.table-empty-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px 16px;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  margin-bottom: 8px;
+}
+
+.table-empty-banner.clickable-empty {
+  border: 1px dashed var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.table-empty-banner.clickable-empty:hover {
+  border-color: var(--accent-primary);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .empty-icon {

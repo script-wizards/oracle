@@ -33,21 +33,23 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
       );
     }
 
-    // Sort subrolls by start index to process them in order
-    const sortedSubrolls = [...rollResult.subrolls].sort(
-      (a, b) => a.startIndex - b.startIndex
-    );
+    // Filter out output subrolls and parent subrolls with nested refs (they're only for highlighting in table viewer)
+    const sortedSubrolls = rollResult.subrolls
+      .filter(subroll => subroll.source !== 'output' && !subroll.hasNestedRefs)
+      .sort((a, b) => a.startIndex - b.startIndex);
 
     const elements: React.ReactNode[] = [];
     let lastIndex = 0;
 
     sortedSubrolls.forEach((subroll, sortedIndex) => {
-      // Find the original index of this subroll in the unsorted array
+      // Find the original index of this subroll in the unsorted array (excluding output and nested subrolls)
       const originalIndex = rollResult.subrolls.findIndex(
         (s) =>
           s.startIndex === subroll.startIndex &&
           s.endIndex === subroll.endIndex &&
-          s.text === subroll.text
+          s.text === subroll.text &&
+          s.source !== 'output' &&
+          !s.hasNestedRefs
       );
 
       // Add text before this subroll
@@ -65,8 +67,8 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
         }
       }
 
-      // Add the subroll as clickable if it's a subtable
-      if (subroll.type === "subtable" && subroll.source) {
+      // Add the subroll as clickable if it's a subtable (but not the output section)
+      if (subroll.type === "subtable" && subroll.source && subroll.source.toLowerCase() !== 'output') {
         elements.push(
           <span
             key={`subroll-${sortedIndex}`}
@@ -112,7 +114,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
   };
 
   const subtableCount =
-    rollResult.subrolls?.filter((s) => s.type === "subtable").length || 0;
+    rollResult.subrolls?.filter((s) => s.type === "subtable" && s.source !== 'output' && !s.hasNestedRefs).length || 0;
 
   // Handle clicks on the result box (for full reroll)
   const handleResultBoxClick = (e: React.MouseEvent) => {

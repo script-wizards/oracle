@@ -7,9 +7,6 @@ title
   Wild Magic Surges
 
 output
-  The magic goes awry! [effect]
-
-effect
   You grow a [feature] that lasts [duration]
   All creatures within 30 feet turn [color] for 24 hours
   You teleport [distance] to a random location

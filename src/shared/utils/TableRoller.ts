@@ -42,10 +42,26 @@ export function rollOnTable(
     }
 
     // Get a random output entry (usually there's only one)
-    const outputEntry = outputSection.entries[Math.floor(Math.random() * outputSection.entries.length)];
+    const outputEntryIndex = Math.floor(Math.random() * outputSection.entries.length);
+    const outputEntry = outputSection.entries[outputEntryIndex];
 
     // Resolve the output text using the sections from this table
     const result = resolveText(outputEntry, sections, tableMap, [], maxDepth);
+
+    // Add a subroll to track which output entry was selected
+    // This allows the table viewer to highlight the correct output entry
+    const outputSubroll: SubrollData = {
+        text: result.text,
+        type: 'subtable',
+        source: 'output',
+        startIndex: 0,
+        endIndex: result.text.length,
+        originalEntry: outputEntry,
+        entryIndex: outputEntryIndex
+    };
+
+    // Add the output subroll at the beginning so it encompasses the entire result
+    result.subrolls.unshift(outputSubroll);
 
     return result;
 }
@@ -175,20 +191,20 @@ function resolveText(
             }
 
             // Add subroll information with correct positions in the final text
-            // Only create a subroll for this subtable if it doesn't have nested subrolls
-            // This prevents overlapping subrolls where both parent and child are clickable
-            if (!subtableResult.subrolls || subtableResult.subrolls.length === 0) {
-                const mainSubroll: SubrollData = {
-                    text: subtableResult.text,
-                    type: 'subtable',
-                    source: matchInfo.tableName,
-                    startIndex: matchInfo.startIndex,
-                    endIndex: matchInfo.startIndex + subtableResult.text.length
-                };
+            // Always create a subroll for this subtable to enable proper highlighting
+            const mainSubroll: SubrollData = {
+                text: subtableResult.text,
+                type: 'subtable',
+                source: matchInfo.tableName,
+                startIndex: matchInfo.startIndex,
+                endIndex: matchInfo.startIndex + subtableResult.text.length,
+                originalEntry: subtableResult.originalEntry,
+                entryIndex: subtableResult.entryIndex,
+                hasNestedRefs: !!(subtableResult.subrolls && subtableResult.subrolls.length > 0)
+            };
 
-                // Add the main subroll to the list
-                newSubrolls.push(mainSubroll);
-            }
+            // Add the main subroll to the list
+            newSubrolls.push(mainSubroll);
 
             // Add any nested subrolls (adjust their positions relative to the main subroll)
             if (subtableResult.subrolls) {
@@ -226,18 +242,21 @@ function resolveSubtable(
     tableMap: Map<string, Table>,
     maxDepth: number,
     depth: number
-): { success: boolean; text: string; subrolls?: SubrollData[] } {
+): { success: boolean; text: string; subrolls?: SubrollData[]; originalEntry?: string; entryIndex?: number } {
     // First, try to find the subtable within the current table's sections
     const localSection = sections.find(s => s.name.toLowerCase() === tableName.toLowerCase());
     if (localSection && localSection.entries.length > 0) {
-        const randomEntry = localSection.entries[Math.floor(Math.random() * localSection.entries.length)];
+        const randomEntryIndex = Math.floor(Math.random() * localSection.entries.length);
+        const randomEntry = localSection.entries[randomEntryIndex];
 
         // Recursively resolve this entry in case it has more references
         const resolved = resolveText(randomEntry, sections, tableMap, [], maxDepth, depth);
         return {
             success: true,
             text: resolved.text,
-            subrolls: resolved.subrolls
+            subrolls: resolved.subrolls,
+            originalEntry: randomEntry, // Store the original entry before resolution
+            entryIndex: randomEntryIndex // Store the index of the selected entry
         };
     }
 

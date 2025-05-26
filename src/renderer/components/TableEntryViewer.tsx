@@ -41,20 +41,25 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
   const isEntryRolled = (sectionName: string, entryIndex: number): boolean => {
     if (!rollResult) return false;
     
-    // Check if this entry was part of the main roll (output section)
-    if (sectionName.toLowerCase() === 'output') {
-      // For output section, check if this entry index matches any subroll that came from this table
-      return rollResult.subrolls.some(subroll => 
-        subroll.source === table.title && 
-        subroll.type === 'subtable'
-      );
-    }
-    
-    // For other sections, check if this section was rolled and this entry was selected
-    return rollResult.subrolls.some(subroll => 
+    // Find the subroll for this section
+    const sectionSubroll = rollResult.subrolls.find(subroll => 
       subroll.source === sectionName && 
       subroll.type === 'subtable'
     );
+    
+    if (!sectionSubroll) return false;
+    
+    // If we have the entry index, use that for exact matching
+    if (sectionSubroll.entryIndex !== undefined) {
+      return entryIndex === sectionSubroll.entryIndex;
+    }
+    
+    // Fallback: compare against the original entry text
+    const section = table.sections?.find(s => s.name.toLowerCase() === sectionName.toLowerCase());
+    if (!section) return false;
+    
+    const entryToMatch = sectionSubroll.originalEntry || sectionSubroll.text;
+    return section.entries[entryIndex] === entryToMatch;
   };
 
   // Helper function to get the rolled entry text for a section
@@ -168,7 +173,7 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
               {isExpanded && (
                 <div className="section-entries">
                   {section.entries.map((entry, entryIndex) => {
-                    const isRolled = rolledEntryText === entry;
+                    const isRolled = isEntryRolled(section.name, entryIndex);
                     
                     return (
                       <div key={entryIndex} className={`entry-item ${isRolled ? 'rolled-entry' : ''}`}>

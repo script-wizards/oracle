@@ -87,6 +87,12 @@ export interface SubrollData {
     startIndex: number;
     /** End index in the original text for highlighting */
     endIndex: number;
+    /** The original entry text that was selected (before resolution) */
+    originalEntry?: string;
+    /** The index of the entry that was selected from the source section */
+    entryIndex?: number;
+    /** Whether this subroll contains nested references (used for rendering) */
+    hasNestedRefs?: boolean;
 }
 
 /**

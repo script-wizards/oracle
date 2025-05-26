@@ -1,7 +1,7 @@
 .table-entry-viewer {
   background: transparent;
   border-radius: 4px;
-  padding: 4px 8px;
+  padding: 0;
   font-size: 12px;
   line-height: 1.4;
 }
@@ -42,7 +42,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 8px;
   cursor: pointer;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-secondary);
@@ -112,7 +112,7 @@
 
 /* Section Entries */
 .section-entries {
-  padding: 8px 12px;
+  padding: 8px;
   background: rgba(0, 0, 0, 0.2);
   animation: expandEntries 0.2s ease-out;
 }

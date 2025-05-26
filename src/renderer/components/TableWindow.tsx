@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Table, RollResult } from '../../shared/types';
 import { rollOnTable, rerollSubtable } from '../../shared/utils/TableRoller';
 import InteractiveRollResult from './InteractiveRollResult';
+import TableEntryViewer from './TableEntryViewer';
 import { DraggableWindow } from './DraggableWindow';
 import './TableWindow.css';
 
@@ -151,28 +152,25 @@ export const TableWindow: React.FC<TableWindowProps> = ({
       onSizeChange={onSizeChange}
       onBringToFront={onBringToFront}
       zIndex={zIndex}
-      minWidth={350}
-      minHeight={showHistory && rollHistory.length > 0 ? 250 : 150}
-      maxWidth={600}
-      maxHeight={700}
+      minWidth={400}
+      minHeight={showHistory && rollHistory.length > 0 ? 400 : 300}
+      maxWidth={700}
+      maxHeight={800}
     >
-      <div 
-        className={`table-window-content ${!currentResult && rollHistory.length === 0 ? 'clickable-empty' : ''}`}
-        onClick={!currentResult && rollHistory.length === 0 ? handleRoll : undefined}
-        style={{ cursor: !currentResult && rollHistory.length === 0 ? 'pointer' : 'default' }}
-      >
-
-        {/* Current Result - no wrapper box */}
+      <div className="table-window-content">
+        {/* Current Result at the top */}
         {currentResult && (
-          <InteractiveRollResult
-            rollResult={currentResult}
-            onReroll={handleReroll}
-            onSubtableReroll={handleSubtableReroll}
-            lastRolledTable={table}
-          />
+          <div className="current-result-section">
+            <InteractiveRollResult
+              rollResult={currentResult}
+              onReroll={handleReroll}
+              onSubtableReroll={handleSubtableReroll}
+              lastRolledTable={table}
+            />
+          </div>
         )}
 
-        {/* Recent History */}
+        {/* Recent History - right below result */}
         {rollHistory.length > 0 && showHistory && (
           <div className="table-recent-history">
             <div className="history-list">
@@ -200,29 +198,31 @@ export const TableWindow: React.FC<TableWindowProps> = ({
                         })}
                       </div>
                     )}
-                    <InteractiveRollResult
-                      rollResult={historyItem.result}
-                      onReroll={() => handleHistoryReroll(historyItem.result)}
-                      onSubtableReroll={(subrollIndex: number) => {
-                        const newRollResult = rerollSubtable(
-                          historyItem.result,
-                          subrollIndex,
-                          table,
-                          allTables
-                        );
-                        
-                        if (currentResult) {
-                          setRollHistory(prev => [
-                            { result: currentResult, timestamp: new Date() },
-                            ...prev.slice(0, 4)
-                          ]);
-                        }
-                        
-                        setCurrentResult(newRollResult);
-                      }}
-                      lastRolledTable={table}
-                      isHistoryItem={true}
-                    />
+                    <div className="history-item-content">
+                      <InteractiveRollResult
+                        rollResult={historyItem.result}
+                        onReroll={() => handleHistoryReroll(historyItem.result)}
+                        onSubtableReroll={(subrollIndex: number) => {
+                          const newRollResult = rerollSubtable(
+                            historyItem.result,
+                            subrollIndex,
+                            table,
+                            allTables
+                          );
+                          
+                          if (currentResult) {
+                            setRollHistory(prev => [
+                              { result: currentResult, timestamp: new Date() },
+                              ...prev.slice(0, 4)
+                            ]);
+                          }
+                          
+                          setCurrentResult(newRollResult);
+                        }}
+                        lastRolledTable={table}
+                        isHistoryItem={true}
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -230,15 +230,24 @@ export const TableWindow: React.FC<TableWindowProps> = ({
           </div>
         )}
 
-        {/* No results state */}
+        {/* No results state - compact banner */}
         {!currentResult && rollHistory.length === 0 && (
-          <div className="table-empty-state">
-            <div className="empty-message">Click anywhere to roll!</div>
-            <div className="empty-hint">
-              This table has {table.entries.length} possible results
-            </div>
+          <div 
+            className="table-empty-banner clickable-empty"
+            onClick={handleRoll}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className="empty-message">Click here to roll!</div>
           </div>
         )}
+
+        {/* Table Structure View - takes up remaining space */}
+        <div className="table-structure-section">
+          <TableEntryViewer 
+            table={table}
+            rollResult={currentResult || undefined}
+          />
+        </div>
       </div>
     </DraggableWindow>
   );
