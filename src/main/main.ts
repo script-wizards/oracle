@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { WindowConfig, AppInfo, IPC_CHANNELS } from '../shared/types';
+import * as packageJson from '../../package.json';
 
 // Check if running in development mode
 const isDev = process.argv.includes('--dev');
@@ -14,7 +15,7 @@ class MainApp {
         height: 600,
         minWidth: 600,
         minHeight: 400,
-        title: 'Random Table Roller'
+        title: 'Oracle'
     };
 
     constructor() {
@@ -42,10 +43,31 @@ class MainApp {
             }
         });
 
-        // Security: Prevent new window creation
+        // Security: Handle external links and prevent unauthorized window creation
         app.on('web-contents-created', (_, contents) => {
-            contents.setWindowOpenHandler(() => {
+            // Handle external links
+            contents.setWindowOpenHandler(({ url }) => {
+                // Allow external links to open in default browser
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    shell.openExternal(url);
+                }
+                // Deny all window creation (external links are handled above)
                 return { action: 'deny' };
+            });
+
+            // Also handle navigation to external URLs
+            contents.on('will-navigate', (event, navigationUrl) => {
+                const parsedUrl = new URL(navigationUrl);
+
+                // Allow navigation within the app (localhost for dev, file:// for production)
+                if (parsedUrl.protocol === 'file:' ||
+                    (isDev && parsedUrl.hostname === 'localhost')) {
+                    return;
+                }
+
+                // For external URLs, prevent navigation and open in external browser
+                event.preventDefault();
+                shell.openExternal(navigationUrl);
             });
         });
     }
@@ -67,7 +89,13 @@ class MainApp {
                 preload: preloadPath,
             },
             show: false, // Don't show until ready
-            titleBarStyle: 'default',
+            titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+            titleBarOverlay: process.platform !== 'darwin' ? {
+                color: '#2a2a2a',
+                symbolColor: '#e0e0e0',
+                height: 40
+            } : undefined,
+            trafficLightPosition: process.platform === 'darwin' ? { x: 16, y: 12 } : undefined,
         });
 
         // Load the app
@@ -84,6 +112,11 @@ class MainApp {
         // Show window when ready to prevent visual flash
         this.mainWindow.once('ready-to-show', () => {
             this.mainWindow?.show();
+
+            // Ensure traffic lights are visible on macOS
+            if (process.platform === 'darwin') {
+                this.mainWindow?.setWindowButtonVisibility(true);
+            }
         });
 
         // Handle window closed
@@ -131,28 +164,13 @@ class MainApp {
         // Handle app info requests
         ipcMain.handle(IPC_CHANNELS.GET_APP_INFO, (): AppInfo => {
             return {
-                name: app.getName(),
-                version: app.getVersion(),
+                name: packageJson.name,
+                version: packageJson.version,
                 isDev,
             };
         });
 
-        // Handle window controls
-        ipcMain.handle(IPC_CHANNELS.WINDOW_MINIMIZE, () => {
-            this.mainWindow?.minimize();
-        });
 
-        ipcMain.handle(IPC_CHANNELS.WINDOW_MAXIMIZE, () => {
-            if (this.mainWindow?.isMaximized()) {
-                this.mainWindow.unmaximize();
-            } else {
-                this.mainWindow?.maximize();
-            }
-        });
-
-        ipcMain.handle(IPC_CHANNELS.WINDOW_CLOSE, () => {
-            this.mainWindow?.close();
-        });
 
         // File system operations
         ipcMain.handle(IPC_CHANNELS.SELECT_VAULT_FOLDER, async (): Promise<string | null> => {

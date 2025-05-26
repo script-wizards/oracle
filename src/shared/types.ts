@@ -17,9 +17,6 @@ export interface AppInfo {
 // IPC channel names
 export const IPC_CHANNELS = {
     GET_APP_INFO: 'get-app-info',
-    WINDOW_MINIMIZE: 'window-minimize',
-    WINDOW_MAXIMIZE: 'window-maximize',
-    WINDOW_CLOSE: 'window-close',
     // File system operations
     SELECT_VAULT_FOLDER: 'select-vault-folder',
     SCAN_VAULT_FILES: 'scan-vault-files',
@@ -29,7 +26,7 @@ export const IPC_CHANNELS = {
 export type IpcChannel = typeof IPC_CHANNELS[keyof typeof IPC_CHANNELS];
 
 // ============================================================================
-// Random Table Roller Application Types
+// Oracle Application Types
 // ============================================================================
 
 /**

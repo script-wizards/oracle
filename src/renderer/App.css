@@ -1,3 +1,6 @@
+/* Font Awesome Icons */
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
 /* Riced Linux/Hacker aesthetic - Dark Grey & Orange */
 :root {
   --bg-primary: #1a1a1a;
@@ -61,7 +64,7 @@ body {
   }
 }
 
-/* Header - minimal like a status bar */
+/* Header - Discord/Spotify style with title bar overlay */
 .app-header {
   display: flex;
   justify-content: space-between;
@@ -69,8 +72,25 @@ body {
   padding: 8px 16px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
-  min-height: 32px;
+  min-height: 40px;
   font-size: 12px;
+  -webkit-app-region: drag; /* Make header draggable */
+}
+
+/* Make interactive elements non-draggable */
+.app-header button,
+.app-header a {
+  -webkit-app-region: no-drag;
+}
+
+/* macOS specific styling - space for traffic lights */
+.app.macos .app-header {
+  padding-left: 80px; /* Space for traffic light buttons */
+}
+
+/* Windows/Linux - space for native title bar overlay controls */
+.app:not(.macos) .app-header {
+  padding-right: 140px; /* Space for native window controls */
 }
 
 .title-bar {
@@ -86,6 +106,9 @@ body {
   margin: 0;
   color: var(--text-primary);
   font-family: inherit;
+  height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 .app-info {
@@ -94,50 +117,94 @@ body {
   gap: 8px;
   font-size: 11px;
   color: var(--text-secondary);
+  height: 24px;
 }
 
 .app-info-minimal {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
+  height: 24px;
 }
 
 .version {
   background: var(--bg-tertiary);
-  padding: 2px 6px;
-  border-radius: 2px;
-  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-size: 11px;
   color: var(--text-secondary);
   border: 1px solid var(--border-secondary);
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .version-minimal {
   background: var(--bg-tertiary);
-  padding: 1px 4px;
-  border-radius: 2px;
-  font-size: 9px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-size: 11px;
   color: var(--text-muted);
   border: 1px solid var(--border-secondary);
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dev-badge {
   background: var(--accent-secondary);
-  padding: 2px 6px;
-  border-radius: 2px;
-  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--bg-primary);
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dev-badge-minimal {
   background: var(--accent-secondary);
-  padding: 1px 4px;
-  border-radius: 2px;
-  font-size: 9px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--bg-primary);
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.github-link,
+.scriptwizards-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 11px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: 3px;
+  height: 24px;
+  min-width: 24px;
+}
+
+.github-link:hover,
+.scriptwizards-link:hover {
+  color: var(--accent-primary);
+  background: var(--bg-tertiary);
+}
+
+.github-link i,
+.scriptwizards-link i {
+  font-size: 11px;
 }
 
 /* Header controls */
@@ -191,66 +258,29 @@ body {
 .header-button.vault-name {
   min-width: 60px;
   max-width: 140px;
-  font-size: 10px;
-  padding: 3px 6px;
+  font-size: 11px;
+  padding: 4px 8px;
 }
 
-.header-button.refresh-vault.spinning {
-  animation: spin 1s linear infinite;
-}
+/* Font Awesome handles the fa-spin animation automatically */
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Window controls */
-.window-controls {
+/* Footer */
+.app-footer {
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-primary);
   display: flex;
-  gap: 4px;
-}
-
-.window-control {
-  width: 24px;
-  height: 24px;
-  border-radius: 2px;
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-primary);
-  font-size: 12px;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  transition: all 0.15s;
-  cursor: pointer;
+  align-items: center;
+  min-height: 32px;
+  flex-shrink: 0;
 }
 
-.window-control:hover {
-  background: var(--bg-primary);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
-
-.window-control.close:hover {
-  background: var(--accent-secondary);
-  color: var(--bg-primary);
-  border-color: var(--accent-secondary);
-}
-
-.window-control.minimize:hover {
-  background: var(--accent-warning);
-  color: var(--bg-primary);
-  border-color: var(--accent-warning);
-}
-
-.window-control.maximize:hover {
-  background: var(--accent-success);
-  color: var(--bg-primary);
-  border-color: var(--accent-success);
+.copyright {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 /* Main content */
@@ -311,6 +341,31 @@ body {
   margin-bottom: 12px;
   text-align: left;
   width: 100%;
+  position: relative;
+}
+
+.welcome-close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.welcome-close-button:hover {
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
 }
 
 .welcome-title {
@@ -325,7 +380,87 @@ body {
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-secondary);
+  margin: 0 0 12px 0;
+}
+
+.welcome-links {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
   margin: 0 0 16px 0;
+}
+
+.table-format-info {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  padding: 16px;
+  margin: 16px 0;
+  text-align: left;
+}
+
+.format-description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.format-description code {
+  background: var(--bg-primary);
+  color: var(--accent-primary);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.example-section {
+  margin: 0;
+}
+
+.example-section:not(:first-child) .format-description {
+  margin-top: 16px;
+}
+
+.code-example {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 3px;
+  padding: 12px;
+  margin: 8px 0 0 0;
+  overflow-x: auto;
+}
+
+.code-example pre {
+  margin: 0;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.code-example code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-family: inherit;
+}
+
+.format-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 12px 0 0 0;
+  line-height: 1.4;
+}
+
+.format-note code {
+  background: var(--bg-primary);
+  color: var(--accent-primary);
+  padding: 1px 3px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-family: inherit;
 }
 
 .setup-instruction {
@@ -929,14 +1064,18 @@ body {
 }
 
 /* Links */
-.perchance-link {
+.perchance-link,
+.scriptwizards-text-link,
+.github-text-link {
   color: var(--accent-primary);
   text-decoration: underline;
   text-decoration-color: var(--accent-primary);
   transition: all 0.15s ease;
 }
 
-.perchance-link:hover {
+.perchance-link:hover,
+.scriptwizards-text-link:hover,
+.github-text-link:hover {
   color: var(--text-primary);
   text-decoration-color: var(--text-primary);
 }
@@ -1010,7 +1149,7 @@ body {
   .app-header {
     padding: 6px 12px;
     flex-wrap: wrap;
-    min-height: 28px;
+    min-height: 36px;
   }
 
   .title-bar {
@@ -1022,16 +1161,26 @@ body {
 
   .app-title {
     font-size: 12px;
+    height: 22px;
   }
 
   .app-info-minimal {
-    font-size: 9px;
+    font-size: 10px;
+    height: 22px;
   }
 
   .version-minimal,
   .dev-badge-minimal {
-    font-size: 8px;
-    padding: 1px 3px;
+    font-size: 10px;
+    padding: 3px 5px;
+    height: 22px;
+  }
+
+  .github-link,
+  .scriptwizards-link {
+    height: 22px;
+    min-width: 22px;
+    padding: 3px 5px;
   }
 
   .header-button {
@@ -1045,20 +1194,18 @@ body {
     min-width: 80px;
     max-width: 200px;
     white-space: nowrap;
-    padding: 2px 8px;
+    padding: 3px 8px;
+    font-size: 10px;
+    height: 22px;
   }
 
   .header-button.clear-storage {
     width: auto;
     min-width: 50px;
     white-space: nowrap;
-    padding: 2px 8px;
-  }
-
-  .window-control {
-    width: 22px;
+    padding: 3px 8px;
+    font-size: 10px;
     height: 22px;
-    font-size: 11px;
   }
 
   .app-main {
@@ -1075,6 +1222,44 @@ body {
 
   .welcome-setup {
     padding: 16px 12px;
+  }
+
+  .welcome-close-button {
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+
+  .table-format-info {
+    padding: 12px;
+    margin: 12px 0;
+  }
+
+  .format-description {
+    font-size: 12px;
+  }
+
+  .code-example {
+    padding: 8px;
+    margin: 6px 0 0 0;
+  }
+
+  .code-example pre {
+    font-size: 10px;
+  }
+
+  .format-note {
+    font-size: 11px;
+  }
+
+  .example-section {
+    margin: 0;
+  }
+
+  .example-section:not(:first-child) .format-description {
+    margin-top: 12px;
   }
 
   .welcome-title {
@@ -1146,6 +1331,15 @@ body {
     width: 24px;
     height: 24px;
     font-size: 10px;
+  }
+
+  .app-footer {
+    padding: 6px 12px;
+    min-height: 28px;
+  }
+
+  .copyright {
+    font-size: 9px;
   }
 }
 

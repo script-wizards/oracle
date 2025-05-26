@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Random Table Roller is an Electron-based desktop application for tabletop gaming that parses and rolls on random tables using Perchance syntax.
+Oracle is an Electron-based desktop application for tabletop gaming that parses and rolls on random tables using Perchance syntax.
 
 ## Architecture
 

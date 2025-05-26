@@ -1,4 +1,4 @@
-# Random Table Roller
+# Oracle
 
 A desktop application for tabletop gaming that parses and rolls on random tables using Perchance syntax.
 
@@ -22,7 +22,7 @@ A desktop application for tabletop gaming that parses and rolls on random tables
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd random-table-roller
+cd oracle
 
 # Install dependencies
 npm install

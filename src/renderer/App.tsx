@@ -151,6 +151,12 @@ const App: React.FC = () => {
   const [lastRollResult, setLastRollResult] = useState<RollResult | null>(null);
   const [lastRolledTable, setLastRolledTable] = useState<Table | null>(null);
 
+  // Platform detection for macOS-specific styling
+  const [isMacOS, setIsMacOS] = useState(false);
+
+  // Welcome screen visibility
+  const [showWelcome, setShowWelcome] = useState(true);
+
   // Search functionality
   const {
     searchQuery,
@@ -216,6 +222,9 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        // Detect platform for styling
+        setIsMacOS(navigator.platform.toLowerCase().includes("mac"));
+
         // Check if storage is available
         const isStorageAvailable = StorageService.isStorageAvailable();
         setStorageAvailable(isStorageAvailable);
@@ -268,24 +277,6 @@ const App: React.FC = () => {
     }
   }, [appState, isLoading, storageAvailable, saveAppState]);
 
-  const handleMinimize = async () => {
-    if (window.electronAPI) {
-      await window.electronAPI.minimizeWindow();
-    }
-  };
-
-  const handleMaximize = async () => {
-    if (window.electronAPI) {
-      await window.electronAPI.maximizeWindow();
-    }
-  };
-
-  const handleClose = async () => {
-    if (window.electronAPI) {
-      await window.electronAPI.closeWindow();
-    }
-  };
-
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setAppState((prev) => ({
@@ -328,6 +319,7 @@ const App: React.FC = () => {
       defaultState.tables = sampleTables;
       defaultState.lastScanTime = new Date();
       setAppState(defaultState);
+      setShowWelcome(true); // Show welcome screen again after clearing storage
       alert("Storage cleared successfully!");
     } catch (error) {
       console.error("Failed to clear storage:", error);
@@ -573,7 +565,7 @@ const App: React.FC = () => {
       const table = appState.tables[appState.selectedTableIndex];
       console.log(`Rolling on table: "${table.title}"`);
 
-      // Use the new table roller that resolves subtables
+      // Use the table rolling system that resolves subtables
       const rollResult = rollOnTable(table, appState.tables);
 
       console.log("Roll result:", rollResult);
@@ -637,14 +629,32 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="app">
+    <div className={`app ${isMacOS ? "macos" : ""}`}>
       <header className="app-header">
         <div className="title-bar">
-          <h1 className="app-title">Random Table Roller</h1>
+          <h1 className="app-title">Oracle</h1>
           {appInfo && (
             <div className="app-info-minimal">
               <span className="version-minimal">v{appInfo.version}</span>
               {appInfo.isDev && <span className="dev-badge-minimal">DEV</span>}
+              <a
+                href="https://github.com/script-wizards/oracle"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="github-link"
+                title="View on GitHub"
+              >
+                <i className="fab fa-github"></i>
+              </a>
+              <a
+                href="https://scriptwizards.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="scriptwizards-link"
+                title="Visit Script Wizards"
+              >
+                <i className="fas fa-hat-wizard"></i>
+              </a>
             </div>
           )}
         </div>
@@ -690,7 +700,13 @@ const App: React.FC = () => {
                 : "Select a vault first"
             }
           >
-            {isScanningFiles || isParsingTables ? "⟳" : "↻"}
+            <i
+              className={`fas ${
+                isScanningFiles || isParsingTables
+                  ? "fa-sync fa-spin"
+                  : "fa-sync-alt"
+              }`}
+            ></i>
           </button>
 
           {storageAvailable && (
@@ -699,48 +715,28 @@ const App: React.FC = () => {
               className="header-button clear-storage"
               title="Clear all stored data"
             >
-              clear
+              <i className="fas fa-bomb"></i>
             </button>
-          )}
-
-          {/* Custom window controls (optional - for custom title bar) */}
-          {window.electronAPI && (
-            <div className="window-controls">
-              <button
-                className="window-control minimize"
-                onClick={handleMinimize}
-                title="Minimize"
-              >
-                −
-              </button>
-              <button
-                className="window-control maximize"
-                onClick={handleMaximize}
-                title="Maximize"
-              >
-                □
-              </button>
-              <button
-                className="window-control close"
-                onClick={handleClose}
-                title="Close"
-              >
-                ×
-              </button>
-            </div>
           )}
         </div>
       </header>
 
       <main className="app-main">
         <div className="welcome-section">
-          {/* Welcome and Setup - Only when no vault is selected */}
-          {!appState.vaultPath && (
+          {/* Welcome and Setup - Only when no vault is selected and welcome is visible */}
+          {!appState.vaultPath && showWelcome && (
             <div className="welcome-setup">
+              <button
+                onClick={() => setShowWelcome(false)}
+                className="welcome-close-button"
+                title="Close welcome screen"
+              >
+                <i className="fas fa-times"></i>
+              </button>
               <p className="welcome-description">
-                Roll on random tables from your Obsidian vault. Search through
-                your tables, click to roll instantly, and get interactive
-                results with clickable subtables. We support a subset of{" "}
+                A random table roller for your Obsidian vault. Search through
+                your tables, click to roll, get interactive results with
+                clickable subtables. Built to handle{" "}
                 <a
                   href="https://perchance.org/tutorial"
                   target="_blank"
@@ -748,11 +744,81 @@ const App: React.FC = () => {
                   className="perchance-link"
                 >
                   Perchance syntax
+                </a>
+                .
+              </p>
+              <div className="table-format-info">
+                <p className="format-description">
+                  Tables should be in markdown code blocks tagged with{" "}
+                  <code>perchance</code>:
+                </p>
+                <div className="example-section">
+                  <div className="code-example">
+                    <pre>
+                      <code>{`\`\`\`perchance
+title
+  Weather
+
+output
+  Clear skies
+  Light rain
+  Heavy fog
+  Strong winds
+\`\`\``}</code>
+                    </pre>
+                  </div>
+                </div>
+                <div className="example-section">
+                  <p className="format-description">
+                    You can also use <code>[brackets]</code> to reference other
+                    sections:
+                  </p>
+                  <div className="code-example">
+                    <pre>
+                      <code>{`\`\`\`perchance
+title
+  Forest Encounters
+
+output
+  You encounter [creature] near [location]
+
+creature
+  A pack of wolves
+  A wandering merchant
+  An ancient tree spirit
+
+location
+  A babbling brook
+  An old stone bridge
+  A clearing with wildflowers
+\`\`\``}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+              <p className="welcome-links">
+                Made by{" "}
+                <a
+                  href="https://scriptwizards.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="scriptwizards-text-link"
+                >
+                  Script Wizards
+                </a>
+                . Source code on{" "}
+                <a
+                  href="https://github.com/script-wizards/oracle"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="github-text-link"
+                >
+                  GitHub
                 </a>{" "}
-                for creating dynamic tables.
+                if you want to contribute or give feedback.
               </p>
               <p className="setup-instruction">
-                Get started by{" "}
+                Point it at your{" "}
                 <button
                   onClick={handleSelectVault}
                   disabled={
@@ -761,9 +827,9 @@ const App: React.FC = () => {
                   className="inline-vault-button"
                   title="Select vault folder"
                 >
-                  {isSelectingVault ? "selecting..." : "selecting your vault"}
+                  {isSelectingVault ? "scanning..." : "Obsidian vault"}
                 </button>{" "}
-                to load your random tables.
+                and let's roll.
               </p>
             </div>
           )}
@@ -839,6 +905,10 @@ const App: React.FC = () => {
           </div>
         </div>
       </main>
+
+      <footer className="app-footer">
+        <div className="copyright">© SCRIPT WIZARDS</div>
+      </footer>
     </div>
   );
 };

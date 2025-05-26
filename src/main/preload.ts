@@ -5,9 +5,6 @@ console.log('Preload script starting...');
 // Define IPC channels directly to avoid import issues
 const IPC_CHANNELS = {
     GET_APP_INFO: 'get-app-info',
-    WINDOW_MINIMIZE: 'window-minimize',
-    WINDOW_MAXIMIZE: 'window-maximize',
-    WINDOW_CLOSE: 'window-close',
     // File system operations
     SELECT_VAULT_FOLDER: 'select-vault-folder',
     SCAN_VAULT_FILES: 'scan-vault-files',
@@ -20,11 +17,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // App info
     getAppInfo: (): Promise<any> => ipcRenderer.invoke(IPC_CHANNELS.GET_APP_INFO),
 
-    // Window controls
-    minimizeWindow: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
-    maximizeWindow: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MAXIMIZE),
-    closeWindow: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
-
     // File system operations
     selectVaultFolder: (): Promise<string | null> => ipcRenderer.invoke(IPC_CHANNELS.SELECT_VAULT_FOLDER),
     scanVaultFiles: (vaultPath: string): Promise<string[]> => ipcRenderer.invoke(IPC_CHANNELS.SCAN_VAULT_FILES, vaultPath),
@@ -36,9 +28,6 @@ console.log('Preload script completed. electronAPI should be exposed.');
 // Type definitions for the exposed API
 export interface ElectronAPI {
     getAppInfo: () => Promise<any>;
-    minimizeWindow: () => Promise<void>;
-    maximizeWindow: () => Promise<void>;
-    closeWindow: () => Promise<void>;
     // File system operations
     selectVaultFolder: () => Promise<string | null>;
     scanVaultFiles: (vaultPath: string) => Promise<string[]>;

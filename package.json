@@ -1,5 +1,5 @@
 {
-  "name": "random-table-roller",
+  "name": "oracle",
   "version": "1.0.0",
   "description": "A desktop application for tabletop gaming that parses and rolls on random tables using Perchance syntax",
   "main": "dist/main/main.js",
@@ -49,13 +49,14 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
     "fuse.js": "^7.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "build": {
-    "appId": "com.yourcompany.random-table-roller",
-    "productName": "Random Table Roller",
+    "appId": "com.yourcompany.oracle",
+    "productName": "Oracle",
     "directories": {
       "output": "build"
     },

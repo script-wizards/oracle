@@ -4,8 +4,8 @@ import { AppState, Table } from '../../shared/types';
  * Storage keys used in localStorage
  */
 const STORAGE_KEYS = {
-    APP_STATE: 'random-table-roller-app-state',
-    VAULT_PATH: 'random-table-roller-vault-path',
+    APP_STATE: 'oracle-app-state',
+    VAULT_PATH: 'oracle-vault-path',
 } as const;
 
 /**
