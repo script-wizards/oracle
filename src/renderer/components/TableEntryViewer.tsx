@@ -7,6 +7,7 @@ interface TableEntryViewerProps {
   searchQuery?: string;
   rollResult?: RollResult;
   onForceEntry?: (sectionName: string, entryIndex: number) => void;
+  onRollSection?: (sectionName: string) => void;
 }
 
 interface SectionViewState {
@@ -17,7 +18,8 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
   table, 
   searchQuery = '',
   rollResult,
-  onForceEntry
+  onForceEntry,
+  onRollSection
 }) => {
   const [expandedSections, setExpandedSections] = useState<SectionViewState>(() => {
     // Auto-expand output section and sections with few entries
@@ -153,19 +155,13 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
     );
   }
 
-  // Sort sections to show output first, then others
-  const sortedSections = [...table.sections].sort((a, b) => {
-    if (a.name.toLowerCase() === 'output') return -1;
-    if (b.name.toLowerCase() === 'output') return 1;
-    if (a.name.toLowerCase() === 'title') return -1;
-    if (b.name.toLowerCase() === 'title') return 1;
-    return a.name.localeCompare(b.name);
-  });
+  // Preserve original section order from the table definition
+  const sectionsToRender = table.sections || [];
 
   return (
     <div className="table-entry-viewer">
       <div className="table-structure">
-        {sortedSections.map((section) => {
+        {sectionsToRender.map((section) => {
           const isExpanded = expandedSections[section.name];
           const rolledEntryText = getRolledEntryText(section.name);
           const hasRolledEntry = !!rolledEntryText;
@@ -175,8 +171,16 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
               <div 
                 className="section-header"
                 onClick={() => toggleSection(section.name)}
+                title={`${isExpanded ? 'Collapse' : 'Expand'} ${section.name} section`}
               >
-                <div className="section-info">
+                <div 
+                  className={`section-info ${onRollSection ? 'rollable-section' : ''}`}
+                  onClick={onRollSection ? (e) => {
+                    e.stopPropagation();
+                    onRollSection(section.name);
+                  } : undefined}
+                  title={onRollSection ? `Click to roll from ${section.name} section` : undefined}
+                >
                   <span className="section-name">
                     {highlightSearchTerm(section.name, searchQuery)}
                   </span>
@@ -184,7 +188,14 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
                     {section.entries.length} {section.entries.length === 1 ? 'entry' : 'entries'}
                   </span>
                 </div>
-                <div className="section-toggle">
+                <div 
+                  className="section-toggle"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSection(section.name);
+                  }}
+                  title={`${isExpanded ? 'Collapse' : 'Expand'} ${section.name} section`}
+                >
                   <i className={`fas ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}`}></i>
                 </div>
               </div>

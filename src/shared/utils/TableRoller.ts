@@ -142,6 +142,89 @@ export function rollOnTableWithForcedSelections(
 }
 
 /**
+ * Rolls on a specific section of a table
+ * @param table - The main table to roll on
+ * @param sectionName - The name of the section to roll from
+ * @param allTables - All available tables for subtable resolution
+ * @param maxDepth - Maximum recursion depth to prevent infinite loops
+ * @returns RollResult with resolved text and subroll information
+ */
+export function rollOnTableSection(
+    table: Table,
+    sectionName: string,
+    allTables: Table[],
+    maxDepth: number = 10
+): RollResult {
+    // Use the stored sections if available, otherwise fall back to reconstruction
+    const sections = table.sections || reconstructTableSections(table);
+
+    // Create a map of table names to tables for quick lookup
+    const tableMap = new Map<string, Table>();
+    allTables.forEach(t => {
+        tableMap.set(t.title.toLowerCase(), t);
+        // Also map by ID for exact matches
+        tableMap.set(t.id, t);
+    });
+
+    // Find the specified section
+    const targetSection = sections.find(s => s.name.toLowerCase() === sectionName.toLowerCase());
+    if (!targetSection || targetSection.entries.length === 0) {
+        console.warn(`No section "${sectionName}" found in table "${table.title}"`);
+        // Fallback to random entry from main table
+        const randomEntry = table.entries[Math.floor(Math.random() * table.entries.length)];
+        return {
+            text: randomEntry,
+            subrolls: [{
+                text: randomEntry,
+                type: 'dice',
+                startIndex: 0,
+                endIndex: randomEntry.length
+            }],
+            errors: [`No section "${sectionName}" found in table "${table.title}"`]
+        };
+    }
+
+    // Get a random entry from the target section
+    const entryIndex = Math.floor(Math.random() * targetSection.entries.length);
+    const selectedEntry = targetSection.entries[entryIndex];
+
+    // Resolve the selected entry using the sections from this table
+    const result = resolveText(selectedEntry, sections, tableMap, [], maxDepth);
+
+    // Add a subroll to track which entry was selected from the target section
+    // Only add this if there are no nested subrolls to avoid duplication
+    if (!result.subrolls || result.subrolls.length === 0) {
+        const sectionSubroll: SubrollData = {
+            text: result.text,
+            type: 'subtable',
+            source: sectionName,
+            startIndex: 0,
+            endIndex: result.text.length,
+            originalEntry: selectedEntry,
+            entryIndex: entryIndex
+        };
+
+        result.subrolls.unshift(sectionSubroll);
+    } else {
+        // If there are nested subrolls, add the section subroll as a parent
+        const sectionSubroll: SubrollData = {
+            text: selectedEntry, // Use original entry text, not resolved
+            type: 'subtable',
+            source: sectionName,
+            startIndex: 0,
+            endIndex: result.text.length,
+            originalEntry: selectedEntry,
+            entryIndex: entryIndex,
+            hasNestedRefs: true
+        };
+
+        result.subrolls.unshift(sectionSubroll);
+    }
+
+    return result;
+}
+
+/**
  * Forces a specific subtable entry while preserving the rest of the current roll
  * @param originalResult - The current roll result to modify
  * @param sectionName - The section to force an entry in

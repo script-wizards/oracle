@@ -6,6 +6,8 @@
   gap: 8px;
 }
 
+
+
 /* Consistent scrollbar styling for main content */
 .table-window-content::-webkit-scrollbar {
   width: 4px;

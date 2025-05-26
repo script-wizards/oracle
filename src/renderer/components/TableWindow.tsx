@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, RollResult, ForcedSelection } from '../../shared/types';
-import { rollOnTable, rerollSubtable, rollOnTableWithForcedSelections, forceSubtableEntry } from '../../shared/utils/TableRoller';
+import { rollOnTable, rerollSubtable, rollOnTableWithForcedSelections, forceSubtableEntry, rollOnTableSection } from '../../shared/utils/TableRoller';
 import InteractiveRollResult from './InteractiveRollResult';
 import TableEntryViewer from './TableEntryViewer';
 import { DraggableWindow } from './DraggableWindow';
@@ -37,9 +37,9 @@ export const TableWindow: React.FC<TableWindowProps> = ({
   }>>([]);
   const [showHistory, setShowHistory] = useState(true);
 
-  // Roll on this table
-  const handleRoll = () => {
-    const rollResult = rollOnTable(table, allTables);
+  // Roll on a specific section
+  const handleRollSection = (sectionName: string) => {
+    const rollResult = rollOnTableSection(table, sectionName, allTables);
     
     // Add current result to history if it exists
     if (currentResult) {
@@ -52,10 +52,15 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     setCurrentResult(rollResult);
   };
 
-  // Reroll the current result
+  // Reroll the current result (use output section by default)
   const handleReroll = () => {
     if (currentResult) {
-      const rollResult = rollOnTable(table, allTables);
+      // Auto-select the first section, or "output" if it exists
+      const sections = table.sections || [];
+      const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
+      const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
+      
+      const rollResult = rollOnTableSection(table, defaultSection, allTables);
       
       // Add current result to history
       setRollHistory(prev => [
@@ -89,7 +94,12 @@ export const TableWindow: React.FC<TableWindowProps> = ({
 
   // Roll from history
   const handleHistoryReroll = (historyResult: RollResult) => {
-    const rollResult = rollOnTable(table, allTables);
+    // Auto-select the first section, or "output" if it exists
+    const sections = table.sections || [];
+    const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
+    const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
+    
+    const rollResult = rollOnTableSection(table, defaultSection, allTables);
     
     // Add current result to history if it exists
     if (currentResult) {
@@ -161,6 +171,17 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     return table.title;
   };
 
+  // Initial roll when component mounts
+  useEffect(() => {
+    // Auto-select the first section, or "output" if it exists
+    const sections = table.sections || [];
+    const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
+    const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
+    
+    const rollResult = rollOnTableSection(table, defaultSection, allTables);
+    setCurrentResult(rollResult);
+  }, [table, allTables]);
+
   const headerContent = rollHistory.length > 0 ? (
     <button
       className="history-toggle-button"
@@ -188,6 +209,8 @@ export const TableWindow: React.FC<TableWindowProps> = ({
       maxHeight={800}
     >
       <div className="table-window-content">
+
+
         {/* Current Result at the top */}
         {currentResult && (
           <div className="current-result-section">
@@ -264,7 +287,13 @@ export const TableWindow: React.FC<TableWindowProps> = ({
         {!currentResult && rollHistory.length === 0 && (
           <div 
             className="table-empty-banner clickable-empty"
-            onClick={handleRoll}
+            onClick={() => {
+              // Auto-select the first section, or "output" if it exists
+              const sections = table.sections || [];
+              const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
+              const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
+              handleRollSection(defaultSection);
+            }}
             style={{ cursor: 'pointer' }}
           >
             <div className="empty-message">Click here to roll!</div>
@@ -277,6 +306,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
             table={table}
             rollResult={currentResult || undefined}
             onForceEntry={handleForceEntry}
+            onRollSection={handleRollSection}
           />
         </div>
       </div>
