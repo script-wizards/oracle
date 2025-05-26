@@ -1,5 +1,6 @@
 import React from "react";
 import {RollResult, Table} from "../../shared/types";
+import {useTranslations} from "../i18n";
 
 interface InteractiveRollResultProps {
   rollResult: RollResult;
@@ -16,6 +17,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
   lastRolledTable,
   isHistoryItem = false
 }) => {
+  const t = useTranslations();
   // Parse the text to identify subtable results and make them clickable
   const renderInteractiveText = () => {
     if (!rollResult.subrolls || rollResult.subrolls.length === 0) {
@@ -24,7 +26,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
         <span
           className="full-result-text clickable-text"
           onClick={onReroll}
-          title="Click to reroll entire result"
+          title={t.rollResults.clickToRerollEntire}
         >
           {rollResult.text}
         </span>
@@ -73,7 +75,10 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
               e.stopPropagation();
               onSubtableReroll(originalIndex);
             }}
-            title={`Click to reroll [${subroll.source}]`}
+            title={t.rollResults.clickToRerollSubtable.replace(
+              "{source}",
+              subroll.source || ""
+            )}
             data-source={subroll.source}
           >
             {subroll.text}
@@ -126,8 +131,8 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
         onClick={handleResultBoxClick}
         title={
           subtableCount > 0
-            ? "Click anywhere to reroll everything, or click highlighted parts to reroll individual results"
-            : "Click to reroll"
+            ? t.rollResults.clickHighlightedPartsToRerollIndividual
+            : t.rollResults.clickToReroll
         }
       >
         <div className="result-content">
@@ -136,20 +141,20 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
 
         {!isHistoryItem && (
           <div className="result-help">
-            <div className="help-icon" title="How to reroll">
+            <div className="help-icon" title={t.rollResults.howToReroll}>
               <span className="help-symbol">?</span>
               <div className="help-tooltip">
                 {subtableCount > 0 ? (
                   <>
                     <div className="help-tip">
-                      Click highlighted parts to reroll individual results
+                      {t.rollResults.clickHighlightedParts}
                     </div>
                     <div className="help-tip">
-                      Click anywhere else to reroll everything
+                      {t.rollResults.clickAnywhereElse}
                     </div>
                   </>
                 ) : (
-                  <div className="help-tip">Click to reroll</div>
+                  <div className="help-tip">{t.rollResults.clickToReroll}</div>
                 )}
               </div>
             </div>

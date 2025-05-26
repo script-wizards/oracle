@@ -63,8 +63,51 @@ export interface Translations {
         entries: string;
         subtables: string;
         errors: string;
+        view: string;
+        hide: string;
+        file: string;
+        errorsLabel: string;
     };
 
+    // Roll results
+    rollResults: {
+        clickToRerollEntire: string;
+        clickToRerollSubtable: string;
+        clickAnywhereToRerollEverything: string;
+        clickHighlightedPartsToRerollIndividual: string;
+        clickToReroll: string;
+        howToReroll: string;
+        clickHighlightedParts: string;
+        clickAnywhereElse: string;
+    };
+
+    // App status
+    status: {
+        loading: string;
+        saving: string;
+        saved: string;
+        saveFailed: string;
+    };
+
+    // History
+    history: {
+        title: string;
+        hideHistory: string;
+    };
+
+    // Tooltips
+    tooltips: {
+        viewOnGitHub: string;
+        visitScriptWizards: string;
+        selectVaultFolder: string;
+    };
+
+    // Clear storage dialog
+    clearStorage: {
+        confirmMessage: string;
+        successMessage: string;
+        failedMessage: string;
+    };
 
 }
 
@@ -126,6 +169,45 @@ const en: Translations = {
         entries: "entries",
         subtables: "subtables",
         errors: "errors",
+        view: "View",
+        hide: "Hide",
+        file: "File",
+        errorsLabel: "Errors",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "Click to reroll entire result",
+        clickToRerollSubtable: "Click to reroll [{source}]",
+        clickAnywhereToRerollEverything: "Click anywhere to reroll everything, or click highlighted parts to reroll individual results",
+        clickHighlightedPartsToRerollIndividual: "Click anywhere to reroll everything, or click highlighted parts to reroll individual results",
+        clickToReroll: "Click to reroll",
+        howToReroll: "How to reroll",
+        clickHighlightedParts: "Click highlighted parts to reroll individual results",
+        clickAnywhereElse: "Click anywhere else to reroll everything",
+    },
+
+    status: {
+        loading: "Loading...",
+        saving: "Saving...",
+        saved: "Saved",
+        saveFailed: "Save failed",
+    },
+
+    history: {
+        title: "History",
+        hideHistory: "Hide roll history",
+    },
+
+    tooltips: {
+        viewOnGitHub: "View on GitHub",
+        visitScriptWizards: "Visit Script Wizards",
+        selectVaultFolder: "Select vault folder",
+    },
+
+    clearStorage: {
+        confirmMessage: "Are you sure you want to clear all stored data?\n\nThis will:\n• Remove your vault path\n• Clear all parsed tables\n• Reset all settings\n• Clear roll history\n\nThis action cannot be undone.",
+        successMessage: "Storage cleared successfully!",
+        failedMessage: "Failed to clear storage",
     },
 };
 
@@ -231,6 +313,45 @@ const fr: Translations = {
         entries: "entrées",
         subtables: "sous-tables",
         errors: "erreurs",
+        view: "Voir",
+        hide: "Masquer",
+        file: "Fichier",
+        errorsLabel: "Erreurs",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "Cliquer pour relancer le résultat entier",
+        clickToRerollSubtable: "Cliquer pour relancer [{source}]",
+        clickAnywhereToRerollEverything: "Cliquez n'importe où pour tout relancer, ou cliquez sur les parties surlignées pour relancer les résultats individuels",
+        clickHighlightedPartsToRerollIndividual: "Cliquez n'importe où pour tout relancer, ou cliquez sur les parties surlignées pour relancer les résultats individuels",
+        clickToReroll: "Cliquer pour relancer",
+        howToReroll: "Comment relancer",
+        clickHighlightedParts: "Cliquez sur les parties surlignées pour relancer les résultats individuels",
+        clickAnywhereElse: "Cliquez n'importe où ailleurs pour tout relancer",
+    },
+
+    status: {
+        loading: "Chargement...",
+        saving: "Sauvegarde...",
+        saved: "Sauvegardé",
+        saveFailed: "Échec de sauvegarde",
+    },
+
+    history: {
+        title: "Histoire",
+        hideHistory: "Masquer l'historique des lancers",
+    },
+
+    tooltips: {
+        viewOnGitHub: "Voir sur GitHub",
+        visitScriptWizards: "Visiter Script Wizards",
+        selectVaultFolder: "Sélectionner le dossier du coffre",
+    },
+
+    clearStorage: {
+        confirmMessage: "Êtes-vous sûr de vouloir effacer toutes les données stockées ?\n\nCeci va :\n• Supprimer le chemin de votre coffre\n• Effacer toutes les tables analysées\n• Réinitialiser tous les paramètres\n• Effacer l'historique des lancers\n\nCette action ne peut pas être annulée.",
+        successMessage: "Stockage effacé avec succès !",
+        failedMessage: "Échec de l'effacement du stockage",
     },
 };
 

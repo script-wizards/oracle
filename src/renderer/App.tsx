@@ -513,9 +513,7 @@ const App: React.FC = () => {
     if (!storageAvailable) return;
 
     // Show confirmation dialog
-    const confirmed = window.confirm(
-      "Are you sure you want to clear all stored data?\n\nThis will:\n• Remove your vault path\n• Clear all parsed tables\n• Reset all settings\n• Clear roll history\n\nThis action cannot be undone."
-    );
+    const confirmed = window.confirm(t.clearStorage.confirmMessage);
 
     if (!confirmed) return;
 
@@ -540,10 +538,10 @@ const App: React.FC = () => {
       setHistoryHeight(80);
       localStorage.removeItem("oracle-history-height");
 
-      alert("Storage cleared successfully!");
+      alert(t.clearStorage.successMessage);
     } catch (error) {
       console.error("Failed to clear storage:", error);
-      alert("Failed to clear storage");
+      alert(t.clearStorage.failedMessage);
     }
   };
 
@@ -809,11 +807,11 @@ const App: React.FC = () => {
   const getSaveStatusText = () => {
     switch (saveStatus) {
       case "saving":
-        return "Saving...";
+        return t.status.saving;
       case "saved":
-        return "Saved";
+        return t.status.saved;
       case "error":
-        return "Save failed";
+        return t.status.saveFailed;
       default:
         return "";
     }
@@ -883,7 +881,7 @@ const App: React.FC = () => {
   if (isLoading) {
     return (
       <div className="app loading">
-        <div className="loading-spinner">Loading...</div>
+        <div className="loading-spinner">{t.status.loading}</div>
       </div>
     );
   }
@@ -902,7 +900,7 @@ const App: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="github-link"
-                title="View on GitHub"
+                title={t.tooltips.viewOnGitHub}
               >
                 <i className="fab fa-github"></i>
               </a>
@@ -911,7 +909,7 @@ const App: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="scriptwizards-link"
-                title="Visit Script Wizards"
+                title={t.tooltips.visitScriptWizards}
               >
                 <i className="fas fa-hat-wizard"></i>
               </a>
@@ -1155,7 +1153,7 @@ location
                       isSelectingVault || !FileService.isElectronAPIAvailable()
                     }
                     className="inline-vault-button"
-                    title="Select vault folder"
+                    title={t.tooltips.selectVaultFolder}
                   >
                     {isSelectingVault ? "..." : t.welcome.obsidianVault}
                   </button>{" "}
@@ -1184,11 +1182,11 @@ location
             {showHistory && rollHistory.length > 0 && (
               <div className="history-container">
                 <div className="history-header">
-                  <span className="history-title">History</span>
+                  <span className="history-title">{t.history.title}</span>
                   <button
                     onClick={() => setShowHistory(false)}
                     className="history-close-button"
-                    title="Hide roll history"
+                    title={t.history.hideHistory}
                   >
                     <i className="fas fa-times"></i>
                   </button>

@@ -190,7 +190,7 @@ const TableList: React.FC<TableListProps> = ({
                     : t.tables.viewDefinition
                 }
                 aria-label={`${
-                  expandedTableId === table.id ? "Hide" : "View"
+                  expandedTableId === table.id ? t.tables.hide : t.tables.view
                 } ${table.title} definition`}
               >
                 <i
@@ -218,11 +218,11 @@ const TableList: React.FC<TableListProps> = ({
               <div className="table-viewer-content">
                 <div className="table-viewer-info">
                   <p className="table-viewer-path">
-                    <strong>File:</strong> {table.filePath}
+                    <strong>{t.tables.file}:</strong> {table.filePath}
                   </p>
                   {table.errors && table.errors.length > 0 && (
                     <div className="table-viewer-errors">
-                      <strong>Errors:</strong>
+                      <strong>{t.tables.errorsLabel}:</strong>
                       <ul>
                         {table.errors.map((error, errorIndex) => (
                           <li key={errorIndex}>{error}</li>
