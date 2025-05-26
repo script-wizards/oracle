@@ -114,15 +114,6 @@ body {
 .app-info {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--text-secondary);
-  height: 24px;
-}
-
-.app-info-minimal {
-  display: flex;
-  align-items: center;
   gap: 6px;
   font-size: 11px;
   color: var(--text-muted);
@@ -134,21 +125,7 @@ body {
   padding: 4px 6px;
   border-radius: 3px;
   font-size: 11px;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-secondary);
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.version-minimal {
-  background: var(--bg-tertiary);
-  padding: 4px 6px;
-  border-radius: 3px;
-  font-size: 11px;
   color: var(--text-muted);
-  border: 1px solid var(--border-secondary);
   height: 24px;
   display: flex;
   align-items: center;
@@ -160,20 +137,6 @@ body {
   padding: 4px 6px;
   border-radius: 3px;
   font-size: 11px;
-  font-weight: 500;
-  color: var(--bg-primary);
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dev-badge-minimal {
-  background: var(--accent-secondary);
-  padding: 4px 6px;
-  border-radius: 3px;
-  font-size: 11px;
-  font-weight: 500;
   color: var(--bg-primary);
   height: 24px;
   display: flex;
@@ -1363,255 +1326,30 @@ body {
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
-  .app-header {
-    padding: 6px 12px;
-    flex-wrap: wrap;
-    min-height: 36px;
-  }
+/* Fix header alignment issues */
+.app-title {
+  display: flex;
+  align-items: center;
+}
 
-  .title-bar {
-    flex: 1;
-    justify-content: flex-start;
-    gap: 8px;
-    min-width: 0;
-  }
+.version,
+.dev-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .app-title {
-    font-size: 12px;
-    height: 22px;
-  }
+.github-link,
+.scriptwizards-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .app-info-minimal {
-    font-size: 10px;
-    height: 22px;
-  }
-
-  .version-minimal,
-  .dev-badge-minimal {
-    font-size: 10px;
-    padding: 3px 5px;
-    height: 22px;
-  }
-
-  .github-link,
-  .scriptwizards-link {
-    height: 22px;
-    min-width: 22px;
-    padding: 3px 5px;
-  }
-
-  .header-button {
-    width: 22px;
-    height: 22px;
-    font-size: 10px;
-  }
-
-  .header-button.vault-name {
-    width: auto;
-    min-width: 80px;
-    max-width: 200px;
-    white-space: nowrap;
-    padding: 3px 8px;
-    font-size: 10px;
-    height: 22px;
-  }
-
-  .header-button.clear-storage {
-    width: 22px;
-    height: 22px;
-    font-size: 10px;
-  }
-
-  .app-main {
-    padding: 12px;
-  }
-
-  .welcome-section h2 {
-    font-size: 20px;
-  }
-
-  .welcome-title-minimal {
-    font-size: 18px;
-  }
-
-  .welcome-header {
-    padding: 8px 12px;
-    min-height: 32px;
-  }
-
-  .welcome-title {
-    font-size: 11px;
-  }
-
-  .welcome-content {
-    padding: 12px;
-  }
-
-  .welcome-close-button {
-    top: 6px;
-    right: 6px;
-    width: 18px;
-    height: 18px;
-    font-size: 11px;
-  }
-
-  .table-format-info {
-    padding: 12px;
-    margin: 12px 0;
-  }
-
-  .format-description {
-    font-size: 12px;
-  }
-
-  .code-example {
-    padding: 8px;
-    margin: 6px 0 0 0;
-  }
-
-  .code-example pre {
-    font-size: 10px;
-  }
-
-  .format-note {
-    font-size: 11px;
-  }
-
-  .example-section {
-    margin: 0;
-  }
-
-  .example-section:not(:first-child) .format-description {
-    margin-top: 12px;
-  }
-
-  .welcome-title {
-    font-size: 18px;
-  }
-
-  .feature-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .action-section {
-    flex-direction: column;
-  }
-
+/* Touch device specific styles */
+@media (pointer: coarse) {
   .vault-input {
-    min-width: 280px;
     font-size: 16px; /* Prevent zoom on iOS */
-  }
-
-  .roll-result-spotlight {
-    padding: 20px;
-    min-height: 70px;
-  }
-
-  .roll-result-spotlight .result-text {
-    font-size: 13px;
-  }
-
-  .history-container {
-    margin-bottom: 12px;
-  }
-
-  .history-header {
-    padding: 6px 8px;
-    min-height: 28px;
-  }
-
-  .history-title {
-    font-size: 11px;
-  }
-
-  .roll-history {
-    gap: 6px;
-    padding: 6px;
-  }
-
-  .history-resize-handle {
-    height: 10px;
-  }
-
-  .resize-indicator {
-    font-size: 9px;
-  }
-
-  .history-close-button {
-    top: 6px;
-    right: 6px;
-    width: 18px;
-    height: 18px;
-    font-size: 11px;
-  }
-
-  .history-timestamp {
-    font-size: 9px;
-    margin-bottom: 3px;
-  }
-
-  .roll-result-spotlight.history-result {
-    min-height: 50px;
-    padding: 12px;
-  }
-
-  .roll-result-spotlight.history-result .result-text {
-    font-size: 12px;
-  }
-
-  .clickable-subtable {
-    min-height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 8px;
-  }
-
-  .help-icon {
-    width: 16px;
-    height: 16px;
-  }
-
-  .help-tooltip {
-    min-width: 160px;
-    padding: 6px 8px;
-  }
-
-  .vault-status-compact {
-    padding: 6px 8px;
-    margin-bottom: 8px;
-  }
-
-  .vault-info {
-    flex-direction: row;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .vault-path {
-    font-size: 11px;
-  }
-
-  .table-count {
-    font-size: 10px;
-  }
-
-  .vault-icon-button {
-    width: 24px;
-    height: 24px;
-    font-size: 10px;
-  }
-
-  .app-footer {
-    padding: 6px 12px;
-    min-height: 28px;
-  }
-
-  .copyright {
-    font-size: 9px;
   }
 }
 

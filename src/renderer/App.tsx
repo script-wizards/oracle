@@ -799,9 +799,9 @@ const App: React.FC = () => {
         <div className="title-bar">
           <h1 className="app-title">Oracle</h1>
           {appInfo && (
-            <div className="app-info-minimal">
-              <span className="version-minimal">v{appInfo.version}</span>
-              {appInfo.isDev && <span className="dev-badge-minimal">DEV</span>}
+            <div className="app-info">
+              <span className="version">v{appInfo.version}</span>
+              {appInfo.isDev && <span className="dev-badge">DEV</span>}
               <a
                 href="https://github.com/script-wizards/oracle"
                 target="_blank"

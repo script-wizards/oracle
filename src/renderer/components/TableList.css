@@ -185,35 +185,8 @@
   background: var(--accent-primary);
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .table-item {
-    padding: 12px 16px;
-    min-height: 48px;
-  }
-
-  .table-item-icon {
-    font-size: 12px;
-    margin-right: 12px;
-    min-width: 24px;
-    height: 24px;
-  }
-
-  .table-item-title {
-    font-size: 13px;
-    line-height: 1.4;
-  }
-
-  .table-item-subtitle {
-    font-size: 11px;
-    margin-bottom: 4px;
-  }
-
-  .table-item-path {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
-
+/* Touch device optimizations */
+@media (max-width: 768px) and (pointer: coarse) {
   .table-item:active {
     background: var(--bg-tertiary);
     transform: scale(0.98);
@@ -224,25 +197,7 @@
     background: var(--bg-secondary);
   }
 
-  .table-item.selected {
-    background: var(--bg-primary);
-    border-left: 3px solid var(--accent-primary);
-  }
-
-  .empty-state {
-    padding: 24px 16px;
-  }
-
-  .empty-icon {
-    font-size: 28px;
-  }
-
-  .empty-message {
-    font-size: 13px;
-  }
-
   .table-list {
-    height: 100%;
     -webkit-overflow-scrolling: touch;
   }
 

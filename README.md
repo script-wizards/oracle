@@ -43,6 +43,8 @@ npm run dev
 4. Click on a table or press Enter to roll
 5. Click on bracketed text in results to reroll just that subtable
 
+**Try the examples**: Load the `examples/` folder included with Oracle to see interactive tables in action!
+
 ## Keyboard Shortcuts
 
 ### Global Shortcuts
