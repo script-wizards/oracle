@@ -7,6 +7,7 @@ import "./App.css";
 import SearchBar from "./components/SearchBar";
 import TableList from "./components/TableList";
 import InteractiveRollResult from "./components/InteractiveRollResult";
+import {DraggableWindow} from "./components/DraggableWindow";
 import {useTableSearch} from "./hooks/useTableSearch";
 import {useKeyboardNav} from "./hooks/useKeyboardNav";
 import {
@@ -297,6 +298,20 @@ const App: React.FC = () => {
 
   // Mobile menu state
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Canvas mode state
+  const [isCanvasMode, setIsCanvasMode] = useState(false);
+  const [openWindows, setOpenWindows] = useState<{
+    welcome: boolean;
+    search: boolean;
+    history: boolean;
+    currentResult: boolean;
+  }>({
+    welcome: true,
+    search: true,
+    history: true,
+    currentResult: false
+  });
 
   // Language state
   const [currentLanguage, setCurrentLanguage] = useState<Language>(() =>
@@ -856,6 +871,34 @@ const App: React.FC = () => {
     // Set new current result
     setLastRollResult(result);
     setLastRolledTable(table);
+
+    // In canvas mode, show the current result window
+    if (isCanvasMode) {
+      setOpenWindows(prev => ({ ...prev, currentResult: true }));
+    }
+  };
+
+  // Toggle canvas mode
+  const toggleCanvasMode = () => {
+    setIsCanvasMode(!isCanvasMode);
+    if (!isCanvasMode) {
+      // Entering canvas mode - show relevant windows
+      setOpenWindows({
+        welcome: !appState.vaultPath && showWelcome,
+        search: true,
+        history: showHistory && rollHistory.length > 0,
+        currentResult: !!lastRollResult
+      });
+    }
+  };
+
+  // Window management functions
+  const closeWindow = (windowName: keyof typeof openWindows) => {
+    setOpenWindows(prev => ({ ...prev, [windowName]: false }));
+  };
+
+  const openWindow = (windowName: keyof typeof openWindows) => {
+    setOpenWindows(prev => ({ ...prev, [windowName]: true }));
   };
 
   // Reroll specific subtable
@@ -898,7 +941,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`app ${isMacOS ? "macos" : ""}`}>
+    <div className={`app ${isMacOS ? "macos" : ""} ${isCanvasMode ? "canvas-mode" : ""}`}>
       <header className="app-header">
         <div className="title-bar">
           <h1 className="app-title">Oracle</h1>
@@ -929,6 +972,15 @@ const App: React.FC = () => {
         </div>
 
         <div className="header-controls">
+          {/* Canvas Mode Toggle */}
+          <button
+            onClick={toggleCanvasMode}
+            className={`header-button ${isCanvasMode ? "active" : ""}`}
+            title="Toggle Canvas Mode"
+          >
+            <i className="fas fa-th"></i>
+          </button>
+
           {/* Unified Menu Button */}
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -1033,7 +1085,217 @@ const App: React.FC = () => {
       </header>
 
       <main className="app-main">
-        <div className="welcome-section">
+        {/* Canvas Mode */}
+        {isCanvasMode ? (
+          <div className="canvas-container">
+            {/* Canvas Toolbar */}
+            <div className="canvas-toolbar">
+              <button
+                onClick={() => openWindow('welcome')}
+                className="canvas-toolbar-button"
+                disabled={openWindows.welcome}
+              >
+                <i className="fas fa-home"></i>
+                Welcome
+              </button>
+              <button
+                onClick={() => openWindow('search')}
+                className="canvas-toolbar-button"
+                disabled={openWindows.search}
+              >
+                <i className="fas fa-search"></i>
+                Search
+              </button>
+              <button
+                onClick={() => openWindow('history')}
+                className="canvas-toolbar-button"
+                disabled={openWindows.history || rollHistory.length === 0}
+              >
+                <i className="fas fa-history"></i>
+                History
+              </button>
+              <button
+                onClick={() => openWindow('currentResult')}
+                className="canvas-toolbar-button"
+                disabled={openWindows.currentResult || !lastRollResult}
+              >
+                <i className="fas fa-dice-d20"></i>
+                Current Roll
+              </button>
+            </div>
+
+            {/* Welcome Window */}
+            {openWindows.welcome && !appState.vaultPath && (
+              <DraggableWindow
+                title="Welcome"
+                initialPosition={{ x: 200, y: 100 }}
+                initialSize={{ width: 500, height: 400 }}
+                onClose={() => closeWindow('welcome')}
+                zIndex={10}
+              >
+                <div className="window-content">
+                  <p className="welcome-description">
+                    {(() => {
+                      const parts = t.welcome.description.split("{perchanceLink}");
+                      return (
+                        <>
+                          {parts[0]}
+                          <a
+                            href="https://perchance.org/tutorial"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="perchance-link"
+                          >
+                            Perchance syntax
+                          </a>
+                          {parts[1] || ""}
+                        </>
+                      );
+                    })()}
+                  </p>
+                  <p className="setup-instruction">
+                    {t.welcome.setupInstruction}{" "}
+                    <button
+                      onClick={handleSelectVault}
+                      disabled={isSelectingVault || !FileService.isElectronAPIAvailable()}
+                      className="inline-vault-button"
+                      title={t.tooltips.selectVaultFolder}
+                    >
+                      {isSelectingVault ? "..." : t.welcome.obsidianVault}
+                    </button>{" "}
+                    {t.welcome.letsRoll}
+                  </p>
+                </div>
+              </DraggableWindow>
+            )}
+
+            {/* Search Window */}
+            {openWindows.search && (
+              <DraggableWindow
+                title="Search & Tables"
+                initialPosition={{ x: 100, y: 150 }}
+                initialSize={{ width: 450, height: 500 }}
+                onClose={() => closeWindow('search')}
+                zIndex={5}
+              >
+                <div style={{ padding: '12px' }}>
+                  <SearchBar
+                    onSearch={setSearchQuery}
+                    onArrowUp={keyboardNav.handleArrowUp}
+                    onArrowDown={keyboardNav.handleArrowDown}
+                    onEnter={keyboardNav.handleEnter}
+                    onEscape={keyboardNav.handleEscape}
+                    onTab={keyboardNav.handleTab}
+                    onNumberKey={keyboardNav.handleNumberKey}
+                    value={searchQuery}
+                    resultCount={resultCount}
+                    selectedIndex={keyboardNav.selectedIndex}
+                  />
+                  <div className="tables-display" style={{ marginTop: '12px' }}>
+                    <TableList
+                      tables={filteredTables}
+                      selectedIndex={keyboardNav.selectedIndex}
+                      onTableSelect={(index: number) => {
+                        const actualTable = filteredTables[index];
+                        const actualIndex = appState.tables.findIndex(
+                          (table: Table) => table.id === actualTable.id
+                        );
+                        handleTableSelect(actualIndex);
+                        keyboardNav.setSelectedIndex(index);
+                        setTimeout(() => {
+                          const rollResult = rollOnTable(actualTable, appState.tables);
+                          addToHistoryAndSetCurrent(rollResult, actualTable);
+                        }, 100);
+                      }}
+                      searchQuery={searchQuery}
+                      isKeyboardNavigating={keyboardNav.isNavigating}
+                    />
+                  </div>
+                </div>
+              </DraggableWindow>
+            )}
+
+            {/* History Window */}
+            {openWindows.history && rollHistory.length > 0 && (
+              <DraggableWindow
+                title="Roll History"
+                initialPosition={{ x: 600, y: 100 }}
+                initialSize={{ width: 400, height: 500 }}
+                onClose={() => closeWindow('history')}
+                zIndex={3}
+              >
+                <div className="roll-history" style={{ padding: '8px', height: '100%', overflow: 'auto' }}>
+                  {rollHistory
+                    .slice()
+                    .reverse()
+                    .map((historyItem, index) => {
+                      const reversedHistory = rollHistory.slice().reverse();
+                      const prevItem = index > 0 ? reversedHistory[index - 1] : null;
+                      const shouldShowTimestamp =
+                        !prevItem ||
+                        historyItem.timestamp.getTime() - prevItem.timestamp.getTime() > 60000;
+
+                      return (
+                        <div
+                          key={`${historyItem.timestamp.getTime()}-${index}`}
+                          className={`history-item ${!shouldShowTimestamp ? "no-timestamp" : ""}`}
+                        >
+                          {shouldShowTimestamp && (
+                            <div className="history-timestamp">
+                              {historyItem.timestamp.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                              })}
+                            </div>
+                          )}
+                          <InteractiveRollResult
+                            rollResult={historyItem.result}
+                            onReroll={() => {
+                              const rollResult = rollOnTable(historyItem.table, appState.tables);
+                              addToHistoryAndSetCurrent(rollResult, historyItem.table);
+                            }}
+                            onSubtableReroll={(subrollIndex: number) => {
+                              const newRollResult = rerollSubtable(
+                                historyItem.result,
+                                subrollIndex,
+                                historyItem.table,
+                                appState.tables
+                              );
+                              addToHistoryAndSetCurrent(newRollResult, historyItem.table);
+                            }}
+                            lastRolledTable={historyItem.table}
+                            isHistoryItem={true}
+                          />
+                        </div>
+                      );
+                    })}
+                </div>
+              </DraggableWindow>
+            )}
+
+            {/* Current Result Window */}
+            {openWindows.currentResult && lastRollResult && (
+              <DraggableWindow
+                title="Current Roll Result"
+                initialPosition={{ x: 300, y: 200 }}
+                initialSize={{ width: 450, height: 350 }}
+                onClose={() => closeWindow('currentResult')}
+                zIndex={8}
+              >
+                <div style={{ padding: '12px' }}>
+                  <InteractiveRollResult
+                    rollResult={lastRollResult}
+                    onReroll={handleReroll}
+                    onSubtableReroll={handleSubtableReroll}
+                    lastRolledTable={lastRolledTable}
+                  />
+                </div>
+              </DraggableWindow>
+            )}
+          </div>
+        ) : (
+          /* Normal Mode */
+          <div className="welcome-section">
           {/* Welcome and Setup - Only when no vault is selected and welcome is visible */}
           {!appState.vaultPath && showWelcome && (
             <div className="window-container">
@@ -1343,6 +1605,7 @@ location
             </div>
           </div>
         </div>
+        )}
       </main>
 
       <footer className="app-footer">
