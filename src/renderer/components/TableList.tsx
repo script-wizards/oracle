@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Table} from "../../shared/types";
+import {Table, RollResult} from "../../shared/types";
 import "./TableList.css";
 import {useTranslations} from "../i18n";
 import TableEntryViewer from "./TableEntryViewer";
@@ -11,6 +11,8 @@ interface TableListProps {
   onTableOpen?: (table: Table) => void;
   searchQuery?: string;
   isKeyboardNavigating?: boolean;
+  rollResult?: RollResult;
+  lastRolledTable?: Table;
 }
 
 const TableList: React.FC<TableListProps> = ({
@@ -19,31 +21,14 @@ const TableList: React.FC<TableListProps> = ({
   onTableSelect,
   onTableOpen,
   searchQuery = "",
-  isKeyboardNavigating = false
+  isKeyboardNavigating = false,
+  rollResult,
+  lastRolledTable
 }) => {
   const [expandedTableId, setExpandedTableId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'structured' | 'raw'>('structured');
   const listRef = useRef<HTMLDivElement>(null);
   const selectedItemRef = useRef<HTMLDivElement>(null);
   const t = useTranslations();
-
-  // Generate Perchance table definition for viewing
-  const generateTableDefinition = (table: Table): string => {
-    let definition = `title\n  ${table.title}\n\n`;
-
-    // Add each section
-    if (table.sections) {
-      table.sections.forEach((section) => {
-        definition += `${section.name}\n`;
-        section.entries.forEach((entry) => {
-          definition += `  ${entry}\n`;
-        });
-        definition += "\n";
-      });
-    }
-
-    return definition.trim();
-  };
 
   // Handle viewing a table
   const handleViewTable = (table: Table) => {
@@ -175,11 +160,6 @@ const TableList: React.FC<TableListProps> = ({
               <div className="table-item-subtitle">
                 {getTableSubtitle(table)}
               </div>
-              {table.filePath && (
-                <div className="table-item-path">
-                  {table.filePath.split("/").pop()}
-                </div>
-              )}
             </div>
             <div className="table-item-status">
               {onTableOpen && (
@@ -233,40 +213,11 @@ const TableList: React.FC<TableListProps> = ({
           {expandedTableId === table.id && (
             <div className="table-viewer-inline">
               <div className="table-viewer-content">
-                <div className="table-viewer-info">
-                  <p className="table-viewer-path">
-                    <strong>{t.tables.file}:</strong> {table.filePath}
-                  </p>
-                  <div className="view-mode-toggle">
-                    <button
-                      className={`view-mode-button ${viewMode === 'structured' ? 'active' : ''}`}
-                      onClick={() => setViewMode('structured')}
-                      title={t.tables.structuredView}
-                    >
-                      <i className="fas fa-list"></i>
-                    </button>
-                    <button
-                      className={`view-mode-button ${viewMode === 'raw' ? 'active' : ''}`}
-                      onClick={() => setViewMode('raw')}
-                      title={t.tables.rawView}
-                    >
-                      <i className="fas fa-code"></i>
-                    </button>
-                  </div>
-                </div>
-                
-                {viewMode === 'structured' ? (
-                  <TableEntryViewer 
-                    table={table} 
-                    searchQuery={searchQuery}
-                  />
-                ) : (
-                  <div className="table-definition">
-                    <pre>
-                      <code>{generateTableDefinition(table)}</code>
-                    </pre>
-                  </div>
-                )}
+                <TableEntryViewer 
+                  table={table} 
+                  searchQuery={searchQuery}
+                  rollResult={rollResult && lastRolledTable?.id === table.id ? rollResult : undefined}
+                />
               </div>
             </div>
           )}

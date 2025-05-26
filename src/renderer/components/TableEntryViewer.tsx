@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Table, TableSection } from '../../shared/types';
+import { Table, TableSection, RollResult, SubrollData } from '../../shared/types';
 import './TableEntryViewer.css';
 
 interface TableEntryViewerProps {
   table: Table;
   searchQuery?: string;
+  rollResult?: RollResult;
 }
 
 interface SectionViewState {
@@ -13,7 +14,8 @@ interface SectionViewState {
 
 const TableEntryViewer: React.FC<TableEntryViewerProps> = ({ 
   table, 
-  searchQuery = '' 
+  searchQuery = '',
+  rollResult
 }) => {
   const [expandedSections, setExpandedSections] = useState<SectionViewState>(() => {
     // Auto-expand output section and sections with few entries
@@ -33,6 +35,38 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
       ...prev,
       [sectionName]: !prev[sectionName]
     }));
+  };
+
+  // Helper function to check if an entry was rolled
+  const isEntryRolled = (sectionName: string, entryIndex: number): boolean => {
+    if (!rollResult) return false;
+    
+    // Check if this entry was part of the main roll (output section)
+    if (sectionName.toLowerCase() === 'output') {
+      // For output section, check if this entry index matches any subroll that came from this table
+      return rollResult.subrolls.some(subroll => 
+        subroll.source === table.title && 
+        subroll.type === 'subtable'
+      );
+    }
+    
+    // For other sections, check if this section was rolled and this entry was selected
+    return rollResult.subrolls.some(subroll => 
+      subroll.source === sectionName && 
+      subroll.type === 'subtable'
+    );
+  };
+
+  // Helper function to get the rolled entry text for a section
+  const getRolledEntryText = (sectionName: string): string | null => {
+    if (!rollResult) return null;
+    
+    const subroll = rollResult.subrolls.find(subroll => 
+      subroll.source === sectionName && 
+      subroll.type === 'subtable'
+    );
+    
+    return subroll ? subroll.text : null;
   };
 
   const highlightSearchTerm = (text: string, query: string): React.ReactNode => {
@@ -109,9 +143,11 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
       <div className="table-structure">
         {sortedSections.map((section) => {
           const isExpanded = expandedSections[section.name];
+          const rolledEntryText = getRolledEntryText(section.name);
+          const hasRolledEntry = !!rolledEntryText;
           
           return (
-            <div key={section.name} className="section-container">
+            <div key={section.name} className={`section-container ${hasRolledEntry ? 'has-rolled-entry' : ''}`}>
               <div 
                 className="section-header"
                 onClick={() => toggleSection(section.name)}
@@ -131,14 +167,20 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
               
               {isExpanded && (
                 <div className="section-entries">
-                  {section.entries.map((entry, entryIndex) => (
-                    <div key={entryIndex} className="entry-item">
-                      <div className="entry-bullet">•</div>
-                      <div className="entry-text">
-                        {formatEntry(entry)}
+                  {section.entries.map((entry, entryIndex) => {
+                    const isRolled = rolledEntryText === entry;
+                    
+                    return (
+                      <div key={entryIndex} className={`entry-item ${isRolled ? 'rolled-entry' : ''}`}>
+                        <div className="entry-bullet">
+                          •
+                        </div>
+                        <div className="entry-text">
+                          {formatEntry(entry)}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

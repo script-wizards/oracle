@@ -1012,6 +1012,21 @@ const App: React.FC = () => {
     setLastRollResult(result);
     setLastRolledTable(table);
 
+    // Update selected table index to match the rolled table
+    const tableIndex = appState.tables.findIndex(t => t.id === table.id);
+    if (tableIndex >= 0) {
+      setAppState((prev) => ({
+        ...prev,
+        selectedTableIndex: tableIndex
+      }));
+    }
+
+    // Update keyboard navigation to match the rolled table in filtered results
+    const filteredIndex = filteredTables.findIndex(t => t.id === table.id);
+    if (filteredIndex >= 0) {
+      keyboardNav.setSelectedIndex(filteredIndex);
+    }
+
     // In canvas mode, show the current result window
     if (isCanvasMode) {
       setOpenWindows(prev => ({ ...prev, currentResult: true }));
@@ -1423,6 +1438,8 @@ const App: React.FC = () => {
                       onTableOpen={openTableWindow}
                       searchQuery={searchQuery}
                       isKeyboardNavigating={keyboardNav.isNavigating}
+                      rollResult={lastRollResult || undefined}
+                      lastRolledTable={lastRolledTable || undefined}
                     />
                   </div>
                 </div>
@@ -1493,7 +1510,7 @@ const App: React.FC = () => {
             {/* Current Result Window */}
             {openWindows.currentResult && lastRollResult && (
               <DraggableWindow
-                title="Current Roll Result"
+                title="Roll Result"
                 initialPosition={windowStates.currentResult.position}
                 initialSize={windowStates.currentResult.size}
                 onClose={() => closeWindow('currentResult')}
@@ -1751,6 +1768,8 @@ location
                     onTableOpen={openTableWindow}
                     searchQuery={searchQuery}
                     isKeyboardNavigating={keyboardNav.isNavigating}
+                    rollResult={lastRollResult || undefined}
+                    lastRolledTable={lastRolledTable || undefined}
                   />
                 </div>
               </div>

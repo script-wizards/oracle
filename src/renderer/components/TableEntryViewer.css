@@ -1,7 +1,7 @@
 .table-entry-viewer {
   background: transparent;
   border-radius: 4px;
-  padding: 8px;
+  padding: 4px 8px;
   font-size: 12px;
   line-height: 1.4;
 }
@@ -26,6 +26,17 @@
   border-color: var(--border-primary);
 }
 
+/* Rolled section highlighting */
+.section-container.has-rolled-entry {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.2);
+}
+
+.section-container.has-rolled-entry:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.3);
+}
+
 /* Section Header */
 .section-header {
   display: flex;
@@ -41,6 +52,16 @@
 
 .section-header:hover {
   background: rgba(255, 255, 255, 0.05);
+}
+
+/* Rolled section header highlighting */
+.section-container.has-rolled-entry .section-header {
+  background: rgba(255, 140, 0, 0.1);
+  border-bottom-color: rgba(255, 140, 0, 0.3);
+}
+
+.section-container.has-rolled-entry .section-header:hover {
+  background: rgba(255, 140, 0, 0.15);
 }
 
 .section-info {
@@ -63,6 +84,20 @@
   padding: 0;
   border: none;
 }
+
+/* Rolled indicator */
+.rolled-indicator {
+  display: flex;
+  align-items: center;
+  color: var(--accent-primary);
+  font-size: 10px;
+  background: rgba(255, 140, 0, 0.1);
+  padding: 2px 4px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 140, 0, 0.3);
+}
+
+
 
 .section-toggle {
   color: var(--text-muted);
@@ -105,6 +140,7 @@
   padding: 4px 0;
   transition: background-color 0.15s ease;
   border-radius: 2px;
+  position: relative;
 }
 
 .entry-item:last-child {
@@ -119,6 +155,32 @@
   margin-right: -4px;
 }
 
+/* Rolled entry highlighting */
+.entry-item.rolled-entry {
+  background: rgba(255, 140, 0, 0.1);
+  border: 1px solid rgba(255, 140, 0, 0.3);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin: 4px 0;
+  animation: highlightRolledEntry 0.5s ease-out;
+}
+
+.entry-item.rolled-entry:hover {
+  background: rgba(255, 140, 0, 0.15);
+  border-color: rgba(255, 140, 0, 0.5);
+}
+
+@keyframes highlightRolledEntry {
+  0% {
+    background: rgba(255, 140, 0, 0.3);
+    transform: scale(1.02);
+  }
+  100% {
+    background: rgba(255, 140, 0, 0.1);
+    transform: scale(1);
+  }
+}
+
 .entry-bullet {
   color: var(--text-muted);
   font-size: 12px;
@@ -128,12 +190,51 @@
   text-align: center;
 }
 
+/* Rolled entry bullet highlighting */
+.entry-item.rolled-entry .entry-bullet {
+  color: var(--accent-primary);
+  font-weight: bold;
+}
+
+
+
 .entry-text {
   color: var(--text-primary);
   font-size: 12px;
   line-height: 1.4;
   flex: 1;
   word-wrap: break-word;
+}
+
+/* Rolled entry text highlighting */
+.entry-item.rolled-entry .entry-text {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Rolled entry indicator */
+.rolled-entry-indicator {
+  display: flex;
+  align-items: center;
+  color: var(--accent-primary);
+  font-size: 10px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.rolled-entry-indicator {
+  animation: twinkle 1.5s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
 }
 
 /* Subtable References */
@@ -166,8 +267,6 @@
   background: rgba(255, 68, 68, 0.1);
   border: 1px solid rgba(255, 68, 68, 0.3);
 }
-
-
 
 /* Search Highlighting */
 .entry-search-highlight {

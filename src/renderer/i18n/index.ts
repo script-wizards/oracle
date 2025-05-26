@@ -67,8 +67,6 @@ export interface Translations {
         hide: string;
         file: string;
         errorsLabel: string;
-        structuredView: string;
-        rawView: string;
     };
 
     // Roll results
@@ -175,8 +173,6 @@ const en: Translations = {
         hide: "Hide",
         file: "File",
         errorsLabel: "Errors",
-        structuredView: "Structured view",
-        rawView: "Raw Perchance code",
     },
 
     rollResults: {
@@ -321,8 +317,6 @@ const ja: Translations = {
         hide: "非表示",
         file: "ファイル",
         errorsLabel: "エラー",
-        structuredView: "構造化ビュー",
-        rawView: "生のPerchanceコード",
     },
 
     rollResults: {
@@ -423,8 +417,6 @@ const fr: Translations = {
         hide: "Masquer",
         file: "Fichier",
         errorsLabel: "Erreurs",
-        structuredView: "Vue structurée",
-        rawView: "Code Perchance brut",
     },
 
     rollResults: {
