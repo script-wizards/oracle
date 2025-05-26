@@ -327,6 +327,15 @@ const App: React.FC = () => {
     return saved !== null ? new Set(JSON.parse(saved)) : new Set();
   });
 
+  // Z-index management for window stacking
+  const [windowZIndices, setWindowZIndices] = useState<{[key: string]: number}>({
+    welcome: 10,
+    search: 5,
+    history: 3,
+    currentResult: 8
+  });
+  const [nextZIndex, setNextZIndex] = useState(20);
+
   // Window positions and sizes state
   const [windowStates, setWindowStates] = useState<{
     [key: string]: {
@@ -1034,7 +1043,17 @@ const App: React.FC = () => {
 
   // Table window management functions
   const openTableWindow = (table: Table) => {
+    const tableWindowKey = `table-${table.id}`;
     setOpenTableWindows(prev => new Set([...prev, table.id]));
+    
+    // Initialize z-index for new table window if it doesn't exist
+    if (!windowZIndices[tableWindowKey]) {
+      setWindowZIndices(prev => ({
+        ...prev,
+        [tableWindowKey]: nextZIndex
+      }));
+      setNextZIndex(prev => prev + 1);
+    }
   };
 
   const closeTableWindow = (tableId: string) => {
@@ -1064,6 +1083,15 @@ const App: React.FC = () => {
         size
       }
     }));
+  };
+
+  // Bring window to front
+  const bringWindowToFront = (windowName: string) => {
+    setWindowZIndices(prev => ({
+      ...prev,
+      [windowName]: nextZIndex
+    }));
+    setNextZIndex(prev => prev + 1);
   };
 
   // Table window state update functions
@@ -1309,10 +1337,12 @@ const App: React.FC = () => {
                 onClose={() => closeWindow('welcome')}
                 onPositionChange={(position) => updateWindowPosition('welcome', position)}
                 onSizeChange={(size) => updateWindowSize('welcome', size)}
-                zIndex={10}
+                onBringToFront={() => bringWindowToFront('welcome')}
+                zIndex={windowZIndices.welcome}
               >
                 <div className="window-content">
-                  <p className="welcome-description">
+                  <div className="welcome-window-content">
+                    <p className="welcome-description">
                     {(() => {
                       const parts = t.welcome.description.split("{perchanceLink}");
                       return (
@@ -1343,6 +1373,7 @@ const App: React.FC = () => {
                     </button>{" "}
                     {t.welcome.letsRoll}
                   </p>
+                  </div>
                 </div>
               </DraggableWindow>
             )}
@@ -1356,7 +1387,8 @@ const App: React.FC = () => {
                 onClose={() => closeWindow('search')}
                 onPositionChange={(position) => updateWindowPosition('search', position)}
                 onSizeChange={(size) => updateWindowSize('search', size)}
-                zIndex={5}
+                onBringToFront={() => bringWindowToFront('search')}
+                zIndex={windowZIndices.search}
               >
                 <div style={{ padding: '12px' }}>
                   <SearchBar
@@ -1405,7 +1437,8 @@ const App: React.FC = () => {
                 onClose={() => closeWindow('history')}
                 onPositionChange={(position) => updateWindowPosition('history', position)}
                 onSizeChange={(size) => updateWindowSize('history', size)}
-                zIndex={3}
+                onBringToFront={() => bringWindowToFront('history')}
+                zIndex={windowZIndices.history}
               >
                 <div className="roll-history" style={{ padding: '8px', height: '100%', overflow: 'auto' }}>
                   {rollHistory
@@ -1465,7 +1498,8 @@ const App: React.FC = () => {
                 onClose={() => closeWindow('currentResult')}
                 onPositionChange={(position) => updateWindowPosition('currentResult', position)}
                 onSizeChange={(size) => updateWindowSize('currentResult', size)}
-                zIndex={8}
+                onBringToFront={() => bringWindowToFront('currentResult')}
+                zIndex={windowZIndices.currentResult}
               >
                 <div style={{ padding: '12px' }}>
                   <InteractiveRollResult
@@ -1484,6 +1518,7 @@ const App: React.FC = () => {
               if (!table) return null;
               
               const windowState = getTableWindowState(tableId);
+              const tableWindowKey = `table-${tableId}`;
               
               return (
                 <TableWindow
@@ -1495,7 +1530,8 @@ const App: React.FC = () => {
                   onClose={() => closeTableWindow(tableId)}
                   onPositionChange={(position) => updateTableWindowPosition(tableId, position)}
                   onSizeChange={(size) => updateTableWindowSize(tableId, size)}
-                  zIndex={6}
+                  onBringToFront={() => bringWindowToFront(tableWindowKey)}
+                  zIndex={windowZIndices[tableWindowKey] || 6}
                 />
               );
             })}
@@ -1517,7 +1553,8 @@ const App: React.FC = () => {
                 </button>
               </div>
               <div className="window-content">
-                <p className="welcome-description">
+                <div className="welcome-window-content">
+                  <p className="welcome-description">
                   {(() => {
                     const parts =
                       t.welcome.description.split("{perchanceLink}");
@@ -1640,6 +1677,7 @@ location
                   </button>{" "}
                   {t.welcome.letsRoll}
                 </p>
+                </div>
               </div>
             </div>
           )}

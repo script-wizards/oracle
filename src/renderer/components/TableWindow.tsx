@@ -13,6 +13,7 @@ interface TableWindowProps {
   onClose: () => void;
   onPositionChange: (position: { x: number; y: number }) => void;
   onSizeChange: (size: { width: number; height: number }) => void;
+  onBringToFront?: () => void;
   zIndex?: number;
 }
 
@@ -24,6 +25,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
   onClose,
   onPositionChange,
   onSizeChange,
+  onBringToFront,
   zIndex = 5
 }) => {
   // Per-table state
@@ -120,6 +122,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
       onClose={onClose}
       onPositionChange={onPositionChange}
       onSizeChange={onSizeChange}
+      onBringToFront={onBringToFront}
       zIndex={zIndex}
       minWidth={350}
       minHeight={250}

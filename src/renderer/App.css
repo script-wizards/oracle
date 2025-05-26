@@ -344,6 +344,14 @@ body {
   background: var(--bg-primary);
 }
 
+.window-content {
+  padding: 0px;
+}
+
+.welcome-window-content {
+  padding: 12px;
+}
+
 /* Welcome Setup - using window components */
 .welcome-setup {
   margin-bottom: 12px;
@@ -513,9 +521,9 @@ body {
 .select-vault-button:hover:not(:disabled),
 .scan-files-button:hover:not(:disabled),
 .parse-tables-button:hover:not(:disabled) {
-  background: var(--bg-primary);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
+  transform: translateY(-1px);
 }
 
 .clear-storage-button {

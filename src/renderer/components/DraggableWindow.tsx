@@ -13,6 +13,7 @@ interface DraggableWindowProps {
   onClose?: () => void;
   onPositionChange?: (position: { x: number; y: number }) => void;
   onSizeChange?: (size: { width: number; height: number }) => void;
+  onBringToFront?: () => void;
   className?: string;
   zIndex?: number;
 }
@@ -30,6 +31,7 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
   onClose,
   onPositionChange,
   onSizeChange,
+  onBringToFront,
   className = '',
   zIndex = 1
 }) => {
@@ -45,6 +47,11 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
   // Handle window dragging
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.window-resize-handle')) return;
+    
+    // Bring window to front when starting to drag
+    if (onBringToFront) {
+      onBringToFront();
+    }
     
     setIsDragging(true);
     setDragOffset({
