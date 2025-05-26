@@ -6,13 +6,15 @@ interface InteractiveRollResultProps {
   onReroll: () => void;
   onSubtableReroll: (subrollIndex: number) => void;
   lastRolledTable: Table | null;
+  isHistoryItem?: boolean;
 }
 
 const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
   rollResult,
   onReroll,
   onSubtableReroll,
-  lastRolledTable
+  lastRolledTable,
+  isHistoryItem = false
 }) => {
   // Parse the text to identify subtable results and make them clickable
   const renderInteractiveText = () => {
@@ -118,7 +120,9 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
   return (
     <div className="interactive-result-container">
       <div
-        className="roll-result-spotlight interactive clickable"
+        className={`roll-result-spotlight interactive clickable ${
+          isHistoryItem ? "history-result" : ""
+        }`}
         onClick={handleResultBoxClick}
         title={
           subtableCount > 0

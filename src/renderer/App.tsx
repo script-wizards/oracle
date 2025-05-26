@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from "react";
+import React, {useState, useEffect, useCallback, useRef} from "react";
 import {AppInfo, AppState, Table, RollResult} from "../shared/types";
 import {StorageService, createDefaultAppState} from "./services/StorageService";
 import {FileService} from "./services/FileService";
@@ -151,11 +151,37 @@ const App: React.FC = () => {
   const [lastRollResult, setLastRollResult] = useState<RollResult | null>(null);
   const [lastRolledTable, setLastRolledTable] = useState<Table | null>(null);
 
+  // Roll history - stack of previous results
+  const [rollHistory, setRollHistory] = useState<
+    Array<{
+      result: RollResult;
+      table: Table;
+      timestamp: Date;
+    }>
+  >([]);
+
+  // Ref for history container to control scrolling
+  const historyRef = useRef<HTMLDivElement>(null);
+
+  // Scroll history to bottom to show most recent entries
+  const scrollHistoryToBottom = useCallback(() => {
+    if (historyRef.current) {
+      historyRef.current.scrollTop = historyRef.current.scrollHeight;
+    }
+  }, []);
+
   // Platform detection for macOS-specific styling
   const [isMacOS, setIsMacOS] = useState(false);
 
   // Welcome screen visibility
   const [showWelcome, setShowWelcome] = useState(true);
+
+  // History visibility toggle
+  const [showHistory, setShowHistory] = useState(() => {
+    // Load from localStorage, default to true
+    const saved = localStorage.getItem("oracle-show-history");
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   // Search functionality
   const {
@@ -179,8 +205,7 @@ const App: React.FC = () => {
       // Automatically roll on the selected table
       setTimeout(() => {
         const rollResult = rollOnTable(actualTable, appState.tables);
-        setLastRollResult(rollResult);
-        setLastRolledTable(actualTable);
+        addToHistoryAndSetCurrent(rollResult, actualTable);
       }, 100);
     },
     enableNumberShortcuts: true,
@@ -277,6 +302,11 @@ const App: React.FC = () => {
     }
   }, [appState, isLoading, storageAvailable, saveAppState]);
 
+  // Save history visibility preference
+  useEffect(() => {
+    localStorage.setItem("oracle-show-history", JSON.stringify(showHistory));
+  }, [showHistory]);
+
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setAppState((prev) => ({
@@ -320,6 +350,16 @@ const App: React.FC = () => {
       defaultState.lastScanTime = new Date();
       setAppState(defaultState);
       setShowWelcome(true); // Show welcome screen again after clearing storage
+
+      // Clear roll history and current result
+      setRollHistory([]);
+      setLastRollResult(null);
+      setLastRolledTable(null);
+
+      // Reset history visibility to default
+      setShowHistory(true);
+      localStorage.removeItem("oracle-show-history");
+
       alert("Storage cleared successfully!");
     } catch (error) {
       console.error("Failed to clear storage:", error);
@@ -603,8 +643,30 @@ const App: React.FC = () => {
   const handleReroll = () => {
     if (lastRolledTable) {
       const rollResult = rollOnTable(lastRolledTable, appState.tables);
-      setLastRollResult(rollResult);
+      addToHistoryAndSetCurrent(rollResult, lastRolledTable);
     }
+  };
+
+  // Add result to history and set as current
+  const addToHistoryAndSetCurrent = (result: RollResult, table: Table) => {
+    // Add current result to history if it exists
+    if (lastRollResult && lastRolledTable) {
+      setRollHistory((prev) => [
+        {
+          result: lastRollResult,
+          table: lastRolledTable,
+          timestamp: new Date()
+        },
+        ...prev.slice(0, 14) // Keep only last 15 results
+      ]);
+
+      // Scroll to bottom after adding to history
+      setTimeout(scrollHistoryToBottom, 0);
+    }
+
+    // Set new current result
+    setLastRollResult(result);
+    setLastRolledTable(table);
   };
 
   // Reroll specific subtable
@@ -706,6 +768,19 @@ const App: React.FC = () => {
                   ? "fa-sync fa-spin"
                   : "fa-sync-alt"
               }`}
+            ></i>
+          </button>
+
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="header-button"
+            title={showHistory ? "Hide roll history" : "Show roll history"}
+          >
+            <i
+              className={`fas ${
+                showHistory ? "fa-clock-rotate-left" : "fa-clock-rotate-left"
+              }`}
+              style={{opacity: showHistory ? 1 : 0.5}}
             ></i>
           </button>
 
@@ -849,7 +924,56 @@ location
 
           {/* Spotlight Search Interface */}
           <div className="spotlight-search-section">
-            {/* Immediate Roll Result - Most Important */}
+            {/* Roll History - Stack grows above */}
+            {showHistory && rollHistory.length > 0 && (
+              <div className="roll-history" ref={historyRef}>
+                {rollHistory
+                  .slice()
+                  .reverse()
+                  .map((historyItem, index) => (
+                    <div
+                      key={`${historyItem.timestamp.getTime()}-${index}`}
+                      className="history-item"
+                    >
+                      <div className="history-timestamp">
+                        {historyItem.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })}
+                      </div>
+                      <InteractiveRollResult
+                        rollResult={historyItem.result}
+                        onReroll={() => {
+                          const rollResult = rollOnTable(
+                            historyItem.table,
+                            appState.tables
+                          );
+                          addToHistoryAndSetCurrent(
+                            rollResult,
+                            historyItem.table
+                          );
+                        }}
+                        onSubtableReroll={(subrollIndex: number) => {
+                          const newRollResult = rerollSubtable(
+                            historyItem.result,
+                            subrollIndex,
+                            historyItem.table,
+                            appState.tables
+                          );
+                          addToHistoryAndSetCurrent(
+                            newRollResult,
+                            historyItem.table
+                          );
+                        }}
+                        lastRolledTable={historyItem.table}
+                        isHistoryItem={true}
+                      />
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {/* Current Roll Result - Most Important */}
             {lastRollResult && (
               <InteractiveRollResult
                 rollResult={lastRollResult}
@@ -894,8 +1018,7 @@ location
                       actualTable,
                       appState.tables
                     );
-                    setLastRollResult(rollResult);
-                    setLastRolledTable(actualTable);
+                    addToHistoryAndSetCurrent(rollResult, actualTable);
                   }, 100);
                 }}
                 searchQuery={searchQuery}
