@@ -1000,6 +1000,7 @@ const App: React.FC = () => {
                 >
                   <option value="en">English</option>
                   <option value="fr">Français</option>
+                  <option value="ja">日本語</option>
                 </select>
               </div>
 

@@ -255,6 +255,106 @@ const isValidLanguage = (lang: string): boolean => {
     return ['en', 'es', 'de', 'fr', 'pt', 'ja'].includes(lang);
 };
 
+const ja: Translations = {
+    search: {
+        placeholder: "検索...",
+        hints: {
+            navigate: "↑↓ ナビゲート",
+            enterToRoll: "Enter でロール",
+            focus: "Ctrl+K フォーカス",
+            clear: "Ctrl+L クリア",
+            history: "Ctrl+H 履歴",
+            quickSelect: "1-9 クイック選択",
+            back: "Esc 戻る",
+        },
+    },
+
+    mobileMenu: {
+        menu: "メニュー",
+        loadVault: "ボルトを読み込み",
+        changeVault: "ボルトを変更",
+        refreshVault: "ボルトを更新",
+        showHistory: "履歴を表示",
+        hideHistory: "履歴を非表示",
+        clearStorage: "ストレージをクリア",
+    },
+
+    header: {
+        loadVault: "ボルトを読み込み",
+        tooltips: {
+            changeVault: "クリックしてボルトを変更",
+            selectVault: "クリックしてボルトを選択",
+            refreshVault: "ボルトを更新してテーブルを解析",
+            selectVaultFirst: "最初にボルトを選択してください",
+            showHistory: "ロール履歴を表示 (Ctrl+H)",
+            hideHistory: "ロール履歴を非表示 (Ctrl+H)",
+            clearStorage: "すべての保存データをクリア",
+            closeWelcome: "ウェルカム画面を閉じる",
+        },
+    },
+
+    welcome: {
+        title: "Oracleへようこそ",
+        description: "Obsidianボルト用のランダムテーブルローラーです。テーブルを検索し、クリックしてロールし、クリック可能なサブテーブルでインタラクティブな結果を取得できます。{perchanceLink}に対応しています。",
+        tableInstructions: "テーブルは```perchanceタグ付きのマークダウンコードブロックに記述してください：",
+        bracketInstructions: "[ブラケット]を使用して他のセクションを参照することもできます：",
+        credits: "{scriptWizardsLink}によって作成されました。貢献やフィードバックをお寄せいただける場合は{githubLink}のソースコードをご覧ください。",
+        setupInstruction: "あなたの",
+        obsidianVault: "Obsidianボルト",
+        letsRoll: "を指定して、ロールを始めましょう。",
+    },
+
+    tables: {
+        noTablesFound: "テーブルが見つかりません",
+        noTablesLoaded: "テーブルが読み込まれていません",
+        tryDifferentSearch: "別の検索語句を試してください",
+        viewDefinition: "テーブル定義を表示",
+        hideDefinition: "テーブル定義を非表示",
+        entries: "エントリ",
+        subtables: "サブテーブル",
+        errors: "エラー",
+        view: "表示",
+        hide: "非表示",
+        file: "ファイル",
+        errorsLabel: "エラー",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "クリックして結果全体を再ロール",
+        clickToRerollSubtable: "クリックして[{source}]を再ロール",
+        clickAnywhereToRerollEverything: "どこでもクリックしてすべてを再ロール、またはハイライト部分をクリックして個別の結果を再ロール",
+        clickHighlightedPartsToRerollIndividual: "どこでもクリックしてすべてを再ロール、またはハイライト部分をクリックして個別の結果を再ロール",
+        clickToReroll: "クリックして再ロール",
+        howToReroll: "再ロール方法",
+        clickHighlightedParts: "ハイライト部分をクリックして個別の結果を再ロール",
+        clickAnywhereElse: "他の場所をクリックしてすべてを再ロール",
+    },
+
+    status: {
+        loading: "読み込み中...",
+        saving: "保存中...",
+        saved: "保存済み",
+        saveFailed: "保存に失敗しました",
+    },
+
+    history: {
+        title: "履歴",
+        hideHistory: "ロール履歴を非表示",
+    },
+
+    tooltips: {
+        viewOnGitHub: "GitHubで表示",
+        visitScriptWizards: "Script Wizardsを訪問",
+        selectVaultFolder: "ボルトフォルダを選択",
+    },
+
+    clearStorage: {
+        confirmMessage: "すべての保存データをクリアしてもよろしいですか？\n\nこれにより以下が実行されます：\n• ボルトパスの削除\n• すべての解析済みテーブルのクリア\n• すべての設定のリセット\n• ロール履歴のクリア\n\nこの操作は元に戻せません。",
+        successMessage: "ストレージが正常にクリアされました！",
+        failedMessage: "ストレージのクリアに失敗しました",
+    },
+};
+
 const fr: Translations = {
     search: {
         placeholder: "Rechercher...",
@@ -362,6 +462,8 @@ const getTranslationsForLanguage = (language: Language): Translations => {
             return en;
         case 'fr':
             return fr;
+        case 'ja':
+            return ja;
         default:
             return en;
     }
