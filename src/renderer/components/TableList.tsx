@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Table} from "../../shared/types";
 import "./TableList.css";
 
@@ -17,8 +17,38 @@ const TableList: React.FC<TableListProps> = ({
   searchQuery = "",
   isKeyboardNavigating = false
 }) => {
+  const [expandedTableId, setExpandedTableId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const selectedItemRef = useRef<HTMLDivElement>(null);
+
+  // Generate Perchance table definition for viewing
+  const generateTableDefinition = (table: Table): string => {
+    let definition = `title\n  ${table.title}\n\n`;
+
+    // Add each section
+    if (table.sections) {
+      table.sections.forEach((section) => {
+        definition += `${section.name}\n`;
+        section.entries.forEach((entry) => {
+          definition += `  ${entry}\n`;
+        });
+        definition += "\n";
+      });
+    }
+
+    return definition.trim();
+  };
+
+  // Handle viewing a table
+  const handleViewTable = (table: Table) => {
+    if (expandedTableId === table.id) {
+      // Collapse if already expanded
+      setExpandedTableId(null);
+    } else {
+      // Expand this table
+      setExpandedTableId(table.id);
+    }
+  };
 
   // Scroll selected item into view
   useEffect(() => {
@@ -110,43 +140,104 @@ const TableList: React.FC<TableListProps> = ({
       }
     >
       {tables.map((table, index) => (
-        <div
-          key={table.id}
-          id={`table-item-${index}`}
-          ref={index === selectedIndex ? selectedItemRef : null}
-          className={`table-item ${index === selectedIndex ? "selected" : ""} ${
-            isKeyboardNavigating && index === selectedIndex
-              ? "keyboard-selected"
-              : ""
-          } ${table.errors && table.errors.length > 0 ? "has-errors" : ""}`}
-          onClick={() => onTableSelect(index)}
-          role="option"
-          aria-selected={index === selectedIndex}
-          aria-label={`Table ${index + 1}: ${table.title}, ${getTableSubtitle(
-            table
-          )}`}
-          tabIndex={-1}
-        >
-          <div className="table-item-icon">{getTableIcon(index)}</div>
-          <div className="table-item-content">
-            <div className="table-item-title">
-              {highlightSearchTerm(table.title, searchQuery)}
-            </div>
-            <div className="table-item-subtitle">{getTableSubtitle(table)}</div>
-            {table.filePath && (
-              <div className="table-item-path">
-                {table.filePath.split("/").pop()}
+        <React.Fragment key={table.id}>
+          <div
+            id={`table-item-${index}`}
+            ref={index === selectedIndex ? selectedItemRef : null}
+            className={`table-item ${
+              index === selectedIndex ? "selected" : ""
+            } ${
+              isKeyboardNavigating && index === selectedIndex
+                ? "keyboard-selected"
+                : ""
+            } ${table.errors && table.errors.length > 0 ? "has-errors" : ""} ${
+              expandedTableId === table.id ? "expanded" : ""
+            }`}
+            onClick={() => onTableSelect(index)}
+            role="option"
+            aria-selected={index === selectedIndex}
+            aria-label={`Table ${index + 1}: ${table.title}, ${getTableSubtitle(
+              table
+            )}`}
+            tabIndex={-1}
+          >
+            <div className="table-item-icon">{getTableIcon(index)}</div>
+            <div className="table-item-content">
+              <div className="table-item-title">
+                {highlightSearchTerm(table.title, searchQuery)}
               </div>
-            )}
-          </div>
-          {table.errors && table.errors.length > 0 && (
+              <div className="table-item-subtitle">
+                {getTableSubtitle(table)}
+              </div>
+              {table.filePath && (
+                <div className="table-item-path">
+                  {table.filePath.split("/").pop()}
+                </div>
+              )}
+            </div>
             <div className="table-item-status">
-              <span className="error-indicator" title={table.errors.join(", ")}>
-                ⚠️
-              </span>
+              <button
+                className="table-view-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewTable(table);
+                }}
+                title={
+                  expandedTableId === table.id
+                    ? "Hide table definition"
+                    : "View table definition"
+                }
+                aria-label={`${
+                  expandedTableId === table.id ? "Hide" : "View"
+                } ${table.title} definition`}
+              >
+                <i
+                  className={`fas ${
+                    expandedTableId === table.id
+                      ? "fa-caret-up"
+                      : "fa-caret-down"
+                  }`}
+                ></i>
+              </button>
+              {table.errors && table.errors.length > 0 && (
+                <span
+                  className="error-indicator"
+                  title={table.errors.join(", ")}
+                >
+                  ⚠️
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Inline Table Viewer */}
+          {expandedTableId === table.id && (
+            <div className="table-viewer-inline">
+              <div className="table-viewer-content">
+                <div className="table-viewer-info">
+                  <p className="table-viewer-path">
+                    <strong>File:</strong> {table.filePath}
+                  </p>
+                  {table.errors && table.errors.length > 0 && (
+                    <div className="table-viewer-errors">
+                      <strong>Errors:</strong>
+                      <ul>
+                        {table.errors.map((error, errorIndex) => (
+                          <li key={errorIndex}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <div className="table-definition">
+                  <pre>
+                    <code>{generateTableDefinition(table)}</code>
+                  </pre>
+                </div>
+              </div>
             </div>
           )}
-        </div>
+        </React.Fragment>
       ))}
     </div>
   );

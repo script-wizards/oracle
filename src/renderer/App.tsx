@@ -280,6 +280,9 @@ const App: React.FC = () => {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
+  // Mobile menu state
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
   // Search functionality
   const {
     searchQuery,
@@ -431,6 +434,23 @@ const App: React.FC = () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, []); // Empty dependency array since we only want to set this up once
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showMobileMenu) {
+        const target = event.target as Element;
+        if (!target.closest(".header-controls-mobile")) {
+          setShowMobileMenu(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMobileMenu]);
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
@@ -818,6 +838,24 @@ const App: React.FC = () => {
     }
   };
 
+  // Generate Perchance table definition for viewing
+  const generateTableDefinition = (table: Table): string => {
+    let definition = `title\n  ${table.title}\n\n`;
+
+    // Add each section
+    if (table.sections) {
+      table.sections.forEach((section) => {
+        definition += `${section.name}\n`;
+        section.entries.forEach((entry) => {
+          definition += `  ${entry}\n`;
+        });
+        definition += "\n";
+      });
+    }
+
+    return definition.trim();
+  };
+
   if (isLoading) {
     return (
       <div className="app loading">
@@ -858,80 +896,169 @@ const App: React.FC = () => {
         </div>
 
         <div className="header-controls">
-          {/* Vault Controls as Header Buttons - Always visible for consistency */}
-          <button
-            onClick={handleSelectVault}
-            disabled={isSelectingVault}
-            className="header-button vault-name"
-            title={
-              appState.vaultPath
-                ? "Click to change vault"
-                : "Click to select vault"
-            }
-          >
-            {appState.vaultPath
-              ? appState.vaultPath.split("/").pop()
-              : isSelectingVault
-              ? "selecting..."
-              : "load vault"}
-          </button>
-          <button
-            onClick={async () => {
-              try {
-                await handleScanFiles();
-                try {
-                  await handleParseTables();
-                } catch (parseError) {
-                  console.error("Failed to parse tables:", parseError);
-                }
-              } catch (scanError) {
-                console.error("Failed to scan files:", scanError);
-              }
-            }}
-            disabled={isScanningFiles || isParsingTables || !appState.vaultPath}
-            className={`header-button refresh-vault ${
-              isScanningFiles || isParsingTables ? "spinning" : ""
-            }`}
-            title={
-              appState.vaultPath
-                ? "Refresh vault and parse tables"
-                : "Select a vault first"
-            }
-          >
-            <i
-              className={`fas ${
-                isScanningFiles || isParsingTables
-                  ? "fa-sync fa-spin"
-                  : "fa-sync-alt"
-              }`}
-            ></i>
-          </button>
-
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className="header-button"
-            title={
-              showHistory
-                ? "Hide roll history (Ctrl+H)"
-                : "Show roll history (Ctrl+H)"
-            }
-          >
-            <i
-              className={`fas ${
-                showHistory ? "fa-clock-rotate-left" : "fa-clock-rotate-left"
-              }`}
-              style={{opacity: showHistory ? 1 : 0.5}}
-            ></i>
-          </button>
-
-          {storageAvailable && (
+          {/* Desktop Controls - Hidden on mobile */}
+          <div className="header-controls-desktop">
             <button
-              onClick={handleClearStorage}
-              className="header-button clear-storage"
-              title="Clear all stored data"
+              onClick={handleSelectVault}
+              disabled={isSelectingVault}
+              className="header-button vault-name"
+              title={
+                appState.vaultPath
+                  ? "Click to change vault"
+                  : "Click to select vault"
+              }
             >
-              <i className="fas fa-trash"></i>
+              {appState.vaultPath
+                ? appState.vaultPath.split("/").pop()
+                : isSelectingVault
+                ? "selecting..."
+                : "load vault"}
             </button>
+            <button
+              onClick={async () => {
+                try {
+                  await handleScanFiles();
+                  try {
+                    await handleParseTables();
+                  } catch (parseError) {
+                    console.error("Failed to parse tables:", parseError);
+                  }
+                } catch (scanError) {
+                  console.error("Failed to scan files:", scanError);
+                }
+              }}
+              disabled={
+                isScanningFiles || isParsingTables || !appState.vaultPath
+              }
+              className={`header-button refresh-vault ${
+                isScanningFiles || isParsingTables ? "spinning" : ""
+              }`}
+              title={
+                appState.vaultPath
+                  ? "Refresh vault and parse tables"
+                  : "Select a vault first"
+              }
+            >
+              <i
+                className={`fas ${
+                  isScanningFiles || isParsingTables
+                    ? "fa-sync fa-spin"
+                    : "fa-sync-alt"
+                }`}
+              ></i>
+            </button>
+
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="header-button"
+              title={
+                showHistory
+                  ? "Hide roll history (Ctrl+H)"
+                  : "Show roll history (Ctrl+H)"
+              }
+            >
+              <i
+                className={`fas ${
+                  showHistory ? "fa-clock-rotate-left" : "fa-clock-rotate-left"
+                }`}
+                style={{opacity: showHistory ? 1 : 0.5}}
+              ></i>
+            </button>
+
+            {storageAvailable && (
+              <button
+                onClick={handleClearStorage}
+                className="header-button clear-storage"
+                title="Clear all stored data"
+              >
+                <i className="fas fa-trash"></i>
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Hamburger Menu */}
+          <div className="header-controls-mobile">
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="header-button hamburger-menu"
+              title="Menu"
+            >
+              <i className="fas fa-bars"></i>
+            </button>
+          </div>
+
+          {/* Mobile Menu Dropdown */}
+          {showMobileMenu && (
+            <div className="mobile-menu-dropdown">
+              <button
+                onClick={() => {
+                  handleSelectVault();
+                  setShowMobileMenu(false);
+                }}
+                disabled={isSelectingVault}
+                className="mobile-menu-item"
+              >
+                <i className="fas fa-folder"></i>
+                {appState.vaultPath
+                  ? `Change vault (${appState.vaultPath.split("/").pop()})`
+                  : isSelectingVault
+                  ? "Selecting..."
+                  : "Load vault"}
+              </button>
+
+              <button
+                onClick={async () => {
+                  setShowMobileMenu(false);
+                  try {
+                    await handleScanFiles();
+                    try {
+                      await handleParseTables();
+                    } catch (parseError) {
+                      console.error("Failed to parse tables:", parseError);
+                    }
+                  } catch (scanError) {
+                    console.error("Failed to scan files:", scanError);
+                  }
+                }}
+                disabled={
+                  isScanningFiles || isParsingTables || !appState.vaultPath
+                }
+                className="mobile-menu-item"
+              >
+                <i
+                  className={`fas ${
+                    isScanningFiles || isParsingTables
+                      ? "fa-sync fa-spin"
+                      : "fa-sync-alt"
+                  }`}
+                ></i>
+                Refresh vault
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowHistory(!showHistory);
+                  setShowMobileMenu(false);
+                }}
+                className="mobile-menu-item"
+              >
+                <i className="fas fa-clock-rotate-left"></i>
+                {showHistory ? "Hide" : "Show"} history
+              </button>
+
+              {storageAvailable && (
+                <button
+                  onClick={() => {
+                    handleClearStorage();
+                    setShowMobileMenu(false);
+                  }}
+                  className="mobile-menu-item clear-storage"
+                >
+                  <i className="fas fa-trash"></i>
+                  Clear storage
+                </button>
+              )}
+            </div>
           )}
         </div>
       </header>
