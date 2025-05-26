@@ -1381,7 +1381,7 @@ const App: React.FC = () => {
             {/* Search Window */}
             {openWindows.search && (
               <DraggableWindow
-                title="Search & Tables"
+                title="Search"
                 initialPosition={windowStates.search.position}
                 initialSize={windowStates.search.size}
                 maxHeight={800}

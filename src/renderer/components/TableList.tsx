@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {Table} from "../../shared/types";
 import "./TableList.css";
 import {useTranslations} from "../i18n";
+import TableEntryViewer from "./TableEntryViewer";
 
 interface TableListProps {
   tables: Table[];
@@ -21,6 +22,7 @@ const TableList: React.FC<TableListProps> = ({
   isKeyboardNavigating = false
 }) => {
   const [expandedTableId, setExpandedTableId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'structured' | 'raw'>('structured');
   const listRef = useRef<HTMLDivElement>(null);
   const selectedItemRef = useRef<HTMLDivElement>(null);
   const t = useTranslations();
@@ -235,22 +237,36 @@ const TableList: React.FC<TableListProps> = ({
                   <p className="table-viewer-path">
                     <strong>{t.tables.file}:</strong> {table.filePath}
                   </p>
-                  {table.errors && table.errors.length > 0 && (
-                    <div className="table-viewer-errors">
-                      <strong>{t.tables.errorsLabel}:</strong>
-                      <ul>
-                        {table.errors.map((error, errorIndex) => (
-                          <li key={errorIndex}>{error}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <div className="view-mode-toggle">
+                    <button
+                      className={`view-mode-button ${viewMode === 'structured' ? 'active' : ''}`}
+                      onClick={() => setViewMode('structured')}
+                      title={t.tables.structuredView}
+                    >
+                      <i className="fas fa-list"></i>
+                    </button>
+                    <button
+                      className={`view-mode-button ${viewMode === 'raw' ? 'active' : ''}`}
+                      onClick={() => setViewMode('raw')}
+                      title={t.tables.rawView}
+                    >
+                      <i className="fas fa-code"></i>
+                    </button>
+                  </div>
                 </div>
-                <div className="table-definition">
-                  <pre>
-                    <code>{generateTableDefinition(table)}</code>
-                  </pre>
-                </div>
+                
+                {viewMode === 'structured' ? (
+                  <TableEntryViewer 
+                    table={table} 
+                    searchQuery={searchQuery}
+                  />
+                ) : (
+                  <div className="table-definition">
+                    <pre>
+                      <code>{generateTableDefinition(table)}</code>
+                    </pre>
+                  </div>
+                )}
               </div>
             </div>
           )}

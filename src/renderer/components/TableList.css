@@ -320,6 +320,10 @@
   margin-bottom: 8px;
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .table-viewer-path {
@@ -327,6 +331,46 @@
   font-size: 11px;
   color: var(--text-secondary);
   text-align: left;
+  flex: 1;
+}
+
+.view-mode-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.view-mode-button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+}
+
+.view-mode-button:hover {
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+}
+
+.view-mode-button.active {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+}
+
+.view-mode-button.active:hover {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
 }
 
 .table-viewer-errors {
