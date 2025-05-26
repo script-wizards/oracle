@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useRef} from "react";
 import "./SearchBar.css";
+import {useTranslations} from "../i18n";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -24,7 +25,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onArrowDown,
   onTab,
   onNumberKey,
-  placeholder = "Search...",
+  placeholder,
   autoFocus = true,
   value,
   resultCount = 0,
@@ -32,6 +33,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 }) => {
   const [query, setQuery] = useState(value || "");
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations();
 
   useEffect(() => {
     if (value !== undefined && value !== query) {
@@ -162,17 +164,21 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const getSearchHint = () => {
     const hints = [];
     if (query) {
-      hints.push("↑↓ navigate", "Enter to roll");
+      hints.push(t.search.hints.navigate, t.search.hints.enterToRoll);
     }
-    hints.push("Ctrl+K focus", "Ctrl+L clear", "Ctrl+H history");
+    hints.push(
+      t.search.hints.focus,
+      t.search.hints.clear,
+      t.search.hints.history
+    );
 
     // Show number shortcut hint when search is not focused (regardless of query)
     const isSearchFocused = document.activeElement === inputRef.current;
     if (!isSearchFocused) {
-      hints.push("1-9 quick select");
+      hints.push(t.search.hints.quickSelect);
     } else {
       // Only show "Esc back" when search is actually focused
-      hints.push("Esc back");
+      hints.push(t.search.hints.back);
     }
 
     return hints.join(" • ");
@@ -187,7 +193,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           value={query}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={placeholder || t.search.placeholder}
           className="search-input"
           aria-label={getAriaLabel()}
           aria-describedby="search-hint"

@@ -9,9 +9,17 @@ import TableList from "./components/TableList";
 import InteractiveRollResult from "./components/InteractiveRollResult";
 import {useTableSearch} from "./hooks/useTableSearch";
 import {useKeyboardNav} from "./hooks/useKeyboardNav";
+import {
+  useTranslations,
+  initializeLanguage,
+  setLanguage,
+  getCurrentLanguage,
+  Language
+} from "./i18n";
 
 const App: React.FC = () => {
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
+  const t = useTranslations();
   const [isLoading, setIsLoading] = useState(true);
   const [storageAvailable, setStorageAvailable] = useState(false);
   const [saveStatus, setSaveStatus] = useState<
@@ -283,6 +291,11 @@ const App: React.FC = () => {
   // Mobile menu state
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+  // Language state
+  const [currentLanguage, setCurrentLanguage] = useState<Language>(() =>
+    getCurrentLanguage()
+  );
+
   // Search functionality
   const {
     searchQuery,
@@ -347,6 +360,9 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        // Initialize language system (renderer process only)
+        initializeLanguage();
+
         // Detect platform for styling
         setIsMacOS(navigator.platform.toLowerCase().includes("mac"));
 
@@ -440,7 +456,10 @@ const App: React.FC = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (showMobileMenu) {
         const target = event.target as Element;
-        if (!target.closest(".header-controls-mobile")) {
+        if (
+          !target.closest(".header-controls-mobile") &&
+          !target.closest(".mobile-menu-dropdown")
+        ) {
           setShowMobileMenu(false);
         }
       }
@@ -458,6 +477,11 @@ const App: React.FC = () => {
       ...prev,
       searchQuery: query
     }));
+  };
+
+  const handleLanguageChange = (language: Language) => {
+    setLanguage(language);
+    setCurrentLanguage(language);
   };
 
   const handleTableSelect = (index: number) => {
@@ -489,9 +513,7 @@ const App: React.FC = () => {
     if (!storageAvailable) return;
 
     // Show confirmation dialog
-    const confirmed = window.confirm(
-      "Are you sure you want to clear all stored data?\n\nThis will:\n• Remove your vault path\n• Clear all parsed tables\n• Reset all settings\n• Clear roll history\n\nThis action cannot be undone."
-    );
+    const confirmed = window.confirm(t.clearStorage.confirmMessage);
 
     if (!confirmed) return;
 
@@ -516,10 +538,10 @@ const App: React.FC = () => {
       setHistoryHeight(80);
       localStorage.removeItem("oracle-history-height");
 
-      alert("Storage cleared successfully!");
+      alert(t.clearStorage.successMessage);
     } catch (error) {
       console.error("Failed to clear storage:", error);
-      alert("Failed to clear storage");
+      alert(t.clearStorage.failedMessage);
     }
   };
 
@@ -785,11 +807,11 @@ const App: React.FC = () => {
   const getSaveStatusText = () => {
     switch (saveStatus) {
       case "saving":
-        return "Saving...";
+        return t.status.saving;
       case "saved":
-        return "Saved";
+        return t.status.saved;
       case "error":
-        return "Save failed";
+        return t.status.saveFailed;
       default:
         return "";
     }
@@ -859,7 +881,7 @@ const App: React.FC = () => {
   if (isLoading) {
     return (
       <div className="app loading">
-        <div className="loading-spinner">Loading...</div>
+        <div className="loading-spinner">{t.status.loading}</div>
       </div>
     );
   }
@@ -878,7 +900,7 @@ const App: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="github-link"
-                title="View on GitHub"
+                title={t.tooltips.viewOnGitHub}
               >
                 <i className="fab fa-github"></i>
               </a>
@@ -887,7 +909,7 @@ const App: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="scriptwizards-link"
-                title="Visit Script Wizards"
+                title={t.tooltips.visitScriptWizards}
               >
                 <i className="fas fa-hat-wizard"></i>
               </a>
@@ -896,98 +918,16 @@ const App: React.FC = () => {
         </div>
 
         <div className="header-controls">
-          {/* Desktop Controls - Hidden on mobile */}
-          <div className="header-controls-desktop">
-            <button
-              onClick={handleSelectVault}
-              disabled={isSelectingVault}
-              className="header-button vault-name"
-              title={
-                appState.vaultPath
-                  ? "Click to change vault"
-                  : "Click to select vault"
-              }
-            >
-              {appState.vaultPath
-                ? appState.vaultPath.split("/").pop()
-                : isSelectingVault
-                ? "selecting..."
-                : "load vault"}
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  await handleScanFiles();
-                  try {
-                    await handleParseTables();
-                  } catch (parseError) {
-                    console.error("Failed to parse tables:", parseError);
-                  }
-                } catch (scanError) {
-                  console.error("Failed to scan files:", scanError);
-                }
-              }}
-              disabled={
-                isScanningFiles || isParsingTables || !appState.vaultPath
-              }
-              className={`header-button refresh-vault ${
-                isScanningFiles || isParsingTables ? "spinning" : ""
-              }`}
-              title={
-                appState.vaultPath
-                  ? "Refresh vault and parse tables"
-                  : "Select a vault first"
-              }
-            >
-              <i
-                className={`fas ${
-                  isScanningFiles || isParsingTables
-                    ? "fa-sync fa-spin"
-                    : "fa-sync-alt"
-                }`}
-              ></i>
-            </button>
+          {/* Unified Menu Button */}
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="header-button hamburger-menu"
+            title={t.mobileMenu.menu}
+          >
+            <i className="fas fa-bars"></i>
+          </button>
 
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="header-button"
-              title={
-                showHistory
-                  ? "Hide roll history (Ctrl+H)"
-                  : "Show roll history (Ctrl+H)"
-              }
-            >
-              <i
-                className={`fas ${
-                  showHistory ? "fa-clock-rotate-left" : "fa-clock-rotate-left"
-                }`}
-                style={{opacity: showHistory ? 1 : 0.5}}
-              ></i>
-            </button>
-
-            {storageAvailable && (
-              <button
-                onClick={handleClearStorage}
-                className="header-button clear-storage"
-                title="Clear all stored data"
-              >
-                <i className="fas fa-trash"></i>
-              </button>
-            )}
-          </div>
-
-          {/* Mobile Hamburger Menu */}
-          <div className="header-controls-mobile">
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="header-button hamburger-menu"
-              title="Menu"
-            >
-              <i className="fas fa-bars"></i>
-            </button>
-          </div>
-
-          {/* Mobile Menu Dropdown */}
+          {/* Menu Dropdown */}
           {showMobileMenu && (
             <div className="mobile-menu-dropdown">
               <button
@@ -1000,10 +940,10 @@ const App: React.FC = () => {
               >
                 <i className="fas fa-folder"></i>
                 {appState.vaultPath
-                  ? `Change vault (${appState.vaultPath.split("/").pop()})`
+                  ? t.mobileMenu.changeVault
                   : isSelectingVault
-                  ? "Selecting..."
-                  : "Load vault"}
+                  ? "..."
+                  : t.mobileMenu.loadVault}
               </button>
 
               <button
@@ -1032,7 +972,7 @@ const App: React.FC = () => {
                       : "fa-sync-alt"
                   }`}
                 ></i>
-                Refresh vault
+                {t.mobileMenu.refreshVault}
               </button>
 
               <button
@@ -1043,8 +983,26 @@ const App: React.FC = () => {
                 className="mobile-menu-item"
               >
                 <i className="fas fa-clock-rotate-left"></i>
-                {showHistory ? "Hide" : "Show"} history
+                {showHistory
+                  ? t.mobileMenu.hideHistory
+                  : t.mobileMenu.showHistory}
               </button>
+
+              <div className="mobile-menu-item language-item">
+                <i className="fas fa-globe"></i>
+                <select
+                  value={currentLanguage}
+                  onChange={(e) => {
+                    handleLanguageChange(e.target.value as Language);
+                    setShowMobileMenu(false);
+                  }}
+                  className="language-select-mobile"
+                >
+                  <option value="en">English</option>
+                  <option value="fr">Français</option>
+                  <option value="ja">日本語</option>
+                </select>
+              </div>
 
               {storageAvailable && (
                 <button
@@ -1055,7 +1013,7 @@ const App: React.FC = () => {
                   className="mobile-menu-item clear-storage"
                 >
                   <i className="fas fa-trash"></i>
-                  Clear storage
+                  {t.mobileMenu.clearStorage}
                 </button>
               )}
             </div>
@@ -1069,34 +1027,39 @@ const App: React.FC = () => {
           {!appState.vaultPath && showWelcome && (
             <div className="window-container">
               <div className="window-header">
-                <span className="window-title">Welcome to Oracle</span>
+                <span className="window-title">{t.welcome.title}</span>
                 <button
                   onClick={() => setShowWelcome(false)}
                   className="window-close-button"
-                  title="Close welcome screen"
+                  title={t.header.tooltips.closeWelcome}
                 >
                   <i className="fas fa-times"></i>
                 </button>
               </div>
               <div className="window-content">
                 <p className="welcome-description">
-                  A random table roller for your Obsidian vault. Search through
-                  your tables, click to roll, get interactive results with
-                  clickable subtables. Built to handle{" "}
-                  <a
-                    href="https://perchance.org/tutorial"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="perchance-link"
-                  >
-                    Perchance syntax
-                  </a>
-                  .
+                  {(() => {
+                    const parts =
+                      t.welcome.description.split("{perchanceLink}");
+                    return (
+                      <>
+                        {parts[0]}
+                        <a
+                          href="https://perchance.org/tutorial"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="perchance-link"
+                        >
+                          Perchance syntax
+                        </a>
+                        {parts[1] || ""}
+                      </>
+                    );
+                  })()}
                 </p>
                 <div className="table-format-info">
                   <p className="format-description">
-                    Tables should be in markdown code blocks tagged with{" "}
-                    <code>perchance</code>:
+                    {t.welcome.tableInstructions}
                   </p>
                   <div className="example-section">
                     <div className="code-example">
@@ -1116,8 +1079,7 @@ output
                   </div>
                   <div className="example-section">
                     <p className="format-description">
-                      You can also use <code>[brackets]</code> to reference
-                      other sections:
+                      {t.welcome.bracketInstructions}
                     </p>
                     <div className="code-example">
                       <pre>
@@ -1143,39 +1105,60 @@ location
                   </div>
                 </div>
                 <p className="welcome-links">
-                  Made by{" "}
-                  <a
-                    href="https://scriptwizards.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="scriptwizards-text-link"
-                  >
-                    Script Wizards
-                  </a>
-                  . Source code on{" "}
-                  <a
-                    href="https://github.com/script-wizards/oracle"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="github-text-link"
-                  >
-                    GitHub
-                  </a>{" "}
-                  if you want to contribute or give feedback.
+                  {(() => {
+                    let text = t.welcome.credits;
+
+                    // Replace Script Wizards link
+                    const scriptWizardsParts = text.split(
+                      "{scriptWizardsLink}"
+                    );
+                    const beforeScriptWizards = scriptWizardsParts[0];
+                    const afterScriptWizards = scriptWizardsParts[1] || "";
+
+                    // Replace GitHub link in the remaining text
+                    const githubParts =
+                      afterScriptWizards.split("{githubLink}");
+                    const betweenLinks = githubParts[0];
+                    const afterGithub = githubParts[1] || "";
+
+                    return (
+                      <>
+                        {beforeScriptWizards}
+                        <a
+                          href="https://scriptwizards.org"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="scriptwizards-text-link"
+                        >
+                          Script Wizards
+                        </a>
+                        {betweenLinks}
+                        <a
+                          href="https://github.com/script-wizards/oracle"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="github-text-link"
+                        >
+                          GitHub
+                        </a>
+                        {afterGithub}
+                      </>
+                    );
+                  })()}
                 </p>
                 <p className="setup-instruction">
-                  Point it at your{" "}
+                  {t.welcome.setupInstruction}{" "}
                   <button
                     onClick={handleSelectVault}
                     disabled={
                       isSelectingVault || !FileService.isElectronAPIAvailable()
                     }
                     className="inline-vault-button"
-                    title="Select vault folder"
+                    title={t.tooltips.selectVaultFolder}
                   >
-                    {isSelectingVault ? "scanning..." : "Obsidian vault"}
+                    {isSelectingVault ? "..." : t.welcome.obsidianVault}
                   </button>{" "}
-                  and let's roll.
+                  {t.welcome.letsRoll}
                 </p>
               </div>
             </div>
@@ -1200,11 +1183,11 @@ location
             {showHistory && rollHistory.length > 0 && (
               <div className="history-container">
                 <div className="history-header">
-                  <span className="history-title">History</span>
+                  <span className="history-title">{t.history.title}</span>
                   <button
                     onClick={() => setShowHistory(false)}
                     className="history-close-button"
-                    title="Hide roll history"
+                    title={t.history.hideHistory}
                   >
                     <i className="fas fa-times"></i>
                   </button>
@@ -1309,7 +1292,6 @@ location
               onEscape={keyboardNav.handleEscape}
               onTab={keyboardNav.handleTab}
               onNumberKey={keyboardNav.handleNumberKey}
-              placeholder="Search..."
               value={searchQuery}
               resultCount={resultCount}
               selectedIndex={keyboardNav.selectedIndex}
