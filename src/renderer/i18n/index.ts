@@ -38,7 +38,6 @@ export interface Translations {
             hideHistory: string;
             clearStorage: string;
             closeWelcome: string;
-            hideRollHistory: string;
         };
     };
 
@@ -48,9 +47,7 @@ export interface Translations {
         description: string;
         tableInstructions: string;
         bracketInstructions: string;
-        madeBy: string;
-        sourceCode: string;
-        feedback: string;
+        credits: string;
         setupInstruction: string;
         obsidianVault: string;
         letsRoll: string;
@@ -68,23 +65,7 @@ export interface Translations {
         errors: string;
     };
 
-    // History
-    history: {
-        title: string;
-    };
 
-    // Results
-    results: {
-        clickToReroll: string;
-        clickAnywhereToReroll: string;
-        howToReroll: string;
-        clickHighlightedParts: string;
-    };
-
-    // Footer
-    footer: {
-        copyright: string;
-    };
 }
 
 const en: Translations = {
@@ -122,18 +103,15 @@ const en: Translations = {
             hideHistory: "Hide roll history (Ctrl+H)",
             clearStorage: "Clear all stored data",
             closeWelcome: "Close welcome screen",
-            hideRollHistory: "Hide roll history",
         },
     },
 
     welcome: {
         title: "Welcome to Oracle",
-        description: "A random table roller for your Obsidian vault. Search through your tables, click to roll, get interactive results with clickable subtables. Built to handle Perchance syntax.",
-        tableInstructions: "Tables should be in markdown code blocks tagged with perchance:",
+        description: "A random table roller for your Obsidian vault. Search through your tables, click to roll, get interactive results with clickable subtables. Built to handle {perchanceLink}.",
+        tableInstructions: "Tables should be in markdown code blocks tagged with ```perchance:",
         bracketInstructions: "You can also use [brackets] to reference other sections:",
-        madeBy: "Made by Script Wizards",
-        sourceCode: "Source code on GitHub",
-        feedback: "if you want to contribute or give feedback.",
+        credits: "Made by {scriptWizardsLink}. Source code on {githubLink} if you want to contribute or give feedback.",
         setupInstruction: "Point it at your",
         obsidianVault: "Obsidian vault",
         letsRoll: "and let's roll.",
@@ -148,21 +126,6 @@ const en: Translations = {
         entries: "entries",
         subtables: "subtables",
         errors: "errors",
-    },
-
-    history: {
-        title: "History",
-    },
-
-    results: {
-        clickToReroll: "Click to reroll",
-        clickAnywhereToReroll: "Click anywhere to reroll everything, or click highlighted parts to reroll individual results",
-        howToReroll: "How to reroll",
-        clickHighlightedParts: "Click highlighted parts to reroll individual results",
-    },
-
-    footer: {
-        copyright: "© SCRIPT WIZARDS",
     },
 };
 
@@ -210,12 +173,74 @@ const isValidLanguage = (lang: string): boolean => {
     return ['en', 'es', 'de', 'fr', 'pt', 'ja'].includes(lang);
 };
 
+const fr: Translations = {
+    search: {
+        placeholder: "Rechercher...",
+        hints: {
+            navigate: "↑↓ naviguer",
+            enterToRoll: "Entrée pour lancer",
+            focus: "Ctrl+K focus",
+            clear: "Ctrl+L effacer",
+            history: "Ctrl+H historique",
+            quickSelect: "1-9 sélection rapide",
+            back: "Échap retour",
+        },
+    },
+
+    mobileMenu: {
+        menu: "Menu",
+        loadVault: "Charger coffre",
+        changeVault: "Changer coffre",
+        refreshVault: "Actualiser coffre",
+        showHistory: "Afficher historique",
+        hideHistory: "Masquer historique",
+        clearStorage: "Effacer stockage",
+    },
+
+    header: {
+        loadVault: "charger coffre",
+        tooltips: {
+            changeVault: "Cliquer pour changer de coffre",
+            selectVault: "Cliquer pour sélectionner un coffre",
+            refreshVault: "Actualiser le coffre et analyser les tables",
+            selectVaultFirst: "Sélectionner d'abord un coffre",
+            showHistory: "Afficher l'historique des lancers (Ctrl+H)",
+            hideHistory: "Masquer l'historique des lancers (Ctrl+H)",
+            clearStorage: "Effacer toutes les données stockées",
+            closeWelcome: "Fermer l'écran d'accueil",
+        },
+    },
+
+    welcome: {
+        title: "Bienvenue dans Oracle",
+        description: "Un lanceur de tables aléatoires pour votre coffre Obsidian. Recherchez dans vos tables, cliquez pour lancer, obtenez des résultats interactifs avec des sous-tables cliquables. Conçu pour gérer la {perchanceLink}.",
+        tableInstructions: "Les tables doivent être dans des blocs de code markdown étiquetés avec ```perchance:",
+        bracketInstructions: "Vous pouvez aussi utiliser [crochets] pour référencer d'autres sections:",
+        credits: "Créé par {scriptWizardsLink}. Code source sur {githubLink} si vous voulez contribuer ou donner des commentaires.",
+        setupInstruction: "Pointez-le vers votre",
+        obsidianVault: "coffre Obsidian",
+        letsRoll: "et c'est parti.",
+    },
+
+    tables: {
+        noTablesFound: "Aucune table trouvée",
+        noTablesLoaded: "Aucune table chargée",
+        tryDifferentSearch: "Essayez un terme de recherche différent",
+        viewDefinition: "Voir la définition de la table",
+        hideDefinition: "Masquer la définition de la table",
+        entries: "entrées",
+        subtables: "sous-tables",
+        errors: "erreurs",
+    },
+};
+
 // Get translations for specific language
 const getTranslationsForLanguage = (language: Language): Translations => {
     switch (language) {
         case 'en':
             return en;
-        // TODO: Add other languages
+        case 'fr':
+            return fr;
         default:
             return en;
     }

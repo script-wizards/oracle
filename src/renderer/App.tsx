@@ -9,7 +9,13 @@ import TableList from "./components/TableList";
 import InteractiveRollResult from "./components/InteractiveRollResult";
 import {useTableSearch} from "./hooks/useTableSearch";
 import {useKeyboardNav} from "./hooks/useKeyboardNav";
-import {useTranslations, initializeLanguage} from "./i18n";
+import {
+  useTranslations,
+  initializeLanguage,
+  setLanguage,
+  getCurrentLanguage,
+  Language
+} from "./i18n";
 
 const App: React.FC = () => {
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
@@ -285,6 +291,11 @@ const App: React.FC = () => {
   // Mobile menu state
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+  // Language state
+  const [currentLanguage, setCurrentLanguage] = useState<Language>(() =>
+    getCurrentLanguage()
+  );
+
   // Search functionality
   const {
     searchQuery,
@@ -466,6 +477,11 @@ const App: React.FC = () => {
       ...prev,
       searchQuery: query
     }));
+  };
+
+  const handleLanguageChange = (language: Language) => {
+    setLanguage(language);
+    setCurrentLanguage(language);
   };
 
   const handleTableSelect = (index: number) => {
@@ -904,98 +920,16 @@ const App: React.FC = () => {
         </div>
 
         <div className="header-controls">
-          {/* Desktop Controls - Hidden on mobile */}
-          <div className="header-controls-desktop">
-            <button
-              onClick={handleSelectVault}
-              disabled={isSelectingVault}
-              className="header-button vault-name"
-              title={
-                appState.vaultPath
-                  ? t.header.tooltips.changeVault
-                  : t.header.tooltips.selectVault
-              }
-            >
-              {appState.vaultPath
-                ? appState.vaultPath.split("/").pop()
-                : isSelectingVault
-                ? "..."
-                : t.header.loadVault}
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  await handleScanFiles();
-                  try {
-                    await handleParseTables();
-                  } catch (parseError) {
-                    console.error("Failed to parse tables:", parseError);
-                  }
-                } catch (scanError) {
-                  console.error("Failed to scan files:", scanError);
-                }
-              }}
-              disabled={
-                isScanningFiles || isParsingTables || !appState.vaultPath
-              }
-              className={`header-button refresh-vault ${
-                isScanningFiles || isParsingTables ? "spinning" : ""
-              }`}
-              title={
-                appState.vaultPath
-                  ? t.header.tooltips.refreshVault
-                  : t.header.tooltips.selectVaultFirst
-              }
-            >
-              <i
-                className={`fas ${
-                  isScanningFiles || isParsingTables
-                    ? "fa-sync fa-spin"
-                    : "fa-sync-alt"
-                }`}
-              ></i>
-            </button>
+          {/* Unified Menu Button */}
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="header-button hamburger-menu"
+            title={t.mobileMenu.menu}
+          >
+            <i className="fas fa-bars"></i>
+          </button>
 
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="header-button"
-              title={
-                showHistory
-                  ? t.header.tooltips.hideHistory
-                  : t.header.tooltips.showHistory
-              }
-            >
-              <i
-                className={`fas ${
-                  showHistory ? "fa-clock-rotate-left" : "fa-clock-rotate-left"
-                }`}
-                style={{opacity: showHistory ? 1 : 0.5}}
-              ></i>
-            </button>
-
-            {storageAvailable && (
-              <button
-                onClick={handleClearStorage}
-                className="header-button clear-storage"
-                title={t.header.tooltips.clearStorage}
-              >
-                <i className="fas fa-trash"></i>
-              </button>
-            )}
-          </div>
-
-          {/* Mobile Hamburger Menu */}
-          <div className="header-controls-mobile">
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="header-button hamburger-menu"
-              title={t.mobileMenu.menu}
-            >
-              <i className="fas fa-bars"></i>
-            </button>
-          </div>
-
-          {/* Mobile Menu Dropdown */}
+          {/* Menu Dropdown */}
           {showMobileMenu && (
             <div className="mobile-menu-dropdown">
               <button
@@ -1008,9 +942,7 @@ const App: React.FC = () => {
               >
                 <i className="fas fa-folder"></i>
                 {appState.vaultPath
-                  ? `${t.mobileMenu.changeVault} (${appState.vaultPath
-                      .split("/")
-                      .pop()})`
+                  ? t.mobileMenu.changeVault
                   : isSelectingVault
                   ? "..."
                   : t.mobileMenu.loadVault}
@@ -1058,6 +990,21 @@ const App: React.FC = () => {
                   : t.mobileMenu.showHistory}
               </button>
 
+              <div className="mobile-menu-item language-item">
+                <i className="fas fa-globe"></i>
+                <select
+                  value={currentLanguage}
+                  onChange={(e) => {
+                    handleLanguageChange(e.target.value as Language);
+                    setShowMobileMenu(false);
+                  }}
+                  className="language-select-mobile"
+                >
+                  <option value="en">English</option>
+                  <option value="fr">Français</option>
+                </select>
+              </div>
+
               {storageAvailable && (
                 <button
                   onClick={() => {
@@ -1081,34 +1028,39 @@ const App: React.FC = () => {
           {!appState.vaultPath && showWelcome && (
             <div className="window-container">
               <div className="window-header">
-                <span className="window-title">Welcome to Oracle</span>
+                <span className="window-title">{t.welcome.title}</span>
                 <button
                   onClick={() => setShowWelcome(false)}
                   className="window-close-button"
-                  title="Close welcome screen"
+                  title={t.header.tooltips.closeWelcome}
                 >
                   <i className="fas fa-times"></i>
                 </button>
               </div>
               <div className="window-content">
                 <p className="welcome-description">
-                  A random table roller for your Obsidian vault. Search through
-                  your tables, click to roll, get interactive results with
-                  clickable subtables. Built to handle{" "}
-                  <a
-                    href="https://perchance.org/tutorial"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="perchance-link"
-                  >
-                    Perchance syntax
-                  </a>
-                  .
+                  {(() => {
+                    const parts =
+                      t.welcome.description.split("{perchanceLink}");
+                    return (
+                      <>
+                        {parts[0]}
+                        <a
+                          href="https://perchance.org/tutorial"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="perchance-link"
+                        >
+                          Perchance syntax
+                        </a>
+                        {parts[1] || ""}
+                      </>
+                    );
+                  })()}
                 </p>
                 <div className="table-format-info">
                   <p className="format-description">
-                    Tables should be in markdown code blocks tagged with{" "}
-                    <code>perchance</code>:
+                    {t.welcome.tableInstructions}
                   </p>
                   <div className="example-section">
                     <div className="code-example">
@@ -1128,8 +1080,7 @@ output
                   </div>
                   <div className="example-section">
                     <p className="format-description">
-                      You can also use <code>[brackets]</code> to reference
-                      other sections:
+                      {t.welcome.bracketInstructions}
                     </p>
                     <div className="code-example">
                       <pre>
@@ -1155,28 +1106,49 @@ location
                   </div>
                 </div>
                 <p className="welcome-links">
-                  Made by{" "}
-                  <a
-                    href="https://scriptwizards.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="scriptwizards-text-link"
-                  >
-                    Script Wizards
-                  </a>
-                  . Source code on{" "}
-                  <a
-                    href="https://github.com/script-wizards/oracle"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="github-text-link"
-                  >
-                    GitHub
-                  </a>{" "}
-                  if you want to contribute or give feedback.
+                  {(() => {
+                    let text = t.welcome.credits;
+
+                    // Replace Script Wizards link
+                    const scriptWizardsParts = text.split(
+                      "{scriptWizardsLink}"
+                    );
+                    const beforeScriptWizards = scriptWizardsParts[0];
+                    const afterScriptWizards = scriptWizardsParts[1] || "";
+
+                    // Replace GitHub link in the remaining text
+                    const githubParts =
+                      afterScriptWizards.split("{githubLink}");
+                    const betweenLinks = githubParts[0];
+                    const afterGithub = githubParts[1] || "";
+
+                    return (
+                      <>
+                        {beforeScriptWizards}
+                        <a
+                          href="https://scriptwizards.org"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="scriptwizards-text-link"
+                        >
+                          Script Wizards
+                        </a>
+                        {betweenLinks}
+                        <a
+                          href="https://github.com/script-wizards/oracle"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="github-text-link"
+                        >
+                          GitHub
+                        </a>
+                        {afterGithub}
+                      </>
+                    );
+                  })()}
                 </p>
                 <p className="setup-instruction">
-                  Point it at your{" "}
+                  {t.welcome.setupInstruction}{" "}
                   <button
                     onClick={handleSelectVault}
                     disabled={
@@ -1185,9 +1157,9 @@ location
                     className="inline-vault-button"
                     title="Select vault folder"
                   >
-                    {isSelectingVault ? "..." : "Obsidian vault"}
+                    {isSelectingVault ? "..." : t.welcome.obsidianVault}
                   </button>{" "}
-                  and let's roll.
+                  {t.welcome.letsRoll}
                 </p>
               </div>
             </div>
