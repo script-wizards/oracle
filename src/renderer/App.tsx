@@ -1149,7 +1149,7 @@ location
               onEscape={keyboardNav.handleEscape}
               onTab={keyboardNav.handleTab}
               onNumberKey={keyboardNav.handleNumberKey}
-              placeholder="Search tables... (↑↓ to navigate, Enter to roll)"
+              placeholder="Search..."
               value={searchQuery}
               resultCount={resultCount}
               selectedIndex={keyboardNav.selectedIndex}

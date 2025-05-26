@@ -13,8 +13,8 @@ class MainApp {
     private readonly windowConfig: WindowConfig = {
         width: 800,
         height: 600,
-        minWidth: 600,
-        minHeight: 400,
+        minWidth: 300,
+        minHeight: 200,
         title: 'Oracle'
     };
 

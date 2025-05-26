@@ -24,7 +24,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onArrowDown,
   onTab,
   onNumberKey,
-  placeholder = "Search tables...",
+  placeholder = "Search...",
   autoFocus = true,
   value,
   resultCount = 0,
