@@ -74,8 +74,10 @@ class MainApp {
 
     private createMainWindow(): void {
         const preloadPath = path.join(__dirname, 'preload.js');
-        console.log('Preload path:', preloadPath);
-        console.log('Preload file exists:', require('fs').existsSync(preloadPath));
+        if (isDev) {
+            console.log('Preload path:', preloadPath);
+            console.log('Preload file exists:', require('fs').existsSync(preloadPath));
+        }
 
         this.mainWindow = new BrowserWindow({
             width: this.windowConfig.width,
@@ -126,12 +128,16 @@ class MainApp {
     }
 
     private async scanForMarkdownFiles(dirPath: string): Promise<string[]> {
-        console.log('Starting scan for markdown files in:', dirPath);
+        if (isDev) {
+            console.log('Starting scan for markdown files in:', dirPath);
+        }
         const mdFiles: string[] = [];
 
         try {
             const entries = await fs.readdir(dirPath, { withFileTypes: true });
-            console.log(`Found ${entries.length} entries in directory:`, dirPath);
+            if (isDev) {
+                console.log(`Found ${entries.length} entries in directory:`, dirPath);
+            }
 
             for (const entry of entries) {
                 const fullPath = path.join(dirPath, entry.name);
