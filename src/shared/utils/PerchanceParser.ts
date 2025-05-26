@@ -91,7 +91,9 @@ export function parsePerchanceTable(
  * @returns Detailed parse result
  */
 export function parsePerchanceContent(content: string): PerchanceParseResult {
-    const lines = content.split('\n');
+    // Normalize line endings - handle both Windows (\r\n) and Unix (\n)
+    const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedContent.split('\n');
     const sections: ParsedTableSection[] = [];
     const errors: string[] = [];
     let title: string | undefined;
@@ -127,6 +129,7 @@ export function parsePerchanceContent(content: string): PerchanceParseResult {
                 currentSection.entries.push(entry);
                 currentSection.endLine = lineIndex;
             } else {
+                console.warn(`Found indented entry "${entry}" without a table name at line ${lineIndex}`);
                 errors.push(`Found indented entry "${entry}" without a table name at line ${lineIndex}`);
             }
             continue;
@@ -185,14 +188,26 @@ export function parsePerchanceContent(content: string): PerchanceParseResult {
     // Validate the structure - but be more lenient
     const validationErrors = validateTableStructure(sections, title);
 
-    // Only add validation errors that are critical
+    // Only add validation errors that are truly critical (prevent table from working)
     const criticalErrors = validationErrors.filter(error =>
-        error.includes('No table sections found') ||
-        error.includes('has no entries')
+        error.includes('No table sections found')
+        // Removed "has no entries" from critical errors - empty sections are warnings, not blockers
     );
     errors.push(...criticalErrors);
 
-    const isValid = sections.length > 0; // More lenient validation
+    // Add non-critical errors as warnings (they don't prevent the table from being valid)
+    const warnings = validationErrors.filter(error =>
+        error.includes('has no entries') ||
+        error.includes('contains spaces') ||
+        error.includes('empty entries')
+    );
+
+    // Log warnings but don't add them to errors (which would make the table invalid)
+    if (warnings.length > 0) {
+        console.warn('Table validation warnings:', warnings);
+    }
+
+    const isValid = sections.length > 0 && sections.some(section => section.entries.length > 0); // At least one section with entries
 
     return {
         title,

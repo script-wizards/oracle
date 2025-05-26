@@ -74,10 +74,6 @@ class MainApp {
 
     private createMainWindow(): void {
         const preloadPath = path.join(__dirname, 'preload.js');
-        if (isDev) {
-            console.log('Preload path:', preloadPath);
-            console.log('Preload file exists:', require('fs').existsSync(preloadPath));
-        }
 
         this.mainWindow = new BrowserWindow({
             width: this.windowConfig.width,
@@ -90,14 +86,31 @@ class MainApp {
                 contextIsolation: true,
                 preload: preloadPath,
             },
-            show: false, // Don't show until ready
-            titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
-            titleBarOverlay: process.platform !== 'darwin' ? {
-                color: '#2a2a2a',
-                symbolColor: '#e0e0e0',
-                height: 40
-            } : undefined,
-            trafficLightPosition: process.platform === 'darwin' ? { x: 16, y: 12 } : undefined,
+            show: true, // Show immediately for debugging
+            // Simplify titleBar settings for Windows to avoid issues
+            ...(process.platform === 'darwin' ? {
+                titleBarStyle: 'hiddenInset',
+                trafficLightPosition: { x: 16, y: 12 }
+            } : {
+                // For Windows, use default titleBar to avoid potential issues
+                frame: true
+            })
+        });
+
+        // Add error handling for loading failures
+        this.mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+            console.error('Failed to load:', errorCode, errorDescription, validatedURL);
+            // Show window anyway so user can see what's happening
+            this.mainWindow?.show();
+        });
+
+        // Add more event listeners for debugging
+        this.mainWindow.webContents.on('did-finish-load', () => {
+            this.mainWindow?.show();
+        });
+
+        this.mainWindow.webContents.on('dom-ready', () => {
+            this.mainWindow?.show();
         });
 
         // Load the app
@@ -108,12 +121,14 @@ class MainApp {
             this.mainWindow.webContents.openDevTools();
         } else {
             // Production: load from built files
-            this.mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+            const htmlPath = path.join(__dirname, '../renderer/index.html');
+            this.mainWindow.loadFile(htmlPath);
         }
 
         // Show window when ready to prevent visual flash
         this.mainWindow.once('ready-to-show', () => {
             this.mainWindow?.show();
+            this.mainWindow?.focus();
 
             // Ensure traffic lights are visible on macOS
             if (process.platform === 'darwin') {
@@ -125,19 +140,19 @@ class MainApp {
         this.mainWindow.on('closed', () => {
             this.mainWindow = null;
         });
+
+        // Force show after a short delay
+        setTimeout(() => {
+            this.mainWindow?.show();
+            this.mainWindow?.focus();
+        }, 1000);
     }
 
     private async scanForMarkdownFiles(dirPath: string): Promise<string[]> {
-        if (isDev) {
-            console.log('Starting scan for markdown files in:', dirPath);
-        }
         const mdFiles: string[] = [];
 
         try {
             const entries = await fs.readdir(dirPath, { withFileTypes: true });
-            if (isDev) {
-                console.log(`Found ${entries.length} entries in directory:`, dirPath);
-            }
 
             for (const entry of entries) {
                 const fullPath = path.join(dirPath, entry.name);
@@ -146,15 +161,23 @@ class MainApp {
                     // Skip hidden directories and common non-content directories
                     if (!entry.name.startsWith('.') &&
                         !['node_modules', '.git', '.obsidian'].includes(entry.name)) {
-                        console.log('Scanning subdirectory:', entry.name);
-                        const subFiles = await this.scanForMarkdownFiles(fullPath);
-                        mdFiles.push(...subFiles);
-                    } else {
-                        console.log('Skipping directory:', entry.name);
+                        try {
+                            const subFiles = await this.scanForMarkdownFiles(fullPath);
+                            mdFiles.push(...subFiles);
+                        } catch (subDirError) {
+                            console.error(`Error scanning subdirectory ${fullPath}:`, subDirError);
+                            // Continue with other directories
+                        }
                     }
                 } else if (entry.isFile() && entry.name.endsWith('.md')) {
-                    console.log('Found markdown file:', entry.name);
-                    mdFiles.push(fullPath);
+                    // Validate file accessibility
+                    try {
+                        await fs.access(fullPath, fs.constants.R_OK);
+                        mdFiles.push(fullPath);
+                    } catch (accessError) {
+                        console.error(`Cannot access file ${fullPath}:`, accessError);
+                        // Continue with other files
+                    }
                 }
             }
         } catch (error) {
@@ -162,7 +185,6 @@ class MainApp {
             // Don't throw here, just skip this directory
         }
 
-        console.log(`Scan complete. Found ${mdFiles.length} markdown files total.`);
         return mdFiles;
     }
 
@@ -212,11 +234,39 @@ class MainApp {
 
         ipcMain.handle(IPC_CHANNELS.READ_FILE_CONTENT, async (_, filePath: string): Promise<string> => {
             try {
-                const content = await fs.readFile(filePath, 'utf-8');
+                // Validate file path
+                if (!filePath || typeof filePath !== 'string') {
+                    throw new Error('Invalid file path provided');
+                }
+
+                // Check if file exists and is accessible
+                try {
+                    await fs.access(filePath, fs.constants.R_OK);
+                } catch (accessError) {
+                    throw new Error(`File not accessible: ${accessError instanceof Error ? accessError.message : 'Unknown access error'}`);
+                }
+
+                // Try reading with UTF-8 first
+                let content: string;
+                try {
+                    content = await fs.readFile(filePath, 'utf-8');
+                } catch (encodingError) {
+                    console.warn('UTF-8 reading failed, trying with latin1:', encodingError);
+                    // Fallback to latin1 for files with different encoding
+                    const buffer = await fs.readFile(filePath);
+                    content = buffer.toString('latin1');
+                }
+
+                // Basic content validation
+                if (content.length === 0) {
+                    console.warn('File appears to be empty');
+                }
+
                 return content;
             } catch (error) {
                 console.error('Error reading file content:', error);
-                throw new Error(`Failed to read file content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                throw new Error(`Failed to read file content: ${errorMessage}`);
             }
         });
     }

@@ -30,7 +30,9 @@ export interface ParsedCodeBlock {
  */
 export function extractCodeBlocks(markdownContent: string): ParsedCodeBlock[] {
     const codeBlocks: ParsedCodeBlock[] = [];
-    const lines = markdownContent.split('\n');
+    // Normalize line endings - handle both Windows (\r\n) and Unix (\n)
+    const normalizedContent = markdownContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedContent.split('\n');
 
     let inCodeBlock = false;
     let currentBlock: {
@@ -114,10 +116,12 @@ export function extractCodeBlocks(markdownContent: string): ParsedCodeBlock[] {
  */
 export function validateCodeBlock(content: string): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    const lines = content.split('\n');
+    // Normalize line endings for consistent processing
+    const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedContent.split('\n');
 
     // Check for empty content
-    if (content.trim().length === 0) {
+    if (normalizedContent.trim().length === 0) {
         errors.push('Code block is empty');
         return { isValid: false, errors };
     }
@@ -136,10 +140,10 @@ export function validateCodeBlock(content: string): { isValid: boolean; errors: 
     }
 
     // Check for potential Perchance syntax patterns
-    const hasPerchancePatterns = content.match(/^\s{2,}[^\s]/m) || // Indented entries
-        content.match(/\[.*\]/) ||          // Brackets (weights/references)
-        content.match(/\{.*\}/) ||          // Curly braces (variables)
-        content.match(/^\s*\w+\s*$/m);      // Simple word entries
+    const hasPerchancePatterns = normalizedContent.match(/^\s{2,}[^\s]/m) || // Indented entries
+        normalizedContent.match(/\[.*\]/) ||          // Brackets (weights/references)
+        normalizedContent.match(/\{.*\}/) ||          // Curly braces (variables)
+        normalizedContent.match(/^\s*\w+\s*$/m);      // Simple word entries
 
     if (!hasPerchancePatterns) {
         errors.push('Content does not appear to follow Perchance syntax patterns');

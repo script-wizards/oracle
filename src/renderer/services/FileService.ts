@@ -21,8 +21,6 @@ export class FileService {
 
             if (selectedPath) {
                 console.log('Vault folder selected:', selectedPath);
-            } else {
-                console.log('Vault folder selection cancelled');
             }
 
             return selectedPath;
@@ -47,10 +45,7 @@ export class FileService {
                 throw new Error('Invalid vault path provided');
             }
 
-            console.log('Scanning vault files in:', vaultPath);
             const filePaths = await window.electronAPI.scanVaultFiles(vaultPath);
-
-            console.log(`Found ${filePaths.length} markdown files:`, filePaths);
             return filePaths;
         } catch (error) {
             console.error('Failed to scan vault files:', error);
@@ -73,10 +68,7 @@ export class FileService {
                 throw new Error('Invalid file path provided');
             }
 
-            console.log('Reading file content:', filePath);
             const content = await window.electronAPI.readFileContent(filePath);
-
-            console.log(`Read ${content.length} characters from file`);
             return content;
         } catch (error) {
             console.error('Failed to read file content:', error);
@@ -91,13 +83,9 @@ export class FileService {
      */
     static async extractTablesFromFile(filePath: string): Promise<ParsedCodeBlock[]> {
         try {
-            console.log('Extracting tables from file:', filePath);
-
             const content = await this.readFileContent(filePath);
             const allCodeBlocks = extractCodeBlocks(content);
             const perchanceBlocks = filterPerchanceBlocks(allCodeBlocks);
-
-            console.log(`Found ${allCodeBlocks.length} total code blocks, ${perchanceBlocks.length} Perchance blocks in ${filePath}`);
 
             // Log any validation errors
             perchanceBlocks.forEach((block, index) => {
@@ -250,10 +238,8 @@ export class FileService {
      */
     static async getVaultStats(vaultPath: string): Promise<{ totalFiles: number, estimatedSize: string }> {
         try {
-            console.log('Getting vault stats for:', vaultPath);
             const filePaths = await this.scanVaultFiles(vaultPath);
             const totalFiles = filePaths.length;
-            console.log(`Vault stats: found ${totalFiles} files`);
 
             // Estimate size based on file count (rough approximation)
             const estimatedSizeKB = totalFiles * 5; // Assume ~5KB per markdown file on average
@@ -261,14 +247,11 @@ export class FileService {
                 ? `${(estimatedSizeKB / 1024).toFixed(1)} MB`
                 : `${estimatedSizeKB} KB`;
 
-            console.log(`Estimated size: ${estimatedSize}`);
-
             const result = {
                 totalFiles,
                 estimatedSize
             };
 
-            console.log('Returning vault stats:', result);
             return result;
         } catch (error) {
             console.error('Failed to get vault stats:', error);
@@ -294,13 +277,9 @@ export class FileService {
      */
     static async parseTablesFromFile(filePath: string): Promise<Table[]> {
         try {
-            console.log('Parsing tables from file:', filePath);
-
             const content = await this.readFileContent(filePath);
             const allCodeBlocks = extractCodeBlocks(content);
             const perchanceBlocks = filterPerchanceBlocks(allCodeBlocks);
-
-            console.log(`Found ${perchanceBlocks.length} Perchance blocks in ${filePath}`);
 
             const tables: Table[] = [];
 
@@ -310,7 +289,6 @@ export class FileService {
 
                 if (table) {
                     tables.push(table);
-                    console.log(`Successfully parsed table: "${table.title}" with ${table.entries.length} entries`);
                 } else {
                     console.warn(`Failed to parse Perchance block ${i + 1} in ${filePath}`);
                 }
@@ -359,8 +337,6 @@ export class FileService {
      */
     static async parseAllTablesFromVault(vaultPath: string): Promise<Table[]> {
         try {
-            console.log('Parsing all tables from vault:', vaultPath);
-
             const filePaths = await this.scanVaultFiles(vaultPath);
             const allTables: Table[] = [];
 
@@ -374,7 +350,6 @@ export class FileService {
                 }
             }
 
-            console.log(`Successfully parsed ${allTables.length} tables from ${filePaths.length} files`);
             return allTables;
         } catch (error) {
             console.error('Failed to parse tables from vault:', error);

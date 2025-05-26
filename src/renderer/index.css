@@ -8,14 +8,13 @@
 html,
 body {
   height: 100%;
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono",
-    "Source Code Pro", monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #1a1a1a;
   color: #e0e0e0;
   line-height: 1.5;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 #root {
@@ -55,8 +54,7 @@ button {
   border: none;
   background: none;
   cursor: pointer;
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono",
-    "Source Code Pro", monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   color: inherit;
   font-size: inherit;
 }
@@ -73,8 +71,7 @@ select:focus-visible {
 input,
 select,
 textarea {
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono",
-    "Source Code Pro", monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   color: #e0e0e0;
   background: #2a2a2a;
   font-size: inherit;
