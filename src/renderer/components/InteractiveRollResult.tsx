@@ -75,6 +75,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
         depth: number = 0
       ): React.ReactNode[] => {
         // Base case 1: Prevent infinite recursion with max depth
+        // This prevents crashes when rerolling creates deeply nested identical structures
         if (depth > 10) {
           return [<span key="max-depth" className="static-text">{text}</span>];
         }
