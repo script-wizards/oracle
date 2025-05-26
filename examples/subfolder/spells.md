@@ -17,7 +17,7 @@ effect
   You can only speak in [speech_pattern] for 1 hour
 
 feature
-  long beard of feathers
+  long beard of [color] feathers
   pair of butterfly wings
   third eye on your forehead
   tail like a cat

@@ -98,3 +98,45 @@ reaction
   curious interest
   complete indifference
 ```
+
+## Room Generator
+
+```perchance
+title
+  Room Generator
+
+output
+  [monster], [feature], [decoration]
+
+monster
+  A sleeping dragon
+  Pack of goblins
+  Animated skeleton
+  Giant spider
+  Treasure chest mimic
+  Wandering ghost
+  Stone golem
+  Swarm of bats
+
+feature
+  A deep pit in the center
+  Crumbling stone pillars
+  A mysterious altar
+  Flowing underground stream
+  Spiral staircase leading up
+  Ancient murals on the walls
+  Glowing crystals embedded in ceiling
+  Collapsed section of floor
+
+decoration
+  Scattered gold coins
+  Dusty old tapestries
+  Broken pottery and urns
+  Rusted weapons and armor
+  Glowing magical runes
+  Overgrown vines and moss
+  Piles of ancient bones
+  Flickering torches in sconces
+```
+
+**Try this**: This generates three separate elements for a room. Use your imagination to connect how the monster, feature, and decoration relate to each other!
