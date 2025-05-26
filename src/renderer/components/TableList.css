@@ -1,0 +1,404 @@
+.table-list {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  border: 1px solid var(--border-primary);
+  transition: none;
+}
+
+.table-list.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  background: var(--bg-secondary);
+}
+
+.table-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid var(--border-secondary);
+  position: relative;
+  font-size: 12px;
+}
+
+.table-item:last-child {
+  border-bottom: none;
+}
+
+.table-item:hover:not(.selected) {
+  background: var(--bg-tertiary);
+}
+
+.table-item.selected {
+  background: var(--bg-primary);
+  border-left: 2px solid var(--accent-primary);
+}
+
+.table-item.selected:hover {
+  background: var(--bg-secondary);
+}
+
+.table-item.has-errors {
+  border-left: 2px solid var(--accent-secondary);
+}
+
+.table-item.selected.has-errors {
+  border-left: 2px solid var(--accent-primary);
+}
+
+.table-item-icon {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-right: 8px;
+  min-width: 20px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  font-family: inherit;
+  border: 1px solid var(--border-primary);
+}
+
+.table-item.selected .table-item-icon {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  font-weight: 600;
+  border-color: var(--accent-primary);
+}
+
+.table-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.table-item-title {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  line-height: 1.3;
+  transition: color 0.15s ease;
+}
+
+.table-item.selected .table-item-title {
+  color: var(--accent-primary);
+}
+
+.table-item-subtitle {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+  font-weight: 400;
+}
+
+.table-item-path {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: inherit;
+  background: var(--bg-tertiary);
+  padding: 1px 4px;
+  border-radius: 2px;
+  display: inline-block;
+  opacity: 0.8;
+  border: 1px solid var(--border-primary);
+}
+
+.table-item-status {
+  margin-left: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.table-view-button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.table-view-button:hover {
+  color: var(--accent-primary);
+  background: var(--bg-tertiary);
+}
+
+.error-indicator {
+  font-size: 12px;
+  cursor: help;
+  color: var(--accent-secondary);
+  transition: transform 0.15s ease;
+}
+
+.error-indicator:hover {
+  transform: scale(1.1);
+}
+
+/* Search highlighting */
+.search-highlight {
+  background: rgba(255, 140, 0, 0.3);
+  color: var(--accent-primary);
+  padding: 0.1rem 0.2rem;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 24px;
+}
+
+.empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.empty-message {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+.empty-hint {
+  font-size: 11px;
+  opacity: 0.8;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+/* Scrollbar styling */
+.table-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table-list::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 0;
+}
+
+.table-list::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 0;
+  transition: background 0.15s ease;
+}
+
+.table-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* Touch device optimizations */
+@media (max-width: 768px) and (pointer: coarse) {
+  .table-item:active {
+    background: var(--bg-tertiary);
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+  }
+
+  .table-item.selected:active {
+    background: var(--bg-secondary);
+  }
+
+  .table-list {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-list::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+}
+
+/* Keyboard navigation styles */
+.table-item.keyboard-selected {
+  background: var(--bg-tertiary);
+  border-left: 2px solid var(--accent-primary);
+  box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.3);
+}
+
+.table-item.keyboard-selected .table-item-icon {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  font-weight: 600;
+  border-color: var(--accent-primary);
+}
+
+/* Distinguish mouse hover from keyboard selection */
+.table-item:hover:not(.keyboard-selected) {
+  background: var(--bg-tertiary);
+}
+
+.table-item.selected:not(.keyboard-selected) {
+  background: var(--bg-primary);
+}
+
+/* Focus indicators for accessibility */
+.table-item:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+/* Enhanced search hint styles */
+.search-hint {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 6px;
+  padding: 3px 6px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  font-family: inherit;
+  opacity: 0.8;
+  border: 1px solid var(--border-primary);
+}
+
+/* Inline Table Viewer */
+.table-viewer-inline {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 8px;
+  margin: 8px 16px 16px 16px;
+  overflow: hidden;
+  animation: expandIn 0.2s ease-out;
+}
+
+@keyframes expandIn {
+  from {
+    opacity: 0;
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: min(500px, 60vh);
+    margin-top: 8px;
+    margin-bottom: 16px;
+  }
+}
+
+.table-viewer-content {
+  padding: 8px;
+  text-align: left;
+}
+
+.table-viewer-info {
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.table-viewer-path {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: left;
+}
+
+.table-viewer-errors {
+  margin-top: 8px;
+}
+
+.table-viewer-errors strong {
+  color: var(--error-color);
+  font-size: 13px;
+}
+
+.table-viewer-errors ul {
+  margin: 4px 0 0 16px;
+  padding: 0;
+}
+
+.table-viewer-errors li {
+  font-size: 12px;
+  color: var(--error-color);
+  margin-bottom: 2px;
+}
+
+.table-definition {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  max-height: min(300px, 40vh);
+  overflow-y: auto;
+  text-align: left;
+}
+
+.table-definition pre {
+  margin: 0;
+  padding: 12px;
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas,
+    "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  white-space: pre;
+  overflow-x: auto;
+  text-align: left;
+}
+
+.table-definition code {
+  font-family: inherit;
+  font-size: inherit;
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+/* Enhanced table item styling for expanded state */
+.table-item.expanded {
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
+}
+
+.table-item.expanded .table-view-button {
+  background: var(--accent-color);
+  color: white;
+}
+
+.table-item.expanded .table-view-button:hover {
+  background: var(--accent-hover);
+}
+
+/* Smooth scrollbar for table definition */
+.table-definition::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table-definition::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+  border-radius: 0;
+}
+
+.table-definition::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 0;
+  transition: background 0.15s ease;
+}
+
+.table-definition::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
