@@ -7,6 +7,7 @@ interface TableListProps {
   tables: Table[];
   selectedIndex: number;
   onTableSelect: (index: number) => void;
+  onTableOpen?: (table: Table) => void;
   searchQuery?: string;
   isKeyboardNavigating?: boolean;
 }
@@ -15,6 +16,7 @@ const TableList: React.FC<TableListProps> = ({
   tables,
   selectedIndex,
   onTableSelect,
+  onTableOpen,
   searchQuery = "",
   isKeyboardNavigating = false
 }) => {
@@ -178,6 +180,19 @@ const TableList: React.FC<TableListProps> = ({
               )}
             </div>
             <div className="table-item-status">
+              {onTableOpen && (
+                <button
+                  className="table-open-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTableOpen(table);
+                  }}
+                  title="Open table in new window"
+                  aria-label={`Open ${table.title} in new window`}
+                >
+                  <i className="fas fa-external-link-alt"></i>
+                </button>
+              )}
               <button
                 className="table-view-button"
                 onClick={(e) => {

@@ -204,9 +204,9 @@ body {
 }
 
 .header-button:hover:not(:disabled) {
-  background: var(--bg-primary);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
+  transform: translateY(-1px);
 }
 
 .header-button.clear-storage:hover:not(:disabled) {
@@ -317,10 +317,6 @@ body {
   font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
-}
-
-.window-content {
-  padding: 16px;
 }
 
 .window-close-button {
@@ -1438,9 +1434,9 @@ body {
 }
 
 .hamburger-menu:hover {
-  background: var(--bg-primary);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
+  transform: translateY(-1px);
 }
 
 .mobile-menu-dropdown {
@@ -1478,7 +1474,6 @@ body {
 }
 
 .mobile-menu-item:hover:not(:disabled) {
-  background: var(--bg-tertiary);
   color: var(--accent-primary);
 }
 
@@ -1707,9 +1702,9 @@ body {
 }
 
 .canvas-toolbar-button:hover:not(:disabled) {
-  background: var(--bg-primary);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
+  transform: translateY(-1px);
 }
 
 .canvas-toolbar-button:disabled {

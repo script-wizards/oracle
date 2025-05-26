@@ -1,0 +1,245 @@
+.table-window-content {
+  padding: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+/* Consistent scrollbar styling for main content */
+.table-window-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.table-window-content::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 0;
+}
+
+.table-window-content::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 2px;
+  transition: background 0.15s ease;
+}
+
+.table-window-content::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* Table Header */
+.table-window-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-secondary);
+  flex-shrink: 0;
+}
+
+.table-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.table-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-weight: 400;
+}
+
+.table-path {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: inherit;
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 2px;
+  display: inline-block;
+  opacity: 0.8;
+  border: 1px solid var(--border-primary);
+}
+
+.table-path-inline {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: inherit;
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 2px;
+  opacity: 0.8;
+  border: 1px solid var(--border-primary);
+  margin-left: 4px;
+}
+
+/* Roll Button */
+.table-roll-button {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.table-roll-button:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transform: translateY(-1px);
+}
+
+.table-roll-button:active {
+  transform: translateY(0);
+  background: var(--bg-primary);
+}
+
+.table-roll-button i {
+  font-size: 14px;
+}
+
+/* Recent History Section - simplified, no extra box */
+.table-recent-history {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 6px;
+}
+
+.history-item {
+  position: relative;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.history-item.no-timestamp {
+  margin-top: 2px;
+  /* Reduced spacing when no timestamp */
+}
+
+.history-item:hover {
+  opacity: 1;
+}
+
+.history-timestamp {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Empty State */
+.table-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.empty-message {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+.empty-hint {
+  font-size: 11px;
+  opacity: 0.8;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+/* Consistent scrollbar styling for history list */
+.history-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 0;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 2px;
+  transition: background 0.15s ease;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* History result styling - match main roll history */
+.table-recent-history .roll-result-spotlight.history-result {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  min-height: 40px;
+  padding: 8px 0 !important;
+  margin: 0 -6px;
+  transition: background-color 0.15s ease;
+  animation: none !important;
+  width: calc(100% + 12px);
+  margin-left: -6px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.table-recent-history .roll-result-spotlight.history-result:hover {
+  background: var(--bg-tertiary) !important;
+}
+
+.table-recent-history .roll-result-spotlight.history-result .result-text {
+  font-size: 13px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .table-window-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .table-roll-button {
+    align-self: flex-end;
+    width: auto;
+  }
+  
+  .table-window-content {
+    padding: 8px;
+    gap: 8px;
+  }
+} 

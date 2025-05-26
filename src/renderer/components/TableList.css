@@ -122,6 +122,7 @@
   gap: 6px;
 }
 
+.table-open-button,
 .table-view-button {
   background: transparent;
   border: none;
@@ -138,7 +139,17 @@
   height: 20px;
 }
 
+.table-open-button:hover,
 .table-view-button:hover {
+  color: var(--accent-primary);
+  background: var(--bg-tertiary);
+}
+
+.table-open-button {
+  color: var(--text-muted);
+}
+
+.table-open-button:hover {
   color: var(--accent-primary);
   background: var(--bg-tertiary);
 }

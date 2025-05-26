@@ -8,6 +8,7 @@ import SearchBar from "./components/SearchBar";
 import TableList from "./components/TableList";
 import InteractiveRollResult from "./components/InteractiveRollResult";
 import {DraggableWindow} from "./components/DraggableWindow";
+import {TableWindow} from "./components/TableWindow";
 import {useTableSearch} from "./hooks/useTableSearch";
 import {useKeyboardNav} from "./hooks/useKeyboardNav";
 import {
@@ -320,6 +321,12 @@ const App: React.FC = () => {
     };
   });
 
+  // Table windows state - tracks which table windows are open
+  const [openTableWindows, setOpenTableWindows] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem("oracle-open-table-windows");
+    return saved !== null ? new Set(JSON.parse(saved)) : new Set();
+  });
+
   // Window positions and sizes state
   const [windowStates, setWindowStates] = useState<{
     [key: string]: {
@@ -347,6 +354,30 @@ const App: React.FC = () => {
       }
     };
   });
+
+  // Helper function to get default position for new table windows
+  const getDefaultTableWindowPosition = (tableId: string): { x: number; y: number } => {
+    // Stagger new windows so they don't all appear in the same spot
+    const openTableCount = openTableWindows.size;
+    const baseX = 150;
+    const baseY = 120;
+    const offsetX = (openTableCount % 3) * 50;
+    const offsetY = Math.floor(openTableCount / 3) * 50;
+    
+    return {
+      x: baseX + offsetX,
+      y: baseY + offsetY
+    };
+  };
+
+  // Helper function to get window state for table windows
+  const getTableWindowState = (tableId: string) => {
+    const key = `table-${tableId}`;
+    return windowStates[key] || {
+      position: getDefaultTableWindowPosition(tableId),
+      size: { width: 400, height: 450 }
+    };
+  };
 
   // Language state
   const [currentLanguage, setCurrentLanguage] = useState<Language>(() =>
@@ -499,6 +530,11 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem("oracle-window-states", JSON.stringify(windowStates));
   }, [windowStates]);
+
+  // Save open table windows
+  useEffect(() => {
+    localStorage.setItem("oracle-open-table-windows", JSON.stringify(Array.from(openTableWindows)));
+  }, [openTableWindows]);
 
 
 
@@ -653,6 +689,9 @@ const App: React.FC = () => {
         }
       });
       localStorage.removeItem("oracle-window-states");
+      
+      setOpenTableWindows(new Set());
+      localStorage.removeItem("oracle-open-table-windows");
 
 
 
@@ -993,6 +1032,19 @@ const App: React.FC = () => {
     setOpenWindows(prev => ({ ...prev, [windowName]: true }));
   };
 
+  // Table window management functions
+  const openTableWindow = (table: Table) => {
+    setOpenTableWindows(prev => new Set([...prev, table.id]));
+  };
+
+  const closeTableWindow = (tableId: string) => {
+    setOpenTableWindows(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(tableId);
+      return newSet;
+    });
+  };
+
   // Window state update functions
   const updateWindowPosition = (windowName: string, position: { x: number; y: number }) => {
     setWindowStates(prev => ({
@@ -1012,6 +1064,17 @@ const App: React.FC = () => {
         size
       }
     }));
+  };
+
+  // Table window state update functions
+  const updateTableWindowPosition = (tableId: string, position: { x: number; y: number }) => {
+    const key = `table-${tableId}`;
+    updateWindowPosition(key, position);
+  };
+
+  const updateTableWindowSize = (tableId: string, size: { width: number; height: number }) => {
+    const key = `table-${tableId}`;
+    updateWindowSize(key, size);
   };
 
   // Reroll specific subtable
@@ -1324,6 +1387,7 @@ const App: React.FC = () => {
                           addToHistoryAndSetCurrent(rollResult, actualTable);
                         }, 100);
                       }}
+                      onTableOpen={openTableWindow}
                       searchQuery={searchQuery}
                       isKeyboardNavigating={keyboardNav.isNavigating}
                     />
@@ -1413,6 +1477,28 @@ const App: React.FC = () => {
                 </div>
               </DraggableWindow>
             )}
+
+            {/* Table Windows */}
+            {Array.from(openTableWindows).map((tableId) => {
+              const table = appState.tables.find(t => t.id === tableId);
+              if (!table) return null;
+              
+              const windowState = getTableWindowState(tableId);
+              
+              return (
+                <TableWindow
+                  key={tableId}
+                  table={table}
+                  allTables={appState.tables}
+                  position={windowState.position}
+                  size={windowState.size}
+                  onClose={() => closeTableWindow(tableId)}
+                  onPositionChange={(position) => updateTableWindowPosition(tableId, position)}
+                  onSizeChange={(size) => updateTableWindowSize(tableId, size)}
+                  zIndex={6}
+                />
+              );
+            })}
           </div>
         ) : (
           /* Normal Mode */
@@ -1623,6 +1709,7 @@ location
                         addToHistoryAndSetCurrent(rollResult, actualTable);
                       }, 100);
                     }}
+                    onTableOpen={openTableWindow}
                     searchQuery={searchQuery}
                     isKeyboardNavigating={keyboardNav.isNavigating}
                   />
