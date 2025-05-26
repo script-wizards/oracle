@@ -34,6 +34,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     result: RollResult;
     timestamp: Date;
   }>>([]);
+  const [showHistory, setShowHistory] = useState(true);
 
   // Roll on this table
   const handleRoll = () => {
@@ -125,7 +126,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
       onBringToFront={onBringToFront}
       zIndex={zIndex}
       minWidth={350}
-      minHeight={250}
+      minHeight={showHistory && rollHistory.length > 0 ? 250 : 150}
       maxWidth={600}
       maxHeight={700}
     >
@@ -144,6 +145,15 @@ export const TableWindow: React.FC<TableWindowProps> = ({
               )}
             </div>
           </div>
+          {rollHistory.length > 0 && (
+            <button
+              className="history-toggle-button"
+              onClick={() => setShowHistory(!showHistory)}
+              title={showHistory ? "Hide history" : "Show history"}
+            >
+              <i className="fas fa-clock-rotate-left"></i>
+            </button>
+          )}
         </div>
 
         {/* Current Result - no wrapper box */}
@@ -157,7 +167,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
         )}
 
         {/* Recent History */}
-        {rollHistory.length > 0 && (
+        {rollHistory.length > 0 && showHistory && (
           <div className="table-recent-history">
             <div className="history-list">
               {rollHistory.map((historyItem, index) => {

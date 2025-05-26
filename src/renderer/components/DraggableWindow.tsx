@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, ReactNode } from 'react';
 interface DraggableWindowProps {
   children: ReactNode;
   title: string;
+  headerContent?: ReactNode;
   initialPosition?: { x: number; y: number };
   initialSize?: { width: number; height: number };
   minWidth?: number;
@@ -21,6 +22,7 @@ interface DraggableWindowProps {
 export const DraggableWindow: React.FC<DraggableWindowProps> = ({
   children,
   title,
+  headerContent,
   initialPosition = { x: 100, y: 100 },
   initialSize = { width: 400, height: 300 },
   minWidth = 250,
@@ -78,8 +80,18 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
-        const newX = Math.max(0, Math.min(window.innerWidth - size.width, e.clientX - dragOffset.x));
-        const newY = Math.max(0, Math.min(window.innerHeight - size.height, e.clientY - dragOffset.y));
+        // Recalculate constraints on every move to handle window resizing
+        const padding = 10;
+        
+        // Get actual footer height dynamically
+        const footerElement = document.querySelector('.app-footer') as HTMLElement;
+        const footerHeight = 65;
+        
+        const maxX = window.innerWidth - size.width - padding;
+        const maxY = window.innerHeight - size.height - footerHeight - padding ;
+        
+        const newX = Math.max(padding, Math.min(maxX, e.clientX - dragOffset.x));
+        const newY = Math.max(padding, Math.min(maxY, e.clientY - dragOffset.y));
         setPosition({ x: newX, y: newY });
       }
       

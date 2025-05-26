@@ -206,7 +206,6 @@ body {
 .header-button:hover:not(:disabled) {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  transform: translateY(-1px);
 }
 
 .header-button.clear-storage:hover:not(:disabled) {
@@ -226,13 +225,13 @@ body {
 
 /* Footer */
 .app-footer {
-  padding: 8px 16px;
+  padding: 4px 12px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-primary);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 32px;
+  min-height: 24px;
   flex-shrink: 0;
 }
 
@@ -523,7 +522,6 @@ body {
 .parse-tables-button:hover:not(:disabled) {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  transform: translateY(-1px);
 }
 
 .clear-storage-button {
@@ -1444,7 +1442,6 @@ body {
 .hamburger-menu:hover {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  transform: translateY(-1px);
 }
 
 .mobile-menu-dropdown {
@@ -1712,7 +1709,6 @@ body {
 .canvas-toolbar-button:hover:not(:disabled) {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  transform: translateY(-1px);
 }
 
 .canvas-toolbar-button:disabled {

@@ -1384,6 +1384,7 @@ const App: React.FC = () => {
                 title="Search & Tables"
                 initialPosition={windowStates.search.position}
                 initialSize={windowStates.search.size}
+                maxHeight={800}
                 onClose={() => closeWindow('search')}
                 onPositionChange={(position) => updateWindowPosition('search', position)}
                 onSizeChange={(size) => updateWindowSize('search', size)}
