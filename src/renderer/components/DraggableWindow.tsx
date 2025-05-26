@@ -11,6 +11,8 @@ interface DraggableWindowProps {
   maxHeight?: number;
   resizable?: boolean;
   onClose?: () => void;
+  onPositionChange?: (position: { x: number; y: number }) => void;
+  onSizeChange?: (size: { width: number; height: number }) => void;
   className?: string;
   zIndex?: number;
 }
@@ -26,6 +28,8 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
   maxHeight = 600,
   resizable = true,
   onClose,
+  onPositionChange,
+  onSizeChange,
   className = '',
   zIndex = 1
 }) => {
@@ -82,6 +86,12 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
     };
 
     const handleMouseUp = () => {
+      if (isDragging && onPositionChange) {
+        onPositionChange(position);
+      }
+      if (isResizing && onSizeChange) {
+        onSizeChange(size);
+      }
       setIsDragging(false);
       setIsResizing(false);
     };
@@ -95,7 +105,7 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragOffset, resizeStart, size, minWidth, minHeight, maxWidth, maxHeight]);
+  }, [isDragging, isResizing, dragOffset, resizeStart, size, position, minWidth, minHeight, maxWidth, maxHeight, onPositionChange, onSizeChange]);
 
   return (
     <div

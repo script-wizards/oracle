@@ -300,17 +300,52 @@ const App: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Canvas mode state
-  const [isCanvasMode, setIsCanvasMode] = useState(false);
+  const [isCanvasMode, setIsCanvasMode] = useState(() => {
+    const saved = localStorage.getItem("oracle-canvas-mode");
+    return saved !== null ? JSON.parse(saved) : false;
+  });
+  
   const [openWindows, setOpenWindows] = useState<{
     welcome: boolean;
     search: boolean;
     history: boolean;
     currentResult: boolean;
-  }>({
-    welcome: true,
-    search: true,
-    history: true,
-    currentResult: false
+  }>(() => {
+    const saved = localStorage.getItem("oracle-open-windows");
+    return saved !== null ? JSON.parse(saved) : {
+      welcome: true,
+      search: true,
+      history: true,
+      currentResult: false
+    };
+  });
+
+  // Window positions and sizes state
+  const [windowStates, setWindowStates] = useState<{
+    [key: string]: {
+      position: { x: number; y: number };
+      size: { width: number; height: number };
+    };
+  }>(() => {
+    const saved = localStorage.getItem("oracle-window-states");
+    return saved !== null ? JSON.parse(saved) : {
+      welcome: {
+        position: { x: 200, y: 100 },
+        size: { width: 500, height: 400 }
+      },
+      search: {
+        position: { x: 100, y: 150 },
+        size: { width: 450, height: 500 }
+      },
+      history: {
+        position: { x: 600, y: 100 },
+        size: { width: 400, height: 500 }
+      },
+      currentResult: {
+        position: { x: 300, y: 200 },
+        size: { width: 450, height: 350 }
+      }
+    };
   });
 
   // Language state
@@ -450,6 +485,21 @@ const App: React.FC = () => {
     localStorage.setItem("oracle-history-height", historyHeight.toString());
   }, [historyHeight]);
 
+  // Save canvas mode preference
+  useEffect(() => {
+    localStorage.setItem("oracle-canvas-mode", JSON.stringify(isCanvasMode));
+  }, [isCanvasMode]);
+
+  // Save open windows state
+  useEffect(() => {
+    localStorage.setItem("oracle-open-windows", JSON.stringify(openWindows));
+  }, [openWindows]);
+
+  // Save window states (positions and sizes)
+  useEffect(() => {
+    localStorage.setItem("oracle-window-states", JSON.stringify(windowStates));
+  }, [windowStates]);
+
 
 
   // Keyboard shortcut for toggling history (Ctrl+H / Cmd+H)
@@ -461,8 +511,18 @@ const App: React.FC = () => {
         event.preventDefault();
         event.stopPropagation();
 
-        // Toggle history visibility
-        setShowHistory((prev: boolean) => !prev);
+        if (isCanvasMode) {
+          // In canvas mode, toggle the history window (only if there's history to show)
+          if (rollHistory.length > 0) {
+            setOpenWindows(prev => ({ 
+              ...prev, 
+              history: !prev.history
+            }));
+          }
+        } else {
+          // In normal mode, toggle history visibility
+          setShowHistory((prev: boolean) => !prev);
+        }
       }
     };
 
@@ -473,7 +533,7 @@ const App: React.FC = () => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []); // Empty dependency array since we only want to set this up once
+  }, [isCanvasMode, rollHistory.length]); // Include dependencies for canvas mode and history length
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -561,6 +621,38 @@ const App: React.FC = () => {
       // Reset history height to default
       setHistoryHeight(80);
       localStorage.removeItem("oracle-history-height");
+
+      // Reset canvas mode and window states
+      setIsCanvasMode(false);
+      localStorage.removeItem("oracle-canvas-mode");
+      
+      setOpenWindows({
+        welcome: true,
+        search: true,
+        history: true,
+        currentResult: false
+      });
+      localStorage.removeItem("oracle-open-windows");
+      
+      setWindowStates({
+        welcome: {
+          position: { x: 200, y: 100 },
+          size: { width: 500, height: 400 }
+        },
+        search: {
+          position: { x: 100, y: 150 },
+          size: { width: 450, height: 500 }
+        },
+        history: {
+          position: { x: 600, y: 100 },
+          size: { width: 400, height: 500 }
+        },
+        currentResult: {
+          position: { x: 300, y: 200 },
+          size: { width: 450, height: 350 }
+        }
+      });
+      localStorage.removeItem("oracle-window-states");
 
 
 
@@ -901,6 +993,27 @@ const App: React.FC = () => {
     setOpenWindows(prev => ({ ...prev, [windowName]: true }));
   };
 
+  // Window state update functions
+  const updateWindowPosition = (windowName: string, position: { x: number; y: number }) => {
+    setWindowStates(prev => ({
+      ...prev,
+      [windowName]: {
+        ...prev[windowName],
+        position
+      }
+    }));
+  };
+
+  const updateWindowSize = (windowName: string, size: { width: number; height: number }) => {
+    setWindowStates(prev => ({
+      ...prev,
+      [windowName]: {
+        ...prev[windowName],
+        size
+      }
+    }));
+  };
+
   // Reroll specific subtable
   const handleSubtableReroll = (subrollIndex: number) => {
     if (lastRollResult && lastRolledTable) {
@@ -1128,9 +1241,11 @@ const App: React.FC = () => {
             {openWindows.welcome && !appState.vaultPath && (
               <DraggableWindow
                 title="Welcome"
-                initialPosition={{ x: 200, y: 100 }}
-                initialSize={{ width: 500, height: 400 }}
+                initialPosition={windowStates.welcome.position}
+                initialSize={windowStates.welcome.size}
                 onClose={() => closeWindow('welcome')}
+                onPositionChange={(position) => updateWindowPosition('welcome', position)}
+                onSizeChange={(size) => updateWindowSize('welcome', size)}
                 zIndex={10}
               >
                 <div className="window-content">
@@ -1173,9 +1288,11 @@ const App: React.FC = () => {
             {openWindows.search && (
               <DraggableWindow
                 title="Search & Tables"
-                initialPosition={{ x: 100, y: 150 }}
-                initialSize={{ width: 450, height: 500 }}
+                initialPosition={windowStates.search.position}
+                initialSize={windowStates.search.size}
                 onClose={() => closeWindow('search')}
+                onPositionChange={(position) => updateWindowPosition('search', position)}
+                onSizeChange={(size) => updateWindowSize('search', size)}
                 zIndex={5}
               >
                 <div style={{ padding: '12px' }}>
@@ -1219,9 +1336,11 @@ const App: React.FC = () => {
             {openWindows.history && rollHistory.length > 0 && (
               <DraggableWindow
                 title="Roll History"
-                initialPosition={{ x: 600, y: 100 }}
-                initialSize={{ width: 400, height: 500 }}
+                initialPosition={windowStates.history.position}
+                initialSize={windowStates.history.size}
                 onClose={() => closeWindow('history')}
+                onPositionChange={(position) => updateWindowPosition('history', position)}
+                onSizeChange={(size) => updateWindowSize('history', size)}
                 zIndex={3}
               >
                 <div className="roll-history" style={{ padding: '8px', height: '100%', overflow: 'auto' }}>
@@ -1277,9 +1396,11 @@ const App: React.FC = () => {
             {openWindows.currentResult && lastRollResult && (
               <DraggableWindow
                 title="Current Roll Result"
-                initialPosition={{ x: 300, y: 200 }}
-                initialSize={{ width: 450, height: 350 }}
+                initialPosition={windowStates.currentResult.position}
+                initialSize={windowStates.currentResult.size}
                 onClose={() => closeWindow('currentResult')}
+                onPositionChange={(position) => updateWindowPosition('currentResult', position)}
+                onSizeChange={(size) => updateWindowSize('currentResult', size)}
                 zIndex={8}
               >
                 <div style={{ padding: '12px' }}>
