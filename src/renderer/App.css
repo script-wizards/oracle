@@ -1150,10 +1150,6 @@ body {
 }
 
 @media (max-height: 600px) {
-  .app-main {
-    padding: 8px;
-  }
-
   .welcome-section h2 {
     font-size: 18px;
     margin-bottom: 8px;
