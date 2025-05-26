@@ -134,25 +134,27 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
           <div className="result-text">{renderInteractiveText()}</div>
         </div>
 
-        <div className="result-help">
-          <div className="help-icon" title="How to reroll">
-            <span className="help-symbol">?</span>
-            <div className="help-tooltip">
-              {subtableCount > 0 ? (
-                <>
-                  <div className="help-tip">
-                    Click highlighted parts to reroll individual results
-                  </div>
-                  <div className="help-tip">
-                    Click anywhere else to reroll everything
-                  </div>
-                </>
-              ) : (
-                <div className="help-tip">Click to reroll</div>
-              )}
+        {!isHistoryItem && (
+          <div className="result-help">
+            <div className="help-icon" title="How to reroll">
+              <span className="help-symbol">?</span>
+              <div className="help-tooltip">
+                {subtableCount > 0 ? (
+                  <>
+                    <div className="help-tip">
+                      Click highlighted parts to reroll individual results
+                    </div>
+                    <div className="help-tip">
+                      Click anywhere else to reroll everything
+                    </div>
+                  </>
+                ) : (
+                  <div className="help-tip">Click to reroll</div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

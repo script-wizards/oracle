@@ -163,12 +163,76 @@ const App: React.FC = () => {
   // Ref for history container to control scrolling
   const historyRef = useRef<HTMLDivElement>(null);
 
+  // History container height state
+  const [historyHeight, setHistoryHeight] = useState(() => {
+    // Load from localStorage, default to 80px (desktop) / 60px (mobile)
+    const saved = localStorage.getItem("oracle-history-height");
+    return saved !== null ? parseInt(saved, 10) : 80;
+  });
+
+  // Resizing state
+  const [isResizing, setIsResizing] = useState(false);
+
   // Scroll history to bottom to show most recent entries
   const scrollHistoryToBottom = useCallback(() => {
     if (historyRef.current) {
       historyRef.current.scrollTop = historyRef.current.scrollHeight;
     }
   }, []);
+
+  // Handle resize drag
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      setIsResizing(true);
+
+      const startY = e.clientY;
+      const startHeight = historyHeight;
+
+      const handleMouseMove = (e: MouseEvent) => {
+        const deltaY = e.clientY - startY;
+        const newHeight = Math.max(40, Math.min(400, startHeight + deltaY)); // Min 40px, max 400px
+        setHistoryHeight(newHeight);
+      };
+
+      const handleMouseUp = () => {
+        setIsResizing(false);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [historyHeight]
+  );
+
+  // Handle touch resize for mobile
+  const handleResizeTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      e.preventDefault();
+      setIsResizing(true);
+
+      const startY = e.touches[0].clientY;
+      const startHeight = historyHeight;
+
+      const handleTouchMove = (e: TouchEvent) => {
+        const deltaY = e.touches[0].clientY - startY;
+        const newHeight = Math.max(40, Math.min(300, startHeight + deltaY)); // Smaller max on mobile
+        setHistoryHeight(newHeight);
+      };
+
+      const handleTouchEnd = () => {
+        setIsResizing(false);
+        document.removeEventListener("touchmove", handleTouchMove);
+        document.removeEventListener("touchend", handleTouchEnd);
+      };
+
+      document.addEventListener("touchmove", handleTouchMove);
+      document.addEventListener("touchend", handleTouchEnd);
+    },
+    [historyHeight]
+  );
 
   // Platform detection for macOS-specific styling
   const [isMacOS, setIsMacOS] = useState(false);
@@ -307,6 +371,11 @@ const App: React.FC = () => {
     localStorage.setItem("oracle-show-history", JSON.stringify(showHistory));
   }, [showHistory]);
 
+  // Save history height preference
+  useEffect(() => {
+    localStorage.setItem("oracle-history-height", historyHeight.toString());
+  }, [historyHeight]);
+
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setAppState((prev) => ({
@@ -359,6 +428,10 @@ const App: React.FC = () => {
       // Reset history visibility to default
       setShowHistory(true);
       localStorage.removeItem("oracle-show-history");
+
+      // Reset history height to default
+      setHistoryHeight(80);
+      localStorage.removeItem("oracle-history-height");
 
       alert("Storage cleared successfully!");
     } catch (error) {
@@ -678,7 +751,7 @@ const App: React.FC = () => {
         lastRolledTable,
         appState.tables
       );
-      setLastRollResult(newRollResult);
+      addToHistoryAndSetCurrent(newRollResult, lastRolledTable);
     }
   };
 
@@ -801,36 +874,40 @@ const App: React.FC = () => {
           {/* Welcome and Setup - Only when no vault is selected and welcome is visible */}
           {!appState.vaultPath && showWelcome && (
             <div className="welcome-setup">
-              <button
-                onClick={() => setShowWelcome(false)}
-                className="welcome-close-button"
-                title="Close welcome screen"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-              <p className="welcome-description">
-                A random table roller for your Obsidian vault. Search through
-                your tables, click to roll, get interactive results with
-                clickable subtables. Built to handle{" "}
-                <a
-                  href="https://perchance.org/tutorial"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="perchance-link"
+              <div className="welcome-header">
+                <span className="welcome-title">Welcome to Oracle</span>
+                <button
+                  onClick={() => setShowWelcome(false)}
+                  className="welcome-close-button"
+                  title="Close welcome screen"
                 >
-                  Perchance syntax
-                </a>
-                .
-              </p>
-              <div className="table-format-info">
-                <p className="format-description">
-                  Tables should be in markdown code blocks tagged with{" "}
-                  <code>perchance</code>:
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <div className="welcome-content">
+                <p className="welcome-description">
+                  A random table roller for your Obsidian vault. Search through
+                  your tables, click to roll, get interactive results with
+                  clickable subtables. Built to handle{" "}
+                  <a
+                    href="https://perchance.org/tutorial"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="perchance-link"
+                  >
+                    Perchance syntax
+                  </a>
+                  .
                 </p>
-                <div className="example-section">
-                  <div className="code-example">
-                    <pre>
-                      <code>{`\`\`\`perchance
+                <div className="table-format-info">
+                  <p className="format-description">
+                    Tables should be in markdown code blocks tagged with{" "}
+                    <code>perchance</code>:
+                  </p>
+                  <div className="example-section">
+                    <div className="code-example">
+                      <pre>
+                        <code>{`\`\`\`perchance
 title
   Weather
 
@@ -840,17 +917,17 @@ output
   Heavy fog
   Strong winds
 \`\`\``}</code>
-                    </pre>
+                      </pre>
+                    </div>
                   </div>
-                </div>
-                <div className="example-section">
-                  <p className="format-description">
-                    You can also use <code>[brackets]</code> to reference other
-                    sections:
-                  </p>
-                  <div className="code-example">
-                    <pre>
-                      <code>{`\`\`\`perchance
+                  <div className="example-section">
+                    <p className="format-description">
+                      You can also use <code>[brackets]</code> to reference
+                      other sections:
+                    </p>
+                    <div className="code-example">
+                      <pre>
+                        <code>{`\`\`\`perchance
 title
   Forest Encounters
 
@@ -867,45 +944,46 @@ location
   An old stone bridge
   A clearing with wildflowers
 \`\`\``}</code>
-                    </pre>
+                      </pre>
+                    </div>
                   </div>
                 </div>
+                <p className="welcome-links">
+                  Made by{" "}
+                  <a
+                    href="https://scriptwizards.org"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="scriptwizards-text-link"
+                  >
+                    Script Wizards
+                  </a>
+                  . Source code on{" "}
+                  <a
+                    href="https://github.com/script-wizards/oracle"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="github-text-link"
+                  >
+                    GitHub
+                  </a>{" "}
+                  if you want to contribute or give feedback.
+                </p>
+                <p className="setup-instruction">
+                  Point it at your{" "}
+                  <button
+                    onClick={handleSelectVault}
+                    disabled={
+                      isSelectingVault || !FileService.isElectronAPIAvailable()
+                    }
+                    className="inline-vault-button"
+                    title="Select vault folder"
+                  >
+                    {isSelectingVault ? "scanning..." : "Obsidian vault"}
+                  </button>{" "}
+                  and let's roll.
+                </p>
               </div>
-              <p className="welcome-links">
-                Made by{" "}
-                <a
-                  href="https://scriptwizards.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="scriptwizards-text-link"
-                >
-                  Script Wizards
-                </a>
-                . Source code on{" "}
-                <a
-                  href="https://github.com/script-wizards/oracle"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="github-text-link"
-                >
-                  GitHub
-                </a>{" "}
-                if you want to contribute or give feedback.
-              </p>
-              <p className="setup-instruction">
-                Point it at your{" "}
-                <button
-                  onClick={handleSelectVault}
-                  disabled={
-                    isSelectingVault || !FileService.isElectronAPIAvailable()
-                  }
-                  className="inline-vault-button"
-                  title="Select vault folder"
-                >
-                  {isSelectingVault ? "scanning..." : "Obsidian vault"}
-                </button>{" "}
-                and let's roll.
-              </p>
             </div>
           )}
 
@@ -926,50 +1004,96 @@ location
           <div className="spotlight-search-section">
             {/* Roll History - Stack grows above */}
             {showHistory && rollHistory.length > 0 && (
-              <div className="roll-history" ref={historyRef}>
-                {rollHistory
-                  .slice()
-                  .reverse()
-                  .map((historyItem, index) => (
-                    <div
-                      key={`${historyItem.timestamp.getTime()}-${index}`}
-                      className="history-item"
-                    >
-                      <div className="history-timestamp">
-                        {historyItem.timestamp.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit"
-                        })}
-                      </div>
-                      <InteractiveRollResult
-                        rollResult={historyItem.result}
-                        onReroll={() => {
-                          const rollResult = rollOnTable(
-                            historyItem.table,
-                            appState.tables
-                          );
-                          addToHistoryAndSetCurrent(
-                            rollResult,
-                            historyItem.table
-                          );
-                        }}
-                        onSubtableReroll={(subrollIndex: number) => {
-                          const newRollResult = rerollSubtable(
-                            historyItem.result,
-                            subrollIndex,
-                            historyItem.table,
-                            appState.tables
-                          );
-                          addToHistoryAndSetCurrent(
-                            newRollResult,
-                            historyItem.table
-                          );
-                        }}
-                        lastRolledTable={historyItem.table}
-                        isHistoryItem={true}
-                      />
-                    </div>
-                  ))}
+              <div className="history-container">
+                <div className="history-header">
+                  <span className="history-title">History</span>
+                  <button
+                    onClick={() => setShowHistory(false)}
+                    className="history-close-button"
+                    title="Hide roll history"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <div
+                  className="roll-history"
+                  ref={historyRef}
+                  style={{maxHeight: `${historyHeight}px`}}
+                >
+                  {rollHistory
+                    .slice()
+                    .reverse()
+                    .map((historyItem, index) => {
+                      // Check if we should show timestamp for this item
+                      const reversedHistory = rollHistory.slice().reverse();
+                      const prevItem =
+                        index > 0 ? reversedHistory[index - 1] : null;
+
+                      // Show timestamp if:
+                      // 1. It's the first item, OR
+                      // 2. More than 1 minute has passed since the previous item
+                      const shouldShowTimestamp =
+                        !prevItem ||
+                        historyItem.timestamp.getTime() -
+                          prevItem.timestamp.getTime() >
+                          60000; // 60 seconds
+
+                      return (
+                        <div
+                          key={`${historyItem.timestamp.getTime()}-${index}`}
+                          className={`history-item ${
+                            !shouldShowTimestamp ? "no-timestamp" : ""
+                          }`}
+                        >
+                          {shouldShowTimestamp && (
+                            <div className="history-timestamp">
+                              {historyItem.timestamp.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                              })}
+                            </div>
+                          )}
+                          <InteractiveRollResult
+                            rollResult={historyItem.result}
+                            onReroll={() => {
+                              const rollResult = rollOnTable(
+                                historyItem.table,
+                                appState.tables
+                              );
+                              addToHistoryAndSetCurrent(
+                                rollResult,
+                                historyItem.table
+                              );
+                            }}
+                            onSubtableReroll={(subrollIndex: number) => {
+                              const newRollResult = rerollSubtable(
+                                historyItem.result,
+                                subrollIndex,
+                                historyItem.table,
+                                appState.tables
+                              );
+                              addToHistoryAndSetCurrent(
+                                newRollResult,
+                                historyItem.table
+                              );
+                            }}
+                            lastRolledTable={historyItem.table}
+                            isHistoryItem={true}
+                          />
+                        </div>
+                      );
+                    })}
+                </div>
+                <div
+                  className="history-resize-handle"
+                  onMouseDown={handleResizeStart}
+                  onTouchStart={handleResizeTouchStart}
+                  style={{cursor: isResizing ? "ns-resize" : "ns-resize"}}
+                >
+                  <div className="resize-indicator">
+                    <i className="fas fa-grip-lines"></i>
+                  </div>
+                </div>
               </div>
             )}
 
