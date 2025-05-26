@@ -440,7 +440,10 @@ const App: React.FC = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (showMobileMenu) {
         const target = event.target as Element;
-        if (!target.closest(".header-controls-mobile")) {
+        if (
+          !target.closest(".header-controls-mobile") &&
+          !target.closest(".mobile-menu-dropdown")
+        ) {
           setShowMobileMenu(false);
         }
       }
@@ -911,7 +914,7 @@ const App: React.FC = () => {
               {appState.vaultPath
                 ? appState.vaultPath.split("/").pop()
                 : isSelectingVault
-                ? "selecting..."
+                ? "..."
                 : "load vault"}
             </button>
             <button
@@ -1002,7 +1005,7 @@ const App: React.FC = () => {
                 {appState.vaultPath
                   ? `Change vault (${appState.vaultPath.split("/").pop()})`
                   : isSelectingVault
-                  ? "Selecting..."
+                  ? "..."
                   : "Load vault"}
               </button>
 
@@ -1173,7 +1176,7 @@ location
                     className="inline-vault-button"
                     title="Select vault folder"
                   >
-                    {isSelectingVault ? "scanning..." : "Obsidian vault"}
+                    {isSelectingVault ? "..." : "Obsidian vault"}
                   </button>{" "}
                   and let's roll.
                 </p>
