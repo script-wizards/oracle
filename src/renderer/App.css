@@ -759,6 +759,60 @@ body {
   gap: 12px;
 }
 
+/* Main content layout - responsive container */
+.main-content-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Main content area */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-width: 0; /* Prevent flex item from overflowing */
+}
+
+/* Large screen layout - side by side */
+@media (min-width: 1200px) {
+  .main-content-layout {
+    flex-direction: row;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .main-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .history-container {
+    width: 350px;
+    flex-shrink: 0;
+    order: 2; /* History appears on the right */
+  }
+
+  /* Adjust history for sidebar layout */
+  .roll-history {
+    min-height: 200px;
+  }
+
+  /* Keep vertical resize handle for sidebar - just adjust max height */
+  .history-resize-handle {
+    cursor: ns-resize;
+  }
+}
+
+/* Extra large screens - wider history panel */
+@media (min-width: 1600px) {
+  .history-container {
+    width: 400px;
+  }
+}
+
 /* Roll History */
 .history-container {
   display: flex;

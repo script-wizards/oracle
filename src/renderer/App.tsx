@@ -211,6 +211,8 @@ const App: React.FC = () => {
     return saved !== null ? parseInt(saved, 10) : 80;
   });
 
+
+
   // Resizing state
   const [isResizing, setIsResizing] = useState(false);
 
@@ -227,12 +229,17 @@ const App: React.FC = () => {
       e.preventDefault();
       setIsResizing(true);
 
+      // Always use vertical resize (height adjustment)
       const startY = e.clientY;
       const startHeight = historyHeight;
 
       const handleMouseMove = (e: MouseEvent) => {
         const deltaY = e.clientY - startY;
-        const newHeight = Math.max(40, Math.min(400, startHeight + deltaY)); // Min 40px, max 400px
+        // Check if we're in sidebar mode for different height limits
+        const isSidebarMode = window.innerWidth >= 1200;
+        const minHeight = 40;
+        const maxHeight = isSidebarMode ? 600 : 400; // Allow taller height in sidebar mode
+        const newHeight = Math.max(minHeight, Math.min(maxHeight, startHeight + deltaY));
         setHistoryHeight(newHeight);
       };
 
@@ -428,6 +435,8 @@ const App: React.FC = () => {
     localStorage.setItem("oracle-history-height", historyHeight.toString());
   }, [historyHeight]);
 
+
+
   // Keyboard shortcut for toggling history (Ctrl+H / Cmd+H)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -537,6 +546,8 @@ const App: React.FC = () => {
       // Reset history height to default
       setHistoryHeight(80);
       localStorage.removeItem("oracle-history-height");
+
+
 
       alert(t.clearStorage.successMessage);
     } catch (error) {
@@ -1179,151 +1190,156 @@ location
 
           {/* Spotlight Search Interface */}
           <div className="spotlight-search-section">
-            {/* Roll History - Stack grows above */}
-            {showHistory && rollHistory.length > 0 && (
-              <div className="history-container">
-                <div className="history-header">
-                  <span className="history-title">{t.history.title}</span>
-                  <button
-                    onClick={() => setShowHistory(false)}
-                    className="history-close-button"
-                    title={t.history.hideHistory}
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
-                </div>
-                <div
-                  className="roll-history"
-                  ref={historyRef}
-                  style={{maxHeight: `${historyHeight}px`}}
-                >
-                  {rollHistory
-                    .slice()
-                    .reverse()
-                    .map((historyItem, index) => {
-                      // Check if we should show timestamp for this item
-                      const reversedHistory = rollHistory.slice().reverse();
-                      const prevItem =
-                        index > 0 ? reversedHistory[index - 1] : null;
+            <div className="main-content-layout">
+              {/* Main content area */}
+              <div className="main-content">
+                {/* Current Roll Result - Most Important */}
+                {lastRollResult && (
+                  <InteractiveRollResult
+                    rollResult={lastRollResult}
+                    onReroll={handleReroll}
+                    onSubtableReroll={handleSubtableReroll}
+                    lastRolledTable={lastRolledTable}
+                  />
+                )}
 
-                      // Show timestamp if:
-                      // 1. It's the first item, OR
-                      // 2. More than 1 minute has passed since the previous item
-                      const shouldShowTimestamp =
-                        !prevItem ||
-                        historyItem.timestamp.getTime() -
-                          prevItem.timestamp.getTime() >
-                          60000; // 60 seconds
+                <SearchBar
+                  onSearch={setSearchQuery}
+                  onArrowUp={keyboardNav.handleArrowUp}
+                  onArrowDown={keyboardNav.handleArrowDown}
+                  onEnter={keyboardNav.handleEnter}
+                  onEscape={keyboardNav.handleEscape}
+                  onTab={keyboardNav.handleTab}
+                  onNumberKey={keyboardNav.handleNumberKey}
+                  value={searchQuery}
+                  resultCount={resultCount}
+                  selectedIndex={keyboardNav.selectedIndex}
+                />
 
-                      return (
-                        <div
-                          key={`${historyItem.timestamp.getTime()}-${index}`}
-                          className={`history-item ${
-                            !shouldShowTimestamp ? "no-timestamp" : ""
-                          }`}
-                        >
-                          {shouldShowTimestamp && (
-                            <div className="history-timestamp">
-                              {historyItem.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit"
-                              })}
-                            </div>
-                          )}
-                          <InteractiveRollResult
-                            rollResult={historyItem.result}
-                            onReroll={() => {
-                              const rollResult = rollOnTable(
-                                historyItem.table,
-                                appState.tables
-                              );
-                              addToHistoryAndSetCurrent(
-                                rollResult,
-                                historyItem.table
-                              );
-                            }}
-                            onSubtableReroll={(subrollIndex: number) => {
-                              const newRollResult = rerollSubtable(
-                                historyItem.result,
-                                subrollIndex,
-                                historyItem.table,
-                                appState.tables
-                              );
-                              addToHistoryAndSetCurrent(
-                                newRollResult,
-                                historyItem.table
-                              );
-                            }}
-                            lastRolledTable={historyItem.table}
-                            isHistoryItem={true}
-                          />
-                        </div>
+                {/* Table List - Always visible, filtered by search */}
+                <div className="tables-display">
+                  <TableList
+                    tables={filteredTables}
+                    selectedIndex={keyboardNav.selectedIndex}
+                    onTableSelect={(index: number) => {
+                      const actualTable = filteredTables[index];
+                      const actualIndex = appState.tables.findIndex(
+                        (table: Table) => table.id === actualTable.id
                       );
-                    })}
-                </div>
-                <div
-                  className="history-resize-handle"
-                  onMouseDown={handleResizeStart}
-                  onTouchStart={handleResizeTouchStart}
-                  style={{cursor: isResizing ? "ns-resize" : "ns-resize"}}
-                >
-                  <div className="resize-indicator">
-                    <i className="fas fa-grip-lines"></i>
-                  </div>
+                      handleTableSelect(actualIndex);
+
+                      // Update keyboard navigation to match
+                      keyboardNav.setSelectedIndex(index);
+
+                      // Automatically roll on the selected table
+                      setTimeout(() => {
+                        const rollResult = rollOnTable(
+                          actualTable,
+                          appState.tables
+                        );
+                        addToHistoryAndSetCurrent(rollResult, actualTable);
+                      }, 100);
+                    }}
+                    searchQuery={searchQuery}
+                    isKeyboardNavigating={keyboardNav.isNavigating}
+                  />
                 </div>
               </div>
-            )}
 
-            {/* Current Roll Result - Most Important */}
-            {lastRollResult && (
-              <InteractiveRollResult
-                rollResult={lastRollResult}
-                onReroll={handleReroll}
-                onSubtableReroll={handleSubtableReroll}
-                lastRolledTable={lastRolledTable}
-              />
-            )}
+              {/* Roll History - Sidebar on large screens, above content on small screens */}
+              {showHistory && rollHistory.length > 0 && (
+                <div className="history-container">
+                  <div className="history-header">
+                    <span className="history-title">{t.history.title}</span>
+                    <button
+                      onClick={() => setShowHistory(false)}
+                      className="history-close-button"
+                      title={t.history.hideHistory}
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div
+                    className="roll-history"
+                    ref={historyRef}
+                    style={{maxHeight: `${historyHeight}px`}}
+                  >
+                    {rollHistory
+                      .slice()
+                      .reverse()
+                      .map((historyItem, index) => {
+                        // Check if we should show timestamp for this item
+                        const reversedHistory = rollHistory.slice().reverse();
+                        const prevItem =
+                          index > 0 ? reversedHistory[index - 1] : null;
 
-            <SearchBar
-              onSearch={setSearchQuery}
-              onArrowUp={keyboardNav.handleArrowUp}
-              onArrowDown={keyboardNav.handleArrowDown}
-              onEnter={keyboardNav.handleEnter}
-              onEscape={keyboardNav.handleEscape}
-              onTab={keyboardNav.handleTab}
-              onNumberKey={keyboardNav.handleNumberKey}
-              value={searchQuery}
-              resultCount={resultCount}
-              selectedIndex={keyboardNav.selectedIndex}
-            />
+                        // Show timestamp if:
+                        // 1. It's the first item, OR
+                        // 2. More than 1 minute has passed since the previous item
+                        const shouldShowTimestamp =
+                          !prevItem ||
+                          historyItem.timestamp.getTime() -
+                            prevItem.timestamp.getTime() >
+                            60000; // 60 seconds
 
-            {/* Table List - Always visible, filtered by search */}
-            <div className="tables-display">
-              <TableList
-                tables={filteredTables}
-                selectedIndex={keyboardNav.selectedIndex}
-                onTableSelect={(index: number) => {
-                  const actualTable = filteredTables[index];
-                  const actualIndex = appState.tables.findIndex(
-                    (table: Table) => table.id === actualTable.id
-                  );
-                  handleTableSelect(actualIndex);
-
-                  // Update keyboard navigation to match
-                  keyboardNav.setSelectedIndex(index);
-
-                  // Automatically roll on the selected table
-                  setTimeout(() => {
-                    const rollResult = rollOnTable(
-                      actualTable,
-                      appState.tables
-                    );
-                    addToHistoryAndSetCurrent(rollResult, actualTable);
-                  }, 100);
-                }}
-                searchQuery={searchQuery}
-                isKeyboardNavigating={keyboardNav.isNavigating}
-              />
+                        return (
+                          <div
+                            key={`${historyItem.timestamp.getTime()}-${index}`}
+                            className={`history-item ${
+                              !shouldShowTimestamp ? "no-timestamp" : ""
+                            }`}
+                          >
+                            {shouldShowTimestamp && (
+                              <div className="history-timestamp">
+                                {historyItem.timestamp.toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </div>
+                            )}
+                            <InteractiveRollResult
+                              rollResult={historyItem.result}
+                              onReroll={() => {
+                                const rollResult = rollOnTable(
+                                  historyItem.table,
+                                  appState.tables
+                                );
+                                addToHistoryAndSetCurrent(
+                                  rollResult,
+                                  historyItem.table
+                                );
+                              }}
+                              onSubtableReroll={(subrollIndex: number) => {
+                                const newRollResult = rerollSubtable(
+                                  historyItem.result,
+                                  subrollIndex,
+                                  historyItem.table,
+                                  appState.tables
+                                );
+                                addToHistoryAndSetCurrent(
+                                  newRollResult,
+                                  historyItem.table
+                                );
+                              }}
+                              lastRolledTable={historyItem.table}
+                              isHistoryItem={true}
+                            />
+                          </div>
+                        );
+                      })}
+                  </div>
+                  <div
+                    className="history-resize-handle"
+                    onMouseDown={handleResizeStart}
+                    onTouchStart={handleResizeTouchStart}
+                    style={{cursor: isResizing ? "ns-resize" : "ns-resize"}}
+                  >
+                    <div className="resize-indicator">
+                      <i className="fas fa-grip-lines"></i>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
