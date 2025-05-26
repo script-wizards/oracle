@@ -195,7 +195,7 @@ body {
   padding: 3px 6px;
 }
 
-.header-button.refresh-vault:disabled {
+.header-button.refresh-vault.spinning {
   animation: spin 1s linear infinite;
 }
 
@@ -256,7 +256,7 @@ body {
 /* Main content */
 .app-main {
   flex: 1;
-  padding: 16px;
+  padding: 12px;
   overflow-y: auto;
   display: flex;
   justify-content: center;
@@ -308,7 +308,7 @@ body {
   border: 1px solid var(--border-primary);
   border-radius: 6px;
   padding: 24px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   text-align: left;
   width: 100%;
 }
@@ -596,7 +596,7 @@ body {
 
 /* Spotlight search */
 .spotlight-search-section {
-  margin: 12px 0 0 0;
+  margin: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -630,7 +630,7 @@ body {
 }
 
 .roll-result-spotlight .result-text {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--accent-primary);
   line-height: 1.4;
@@ -672,14 +672,14 @@ body {
 }
 
 .clickable-subtable {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--accent-primary);
-  border-radius: 2px;
-  padding: 2px 6px;
-  margin: 0 2px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
   transition: all 0.15s ease;
-  display: inline-block;
+  display: inline;
   color: var(--accent-primary);
   font-size: inherit;
 }
@@ -690,6 +690,14 @@ body {
 }
 
 .static-text {
+  color: var(--text-primary);
+}
+
+.full-result-text {
+  color: var(--text-primary);
+}
+
+.clickable-text {
   color: var(--text-primary);
 }
 
@@ -1032,6 +1040,21 @@ body {
     font-size: 10px;
   }
 
+  .header-button.vault-name {
+    width: auto;
+    min-width: 80px;
+    max-width: 200px;
+    white-space: nowrap;
+    padding: 2px 8px;
+  }
+
+  .header-button.clear-storage {
+    width: auto;
+    min-width: 50px;
+    white-space: nowrap;
+    padding: 2px 8px;
+  }
+
   .window-control {
     width: 22px;
     height: 22px;
@@ -1078,7 +1101,7 @@ body {
   }
 
   .roll-result-spotlight .result-text {
-    font-size: 16px;
+    font-size: 13px;
   }
 
   .clickable-subtable {

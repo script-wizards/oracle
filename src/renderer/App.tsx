@@ -650,40 +650,48 @@ const App: React.FC = () => {
         </div>
 
         <div className="header-controls">
-          {/* Vault Controls as Header Buttons */}
-          {appState.vaultPath && (
-            <>
-              <button
-                onClick={handleSelectVault}
-                disabled={isSelectingVault}
-                className="header-button vault-name"
-                title="Click to change vault"
-              >
-                {appState.vaultPath.split("/").pop()}
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    await handleScanFiles();
-                    try {
-                      await handleParseTables();
-                    } catch (parseError) {
-                      console.error("Failed to parse tables:", parseError);
-                    }
-                  } catch (scanError) {
-                    console.error("Failed to scan files:", scanError);
-                  }
-                }}
-                disabled={
-                  isScanningFiles || isParsingTables || !appState.vaultPath
+          {/* Vault Controls as Header Buttons - Always visible for consistency */}
+          <button
+            onClick={handleSelectVault}
+            disabled={isSelectingVault}
+            className="header-button vault-name"
+            title={
+              appState.vaultPath
+                ? "Click to change vault"
+                : "Click to select vault"
+            }
+          >
+            {appState.vaultPath
+              ? appState.vaultPath.split("/").pop()
+              : isSelectingVault
+              ? "selecting..."
+              : "load vault"}
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                await handleScanFiles();
+                try {
+                  await handleParseTables();
+                } catch (parseError) {
+                  console.error("Failed to parse tables:", parseError);
                 }
-                className="header-button refresh-vault"
-                title="Refresh vault and parse tables"
-              >
-                {isScanningFiles || isParsingTables ? "⟳" : "↻"}
-              </button>
-            </>
-          )}
+              } catch (scanError) {
+                console.error("Failed to scan files:", scanError);
+              }
+            }}
+            disabled={isScanningFiles || isParsingTables || !appState.vaultPath}
+            className={`header-button refresh-vault ${
+              isScanningFiles || isParsingTables ? "spinning" : ""
+            }`}
+            title={
+              appState.vaultPath
+                ? "Refresh vault and parse tables"
+                : "Select a vault first"
+            }
+          >
+            {isScanningFiles || isParsingTables ? "⟳" : "↻"}
+          </button>
 
           {storageAvailable && (
             <button
@@ -691,7 +699,7 @@ const App: React.FC = () => {
               className="header-button clear-storage"
               title="Clear all stored data"
             >
-              🗑️
+              clear
             </button>
           )}
 
@@ -775,6 +783,16 @@ const App: React.FC = () => {
 
           {/* Spotlight Search Interface */}
           <div className="spotlight-search-section">
+            {/* Immediate Roll Result - Most Important */}
+            {lastRollResult && (
+              <InteractiveRollResult
+                rollResult={lastRollResult}
+                onReroll={handleReroll}
+                onSubtableReroll={handleSubtableReroll}
+                lastRolledTable={lastRolledTable}
+              />
+            )}
+
             <SearchBar
               onSearch={setSearchQuery}
               onArrowUp={keyboardNav.handleArrowUp}
@@ -788,16 +806,6 @@ const App: React.FC = () => {
               resultCount={resultCount}
               selectedIndex={keyboardNav.selectedIndex}
             />
-
-            {/* Immediate Roll Result - Most Important */}
-            {lastRollResult && (
-              <InteractiveRollResult
-                rollResult={lastRollResult}
-                onReroll={handleReroll}
-                onSubtableReroll={handleSubtableReroll}
-                lastRolledTable={lastRolledTable}
-              />
-            )}
 
             {/* Table List - Always visible, filtered by search */}
             <div className="tables-display">
