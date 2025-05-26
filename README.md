@@ -16,16 +16,27 @@ A desktop application for tabletop gaming that parses and rolls on random tables
 
 ## Quick Start
 
-### Prerequisites
+### Download Pre-built Binaries
+
+For most users, download the latest compiled version:
+
+- **[GitHub Releases](https://github.com/script-wizards/oracle/releases)** - Download for Windows, macOS, and Linux
+- **[itch.io](https://scriptwizards.itch.io/oracle)** - Alternative download with community features
+
+### Development Setup
+
+If you want to modify or contribute to Oracle:
+
+#### Prerequisites
 
 - Node.js 18+
 - npm or yarn
 
-### Installation
+#### Installation
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/script-wizards/oracle.git
 cd oracle
 
 # Install dependencies
@@ -221,7 +232,7 @@ interface Table {
 
 ## License
 
-[Add your license here]
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
