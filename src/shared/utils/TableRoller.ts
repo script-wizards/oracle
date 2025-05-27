@@ -473,8 +473,11 @@ function resolveTextWithForcedSelections(
             const lengthDiff = subtableResult.text.length - matchInfo.fullMatch.length;
 
             // Update positions of existing subrolls that come after this replacement
+            // We need to be careful about the position comparison since we're processing in reverse
             for (let j = 0; j < newSubrolls.length; j++) {
                 const existingSubroll = newSubrolls[j];
+                // Only adjust subrolls that start at or after the END of the current match
+                // This ensures we don't double-adjust subrolls from earlier matches
                 if (existingSubroll.startIndex >= matchInfo.endIndex) {
                     existingSubroll.startIndex += lengthDiff;
                     existingSubroll.endIndex += lengthDiff;
@@ -493,6 +496,11 @@ function resolveTextWithForcedSelections(
                 entryIndex: subtableResult.entryIndex,
                 hasNestedRefs: !!(subtableResult.subrolls && subtableResult.subrolls.length > 0)
             };
+
+            // Debug logging for troubleshooting
+            if (depth === 1) { // Only log top-level resolutions to avoid spam
+                console.log(`Created subroll for [${matchInfo.tableName}]: "${subtableResult.text}" at ${matchInfo.startIndex}-${matchInfo.startIndex + subtableResult.text.length}, hasNestedRefs: ${mainSubroll.hasNestedRefs}`);
+            }
 
             // Add the main subroll to the list
             newSubrolls.push(mainSubroll);
@@ -590,8 +598,11 @@ function resolveText(
             const lengthDiff = subtableResult.text.length - matchInfo.fullMatch.length;
 
             // Update positions of existing subrolls that come after this replacement
+            // We need to be careful about the position comparison since we're processing in reverse
             for (let j = 0; j < newSubrolls.length; j++) {
                 const existingSubroll = newSubrolls[j];
+                // Only adjust subrolls that start at or after the END of the current match
+                // This ensures we don't double-adjust subrolls from earlier matches
                 if (existingSubroll.startIndex >= matchInfo.endIndex) {
                     existingSubroll.startIndex += lengthDiff;
                     existingSubroll.endIndex += lengthDiff;
@@ -611,16 +622,23 @@ function resolveText(
                 hasNestedRefs: !!(subtableResult.subrolls && subtableResult.subrolls.length > 0)
             };
 
+
+
             // Add the main subroll to the list
             newSubrolls.push(mainSubroll);
 
             // Add any nested subrolls (adjust their positions relative to the main subroll)
             if (subtableResult.subrolls) {
-                const adjustedNestedSubrolls = subtableResult.subrolls.map(nestedSubroll => ({
-                    ...nestedSubroll,
-                    startIndex: matchInfo.startIndex + nestedSubroll.startIndex,
-                    endIndex: matchInfo.startIndex + nestedSubroll.endIndex
-                }));
+                const adjustedNestedSubrolls = subtableResult.subrolls.map(nestedSubroll => {
+                    const adjustedStart = matchInfo.startIndex + nestedSubroll.startIndex;
+                    const adjustedEnd = matchInfo.startIndex + nestedSubroll.endIndex;
+                    
+                    return {
+                        ...nestedSubroll,
+                        startIndex: adjustedStart,
+                        endIndex: adjustedEnd
+                    };
+                });
 
                 // Add nested subrolls
                 newSubrolls.push(...adjustedNestedSubrolls);
@@ -806,11 +824,14 @@ export function rerollSubtable(
         const subroll = originalResult.subrolls[i];
 
         if (i === subrollIndex) {
-            // Update the target subroll with new text and correct end position
+            // Update the target subroll with new text, correct end position, and metadata
             newSubrolls.push({
                 ...subroll,
                 text: newSubtableText,
-                endIndex: subroll.startIndex + newSubtableText.length
+                endIndex: subroll.startIndex + newSubtableText.length,
+                originalEntry: newSubtableResult.originalEntry,
+                entryIndex: newSubtableResult.entryIndex,
+                hasNestedRefs: !!(newSubtableResult.subrolls && newSubtableResult.subrolls.length > 0)
             });
         } else if (subroll.startIndex >= targetSubroll.endIndex) {
             // Adjust positions for subrolls that come after the rerolled one

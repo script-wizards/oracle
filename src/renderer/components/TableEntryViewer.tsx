@@ -41,51 +41,78 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
     }));
   };
 
-  // Helper function to check if an entry was rolled
-  const isEntryRolled = (sectionName: string, entryIndex: number): boolean => {
-    if (!rollResult) return false;
+  // Helper function to check if an entry was rolled and how many times
+  const getEntryRollCount = (sectionName: string, entryIndex: number): number => {
+    if (!rollResult) return 0;
     
-    // Find the subroll for this section
-    const sectionSubroll = rollResult.subrolls.find(subroll => 
+    // Find ALL subrolls for this section (there might be multiple)
+    const sectionSubrolls = rollResult.subrolls.filter(subroll => 
       subroll.source === sectionName && 
       subroll.type === 'subtable'
     );
     
-    if (!sectionSubroll) return false;
+    if (sectionSubrolls.length === 0) return 0;
     
-    // If we have the entry index, use that for exact matching
-    if (sectionSubroll.entryIndex !== undefined) {
-      return entryIndex === sectionSubroll.entryIndex;
-    }
-    
-    // Fallback: compare against the original entry text
-    const section = table.sections?.find(s => s.name.toLowerCase() === sectionName.toLowerCase());
-    if (!section) return false;
-    
-    const entryToMatch = sectionSubroll.originalEntry || sectionSubroll.text;
-    return section.entries[entryIndex] === entryToMatch;
+    // Count how many subrolls match this entry
+    return sectionSubrolls.filter(sectionSubroll => {
+      // If we have the entry index, use that for exact matching
+      if (sectionSubroll.entryIndex !== undefined) {
+        return entryIndex === sectionSubroll.entryIndex;
+      }
+      
+      // Fallback: compare against the original entry text
+      const section = table.sections?.find(s => s.name.toLowerCase() === sectionName.toLowerCase());
+      if (!section) return false;
+      
+      const entryToMatch = sectionSubroll.originalEntry || sectionSubroll.text;
+      return section.entries[entryIndex] === entryToMatch;
+    }).length;
+  };
+
+  // Helper function to check if an entry was rolled
+  const isEntryRolled = (sectionName: string, entryIndex: number): boolean => {
+    return getEntryRollCount(sectionName, entryIndex) > 0;
   };
 
   // Helper function to get the rolled entry text for a section
   const getRolledEntryText = (sectionName: string): string | null => {
     if (!rollResult) return null;
     
-    const subroll = rollResult.subrolls.find(subroll => 
+    const subrolls = rollResult.subrolls.filter(subroll => 
       subroll.source === sectionName && 
       subroll.type === 'subtable'
     );
     
-    return subroll ? subroll.text : null;
+    // If multiple subrolls, return the first one's text (for section highlighting purposes)
+    return subrolls.length > 0 ? subrolls[0].text : null;
   };
 
   // Helper function to check if a section was rolled (and thus allows forced entry selection)
   const wasSectionRolled = (sectionName: string): boolean => {
     if (!rollResult) return false;
     
-    return rollResult.subrolls.some(subroll => 
+    const matchingSubrolls = rollResult.subrolls.filter(subroll => 
       subroll.source === sectionName && 
       subroll.type === 'subtable'
     );
+    
+    // If the section is referenced multiple times, disable forcing to avoid ambiguity
+    // The user can still click on individual subrolls in the result text
+    if (matchingSubrolls.length > 1) {
+      return false;
+    }
+    
+    // Also check if this section has nested subrolls that would create ambiguity
+    if (matchingSubrolls.length === 1) {
+      const mainSubroll = matchingSubrolls[0];
+      // If this subroll has nested refs, it means there are child subrolls
+      // In this case, disable forcing to avoid confusion about which part to reroll
+      if (mainSubroll.hasNestedRefs) {
+        return false;
+      }
+    }
+    
+    return matchingSubrolls.length === 1;
   };
 
   // Handle clicking on an entry to force it
@@ -228,7 +255,8 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
               {isExpanded && (
                 <div className="section-entries">
                   {section.entries.map((entry, entryIndex) => {
-                    const isRolled = isEntryRolled(section.name, entryIndex);
+                    const rollCount = getEntryRollCount(section.name, entryIndex);
+                    const isRolled = rollCount > 0;
                     const sectionWasRolled = wasSectionRolled(section.name);
                     const isClickable = sectionWasRolled && onForceEntry;
                     
@@ -238,12 +266,21 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
                         className={`entry-item ${isRolled ? 'rolled-entry' : ''} ${isClickable ? 'clickable-entry' : ''}`}
                         onClick={isClickable ? () => handleEntryClick(section.name, entryIndex) : undefined}
                         title={isClickable ? 'Click to force this entry to be rolled' : undefined}
+                        style={rollCount > 1 ? { 
+                          boxShadow: `0 0 0 2px var(--accent-color), 0 0 0 4px var(--accent-color-alpha)`,
+                          borderRadius: '4px'
+                        } : undefined}
                       >
                         <div className="entry-bullet">
                           •
                         </div>
                         <div className="entry-text">
                           {formatEntry(entry)}
+                          {rollCount > 1 && (
+                            <span className="roll-count-indicator" title={`Selected ${rollCount} times`}>
+                              ×{rollCount}
+                            </span>
+                          )}
                         </div>
                       </div>
                     );
