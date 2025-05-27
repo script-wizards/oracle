@@ -126,8 +126,8 @@ export function parsePerchanceContent(content: string): PerchanceParseResult {
             continue;
         }
 
-        // Check if this is an indented entry (2+ spaces)
-        const indentMatch = line.match(/^(\s{2,})(.+)$/);
+        // Check if this is an indented entry (tab or 2+ spaces)
+        const indentMatch = line.match(/^(\t|\s{2,})(.+)$/);
 
         if (indentMatch) {
             const entry = indentMatch[2].trim();
