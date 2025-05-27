@@ -1,3 +1,7 @@
+# Maze Rats Tables
+
+This is a modified version of content from "Maze Rats" by Ben Milton, originally available at https://questingbeast.itch.io/maze-rats, licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/.
+
 ```perchance
 title
   Maze Rats
