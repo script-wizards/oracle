@@ -196,7 +196,7 @@ body {
   cursor: pointer;
   transition: all 0.15s ease;
   font-family: inherit;
-  min-width: 24px;
+  width: 32px;
   height: 24px;
   display: flex;
   align-items: center;
@@ -1496,7 +1496,7 @@ body {
   cursor: pointer;
   transition: all 0.15s ease;
   font-family: inherit;
-  min-width: 24px;
+  width: 32px;
   height: 24px;
   display: flex;
   align-items: center;
@@ -1629,6 +1629,22 @@ body {
   background: var(--bg-primary);
 }
 
+.canvas-container::before {
+  content: "    █████████     █████████   ███████████    █████  ███████████  ███████████\A   ███░░░░░███   ███░░░░░███ ░░███░░░░░███  ░░███  ░░███░░░░░███░█░░░███░░░█\A  ░███    ░░░   ███     ░░░   ░███    ░███   ░███   ░███    ░███░   ░███  ░\A  ░░█████████  ░███           ░██████████    ░███   ░██████████     ░███\A   ░░░░░░░░███ ░███           ░███░░░░░███   ░███   ░███░░░░░░      ░███\A   ███    ░███ ░░███     ███  ░███    ░███   ░███   ░███            ░███\A  ░░█████████   ░░█████████   █████   █████  █████  █████           █████\A   ░░░░░░░░░     ░░░░░░░░░   ░░░░░   ░░░░░  ░░░░░  ░░░░░           ░░░░░\A ▄█     █▄   ▄█   ▄███████▄     ▄████████    ▄████████ ████████▄     ▄████████\A███     ███ ███  ██▀     ▄██   ███    ███   ███    ███ ███   ▀███   ███    ███\A███     ███ ███▌       ▄███▀   ███    ███   ███    ███ ███    ███   ███    █▀\A███     ███ ███▌  ▀█▀▄███▀▄▄   ███    ███  ▄███▄▄▄▄██▀ ███    ███   ███\A███     ███ ███▌   ▄███▀   ▀ ▀███████████ ▀▀███▀▀▀▀▀   ███    ███ ▀███████████\A███     ███ ███  ▄███▀         ███    ███ ▀███████████ ███    ███          ███\A███ ▄█▄ ███ ███  ███▄     ▄█   ███    ███   ███    ███ ███   ▄███    ▄█    ███\A ▀███▀███▀  █▀    ▀████████▀   ███    █▀    ███    ███ ████████▀   ▄████████▀";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  white-space: pre;
+  font-family: monospace;
+  font-size: 10px;
+  color:var(--text-muted);
+  z-index: 0;
+  pointer-events: none;
+  line-height: 1;
+  user-select: none;
+}
+
 .draggable-window {
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
@@ -1737,50 +1753,84 @@ body {
   display: none;
 }
 
-/* Floating toolbar for canvas mode */
-.canvas-toolbar {
+/* Canvas add button for canvas mode */
+.canvas-add-button-container {
   position: fixed;
-  top: 50px;
-  left: 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: 6px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   z-index: 1000;
+}
+
+.canvas-add-button {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+  padding: 8px;
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: grab;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px var(--shadow-subtle);
+  position: relative;
+}
+
+.canvas-add-button:active {
+  cursor: grabbing;
+}
+
+.canvas-add-button:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--bg-tertiary);
   box-shadow: 0 4px 12px var(--shadow-subtle);
 }
 
-.canvas-toolbar-button {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
+.canvas-menu {
+  position: absolute;
+  bottom: 50px; /* Position above the button */
+  left: 0; /* Align with button */
+  background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
-  padding: 6px 8px;
+  border-radius: 6px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 4px 12px var(--shadow-subtle);
+  min-width: 140px;
+}
+
+.canvas-menu-item {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 8px 12px;
   border-radius: 3px;
   font-size: 11px;
   cursor: pointer;
   transition: all 0.15s ease;
   font-family: inherit;
-  min-width: 120px;
   text-align: left;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
-.canvas-toolbar-button:hover:not(:disabled) {
-  border-color: var(--accent-primary);
+.canvas-menu-item:hover:not(:disabled) {
+  background: var(--bg-tertiary);
   color: var(--accent-primary);
 }
 
-.canvas-toolbar-button:disabled {
+.canvas-menu-item:disabled {
   color: var(--text-muted);
   cursor: not-allowed;
 }
 
-.canvas-toolbar-button i {
+.canvas-menu-item i {
   font-size: 10px;
   width: 12px;
   text-align: center;

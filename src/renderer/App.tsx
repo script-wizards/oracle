@@ -300,6 +300,15 @@ const App: React.FC = () => {
   // Mobile menu state
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+  // Canvas menu state
+  const [showCanvasMenu, setShowCanvasMenu] = useState(false);
+
+  // Canvas add button position
+  const [canvasButtonPosition, setCanvasButtonPosition] = useState(() => {
+    const saved = localStorage.getItem("oracle-canvas-button-position");
+    return saved !== null ? JSON.parse(saved) : { x: 20, y: 20 }; // Default bottom-left (20px from bottom and left)
+  });
+
   // Canvas mode state
   const [isCanvasMode, setIsCanvasMode] = useState(() => {
     const saved = localStorage.getItem("oracle-canvas-mode");
@@ -545,6 +554,11 @@ const App: React.FC = () => {
     localStorage.setItem("oracle-open-table-windows", JSON.stringify(Array.from(openTableWindows)));
   }, [openTableWindows]);
 
+  // Save canvas button position
+  useEffect(() => {
+    localStorage.setItem("oracle-canvas-button-position", JSON.stringify(canvasButtonPosition));
+  }, [canvasButtonPosition]);
+
 
 
   // Keyboard shortcut for toggling history (Ctrl+H / Cmd+H)
@@ -580,16 +594,25 @@ const App: React.FC = () => {
     };
   }, [isCanvasMode, rollHistory.length]); // Include dependencies for canvas mode and history length
 
-  // Close mobile menu when clicking outside
+  // Close mobile menu and canvas menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
       if (showMobileMenu) {
-        const target = event.target as Element;
         if (
-          !target.closest(".header-controls-mobile") &&
+          !target.closest(".header-controls") &&
           !target.closest(".mobile-menu-dropdown")
         ) {
           setShowMobileMenu(false);
+        }
+      }
+      
+      if (showCanvasMenu) {
+        if (
+          !target.closest(".canvas-add-button-container")
+        ) {
+          setShowCanvasMenu(false);
         }
       }
     };
@@ -598,7 +621,7 @@ const App: React.FC = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showMobileMenu]);
+  }, [showMobileMenu, showCanvasMenu]);
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
@@ -1197,7 +1220,7 @@ const App: React.FC = () => {
             className={`header-button ${isCanvasMode ? "active" : ""}`}
             title="Toggle Canvas Mode"
           >
-            <i className="fas fa-th"></i>
+            <i className={`fas ${isCanvasMode ? "fa-table-list" : "fa-layer-group"}`}></i>
           </button>
 
           {/* Unified Menu Button */}
@@ -1307,40 +1330,124 @@ const App: React.FC = () => {
         {/* Canvas Mode */}
         {isCanvasMode ? (
           <div className="canvas-container">
-            {/* Canvas Toolbar */}
-            <div className="canvas-toolbar">
+            {/* Canvas Add Button */}
+            <div 
+              className="canvas-add-button-container"
+              style={{
+                bottom: `${canvasButtonPosition.y}px`,
+                left: `${canvasButtonPosition.x}px`
+              }}
+            >
               <button
-                onClick={() => openWindow('welcome')}
-                className="canvas-toolbar-button"
-                disabled={openWindows.welcome}
+                className="canvas-add-button"
+                onClick={(e) => {
+                  // Only open menu if we didn't drag
+                  if (!e.currentTarget.dataset.dragged) {
+                    setShowCanvasMenu(!showCanvasMenu);
+                  }
+                  // Reset drag flag
+                  delete e.currentTarget.dataset.dragged;
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  const button = e.currentTarget;
+                  const startX = e.clientX - canvasButtonPosition.x;
+                  const startY = e.clientY;
+                  const startBottom = canvasButtonPosition.y;
+                  let hasDragged = false;
+
+                  const handleMouseMove = (e: MouseEvent) => {
+                    hasDragged = true;
+                    button.dataset.dragged = "true";
+                    
+                    // Get header and footer heights to constrain movement
+                    const header = document.querySelector('.app-header') as HTMLElement;
+                    const footer = document.querySelector('.app-footer') as HTMLElement;
+                    const headerHeight = header ? header.offsetHeight : 40; // Default 40px if not found
+                    const footerHeight = footer ? footer.offsetHeight : 24; // Default 24px if not found
+                    
+                    // Consistent margin from all edges
+                    const margin = 10;
+                    const buttonSize = 40; // Button is 40px wide/tall
+                    
+                    // Calculate available canvas area with consistent margins
+                    const minX = margin;
+                    const maxX = window.innerWidth - buttonSize - margin;
+                    const minY = footerHeight + margin; // Distance from bottom (footer height + margin)
+                    const maxY = window.innerHeight - headerHeight - buttonSize - margin; // Distance from bottom, accounting for header + margin
+                    
+                    const newX = Math.max(minX, Math.min(maxX, e.clientX - startX));
+                    const newY = Math.max(minY, Math.min(maxY, startBottom + (startY - e.clientY)));
+                    setCanvasButtonPosition({ x: newX, y: newY });
+                  };
+
+                  const handleMouseUp = () => {
+                    document.removeEventListener("mousemove", handleMouseMove);
+                    document.removeEventListener("mouseup", handleMouseUp);
+                    
+                    // If we didn't drag, allow the click to proceed
+                    if (!hasDragged) {
+                      delete button.dataset.dragged;
+                    }
+                  };
+
+                  document.addEventListener("mousemove", handleMouseMove);
+                  document.addEventListener("mouseup", handleMouseUp);
+                }}
+                title="Add Window (drag to move)"
               >
-                <i className="fas fa-home"></i>
-                Welcome
+                <i className="fas fa-plus"></i>
               </button>
-              <button
-                onClick={() => openWindow('search')}
-                className="canvas-toolbar-button"
-                disabled={openWindows.search}
-              >
-                <i className="fas fa-search"></i>
-                Search
-              </button>
-              <button
-                onClick={() => openWindow('history')}
-                className="canvas-toolbar-button"
-                disabled={openWindows.history || rollHistory.length === 0}
-              >
-                <i className="fas fa-history"></i>
-                History
-              </button>
-              <button
-                onClick={() => openWindow('currentResult')}
-                className="canvas-toolbar-button"
-                disabled={openWindows.currentResult || !lastRollResult}
-              >
-                <i className="fas fa-dice-d20"></i>
-                Current Roll
-              </button>
+              
+              {/* Canvas Menu */}
+              {showCanvasMenu && (
+                <div className="canvas-menu">
+                  <button
+                    onClick={() => {
+                      openWindow('welcome');
+                      setShowCanvasMenu(false);
+                    }}
+                    className="canvas-menu-item"
+                    disabled={openWindows.welcome}
+                  >
+                    <i className="fas fa-home"></i>
+                    Welcome
+                  </button>
+                  <button
+                    onClick={() => {
+                      openWindow('search');
+                      setShowCanvasMenu(false);
+                    }}
+                    className="canvas-menu-item"
+                    disabled={openWindows.search}
+                  >
+                    <i className="fas fa-search"></i>
+                    Search
+                  </button>
+                  <button
+                    onClick={() => {
+                      openWindow('history');
+                      setShowCanvasMenu(false);
+                    }}
+                    className="canvas-menu-item"
+                    disabled={openWindows.history || rollHistory.length === 0}
+                  >
+                    <i className="fas fa-history"></i>
+                    History
+                  </button>
+                  <button
+                    onClick={() => {
+                      openWindow('currentResult');
+                      setShowCanvasMenu(false);
+                    }}
+                    className="canvas-menu-item"
+                    disabled={openWindows.currentResult || !lastRollResult}
+                  >
+                    <i className="fas fa-dice-d20"></i>
+                    Current Roll
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Welcome Window */}
