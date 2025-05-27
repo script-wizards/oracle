@@ -223,7 +223,7 @@ const TableList: React.FC<TableListProps> = ({
               <div className="table-viewer-content">
                 <TableEntryViewer 
                   table={table} 
-                  searchQuery=""
+                  searchQuery={searchQuery}
                   rollResult={rollResult && lastRolledTable?.id === table.id ? rollResult : undefined}
                   onForceEntry={onForceEntry ? (sectionName, entryIndex) => onForceEntry(table, sectionName, entryIndex) : undefined}
                   onRollSection={onRollSection ? (sectionName) => onRollSection(table, sectionName) : undefined}
