@@ -86,6 +86,19 @@ export function parsePerchanceTable(
 }
 
 /**
+ * Removes comments from a line (anything after and including //)
+ * @param line - The line to process
+ * @returns The line with comments removed
+ */
+function removeComments(line: string): string {
+    const commentIndex = line.indexOf('//');
+    if (commentIndex !== -1) {
+        return line.substring(0, commentIndex);
+    }
+    return line;
+}
+
+/**
  * Parses the content of a Perchance code block
  * @param content - The raw content to parse
  * @returns Detailed parse result
@@ -103,11 +116,12 @@ export function parsePerchanceContent(content: string): PerchanceParseResult {
     let expectingTitle = false;
 
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+        const rawLine = lines[i];
+        const line = removeComments(rawLine);
         const trimmedLine = line.trim();
         lineIndex = i + 1;
 
-        // Skip empty lines
+        // Skip empty lines (including lines that are only comments)
         if (trimmedLine === '') {
             continue;
         }

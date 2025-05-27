@@ -115,6 +115,29 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
     );
   };
 
+  // Helper function to check if a section matches the search query
+  const sectionMatchesSearch = (section: TableSection, query: string): boolean => {
+    if (!query.trim()) return true; // Show all sections when no search query
+    
+    const searchLower = query.toLowerCase();
+    
+    // Check section name (fuzzy matching - split query into words)
+    const queryWords = searchLower.split(/\s+/).filter(word => word.length > 0);
+    const sectionNameLower = section.name.toLowerCase();
+    
+    // Section matches if all query words are found in section name
+    const sectionNameMatches = queryWords.every(word => sectionNameLower.includes(word));
+    if (sectionNameMatches) {
+      return true;
+    }
+    
+    // Check if any entry contains all the search terms (fuzzy matching)
+    return section.entries.some(entry => {
+      const entryLower = entry.toLowerCase();
+      return queryWords.every(word => entryLower.includes(word));
+    });
+  };
+
   const formatEntry = (entry: string): React.ReactNode => {
     // Highlight subtable references in brackets
     const bracketRegex = /\[([^\]]+)\]/g;
@@ -155,8 +178,10 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
     );
   }
 
-  // Preserve original section order from the table definition
-  const sectionsToRender = table.sections || [];
+  // Filter sections based on search query, preserving original order
+  const sectionsToRender = (table.sections || []).filter(section => 
+    sectionMatchesSearch(section, searchQuery || '')
+  );
 
   return (
     <div className="table-entry-viewer">

@@ -92,16 +92,14 @@ const TableList: React.FC<TableListProps> = ({
   const getTableSubtitle = (table: Table): string => {
     const parts = [];
 
-    if (table.entries.length > 0) {
-      parts.push(`${table.entries.length} ${t.tables.entries}`);
+    // Show number of sections (the actual functional units)
+    if (table.sections && table.sections.length > 0) {
+      parts.push(`${table.sections.length} ${table.sections.length === 1 ? 'section' : 'sections'}`);
     }
 
-    if (table.subtables && table.subtables.length > 0) {
-      parts.push(`${table.subtables.length} ${t.tables.subtables}`);
-    }
-
+    // Show errors if any
     if (table.errors && table.errors.length > 0) {
-      parts.push(`${table.errors.length} ${t.tables.errors}`);
+      parts.push(`${table.errors.length} ${table.errors.length === 1 ? 'error' : 'errors'}`);
     }
 
     return parts.join(" • ");
@@ -225,7 +223,7 @@ const TableList: React.FC<TableListProps> = ({
               <div className="table-viewer-content">
                 <TableEntryViewer 
                   table={table} 
-                  searchQuery={searchQuery}
+                  searchQuery=""
                   rollResult={rollResult && lastRolledTable?.id === table.id ? rollResult : undefined}
                   onForceEntry={onForceEntry ? (sectionName, entryIndex) => onForceEntry(table, sectionName, entryIndex) : undefined}
                   onRollSection={onRollSection ? (sectionName) => onRollSection(table, sectionName) : undefined}

@@ -45,6 +45,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
     return outputSection ? outputSection.name : (sections[0]?.name || 'output');
   });
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Roll on a specific section
   const handleRollSection = (sectionName: string) => {
@@ -153,12 +154,14 @@ export const TableWindow: React.FC<TableWindowProps> = ({
   const getTableSubtitle = (): string => {
     const parts = [];
     
-    if (table.entries.length > 0) {
-      parts.push(`${table.entries.length} entries`);
+    // Show number of sections (the actual functional units)
+    if (table.sections && table.sections.length > 0) {
+      parts.push(`${table.sections.length} ${table.sections.length === 1 ? 'section' : 'sections'}`);
     }
     
-    if (table.subtables && table.subtables.length > 0) {
-      parts.push(`${table.subtables.length} subtables`);
+    // Show errors if any
+    if (table.errors && table.errors.length > 0) {
+      parts.push(`${table.errors.length} ${table.errors.length === 1 ? 'error' : 'errors'}`);
     }
     
     return parts.join(' • ');
@@ -221,8 +224,6 @@ export const TableWindow: React.FC<TableWindowProps> = ({
         maxHeight={800}
       >
       <div className="table-window-content">
-
-
         {/* Current Result at the top */}
         {currentResult && (
           <div className="current-result-section">
@@ -234,6 +235,28 @@ export const TableWindow: React.FC<TableWindowProps> = ({
             />
           </div>
         )}
+
+        {/* Search Box */}
+        <div className="table-search-section">
+          <div className="table-search-box">
+            <input
+              type="text"
+              className="table-search-input"
+              placeholder="Search table entries..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="table-search-clear"
+                onClick={() => setSearchQuery('')}
+                title="Clear search"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            )}
+          </div>
+        </div>
 
 
 
@@ -258,6 +281,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
         <div className="table-structure-section">
           <TableEntryViewer 
             table={table}
+            searchQuery={searchQuery}
             rollResult={currentResult || undefined}
             onForceEntry={handleForceEntry}
             onRollSection={handleRollSection}
