@@ -35,7 +35,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     result: RollResult;
     timestamp: Date;
   }>>([]);
-  const [showHistory, setShowHistory] = useState(true);
+  const [showHistoryPopup, setShowHistoryPopup] = useState(false);
   const [currentSection, setCurrentSection] = useState<string>(() => {
     // Auto-select the first section, or "output" if it exists
     const sections = table.sections || [];
@@ -51,7 +51,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     if (currentResult) {
       setRollHistory(prev => [
         { result: currentResult, timestamp: new Date() },
-        ...prev.slice(0, 4) // Keep only last 5 results
+        ...prev.slice(0, 19) // Keep only last 20 results
       ]);
     }
     
@@ -67,7 +67,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
       // Add current result to history
       setRollHistory(prev => [
         { result: currentResult, timestamp: new Date() },
-        ...prev.slice(0, 4)
+        ...prev.slice(0, 19)
       ]);
       
       setCurrentResult(rollResult);
@@ -87,7 +87,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
       // Add current result to history
       setRollHistory(prev => [
         { result: currentResult, timestamp: new Date() },
-        ...prev.slice(0, 4)
+        ...prev.slice(0, 19)
       ]);
       
       setCurrentResult(newRollResult);
@@ -107,7 +107,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     if (currentResult) {
       setRollHistory(prev => [
         { result: currentResult, timestamp: new Date() },
-        ...prev.slice(0, 4)
+        ...prev.slice(0, 19)
       ]);
     }
     
@@ -139,7 +139,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     // Add current result to history
     setRollHistory(prev => [
       { result: currentResult, timestamp: new Date() },
-      ...prev.slice(0, 4)
+      ...prev.slice(0, 19)
     ]);
     
     setCurrentResult(rollResult);
@@ -182,32 +182,33 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     setCurrentResult(rollResult);
   }, [table, allTables, currentSection]);
 
-  const headerContent = rollHistory.length > 0 ? (
+  const headerContent = (
     <button
       className="history-toggle-button"
-      onClick={() => setShowHistory(!showHistory)}
-      title={showHistory ? "Hide history" : "Show history"}
+      onClick={() => setShowHistoryPopup(!showHistoryPopup)}
+      title="Open history window"
     >
       <i className="fas fa-clock-rotate-left"></i>
     </button>
-  ) : null;
+  );
 
   return (
-    <DraggableWindow
-      title={getWindowTitle()}
-      headerContent={headerContent}
-      initialPosition={position}
-      initialSize={size}
-      onClose={onClose}
-      onPositionChange={onPositionChange}
-      onSizeChange={onSizeChange}
-      onBringToFront={onBringToFront}
-      zIndex={zIndex}
-      minWidth={400}
-      minHeight={showHistory && rollHistory.length > 0 ? 400 : 300}
-      maxWidth={700}
-      maxHeight={800}
-    >
+    <>
+      <DraggableWindow
+        title={getWindowTitle()}
+        headerContent={headerContent}
+        initialPosition={position}
+        initialSize={size}
+        onClose={onClose}
+        onPositionChange={onPositionChange}
+        onSizeChange={onSizeChange}
+        onBringToFront={onBringToFront}
+        zIndex={zIndex}
+        minWidth={400}
+        minHeight={300}
+        maxWidth={700}
+        maxHeight={800}
+      >
       <div className="table-window-content">
 
 
@@ -223,9 +224,55 @@ export const TableWindow: React.FC<TableWindowProps> = ({
           </div>
         )}
 
-        {/* Recent History - right below result */}
-        {rollHistory.length > 0 && showHistory && (
-          <div className="table-recent-history">
+
+
+        {/* No results state - compact banner */}
+        {!currentResult && rollHistory.length === 0 && (
+          <div 
+            className="table-empty-banner clickable-empty"
+            onClick={() => {
+              // Auto-select the first section, or "output" if it exists
+              const sections = table.sections || [];
+              const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
+              const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
+              handleRollSection(defaultSection);
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className="empty-message">Click here to roll!</div>
+          </div>
+        )}
+
+        {/* Table Structure View - takes up remaining space */}
+        <div className="table-structure-section">
+          <TableEntryViewer 
+            table={table}
+            rollResult={currentResult || undefined}
+            onForceEntry={handleForceEntry}
+            onRollSection={handleRollSection}
+          />
+        </div>
+      </div>
+    </DraggableWindow>
+
+    {/* History Popup Window */}
+    {showHistoryPopup && (
+      <DraggableWindow
+        title={`History - ${table.title}`}
+        initialPosition={{ x: position.x + 50, y: position.y + 50 }}
+        initialSize={{ width: 400, height: 500 }}
+        onClose={() => setShowHistoryPopup(false)}
+        onPositionChange={() => {}} // No need to persist popup position
+        onSizeChange={() => {}} // No need to persist popup size
+        onBringToFront={onBringToFront}
+        zIndex={(zIndex || 5) + 1} // Always above the main table window
+        minWidth={300}
+        minHeight={200}
+        maxWidth={600}
+        maxHeight={700}
+      >
+        <div style={{ padding: '8px', height: '100%', overflow: 'auto' }}>
+          {rollHistory.length > 0 ? (
             <div className="history-list">
               {rollHistory.map((historyItem, index) => {
                 // Check if we should show timestamp for this item
@@ -266,7 +313,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
                           if (currentResult) {
                             setRollHistory(prev => [
                               { result: currentResult, timestamp: new Date() },
-                              ...prev.slice(0, 4)
+                              ...prev.slice(0, 19)
                             ]);
                           }
                           
@@ -280,36 +327,21 @@ export const TableWindow: React.FC<TableWindowProps> = ({
                 );
               })}
             </div>
-          </div>
-        )}
-
-        {/* No results state - compact banner */}
-        {!currentResult && rollHistory.length === 0 && (
-          <div 
-            className="table-empty-banner clickable-empty"
-            onClick={() => {
-              // Auto-select the first section, or "output" if it exists
-              const sections = table.sections || [];
-              const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-              const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
-              handleRollSection(defaultSection);
-            }}
-            style={{ cursor: 'pointer' }}
-          >
-            <div className="empty-message">Click here to roll!</div>
-          </div>
-        )}
-
-        {/* Table Structure View - takes up remaining space */}
-        <div className="table-structure-section">
-          <TableEntryViewer 
-            table={table}
-            rollResult={currentResult || undefined}
-            onForceEntry={handleForceEntry}
-            onRollSection={handleRollSection}
-          />
+          ) : (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              height: '100%',
+              color: 'var(--text-muted)',
+              fontSize: '12px'
+            }}>
+              No history yet. Roll on the table to see results here.
+            </div>
+          )}
         </div>
-      </div>
-    </DraggableWindow>
+      </DraggableWindow>
+    )}
+    </>
   );
 }; 

@@ -340,7 +340,7 @@ const App: React.FC = () => {
   const [windowZIndices, setWindowZIndices] = useState<{[key: string]: number}>({
     welcome: 10,
     search: 5,
-    history: 3,
+    history: 15, // Higher z-index to ensure history appears above table windows
     currentResult: 8
   });
   const [nextZIndex, setNextZIndex] = useState(20);
@@ -1569,11 +1569,16 @@ const App: React.FC = () => {
                     .slice()
                     .reverse()
                     .map((historyItem, index) => {
+                      // Check if we should show timestamp for this item
                       const reversedHistory = rollHistory.slice().reverse();
                       const prevItem = index > 0 ? reversedHistory[index - 1] : null;
+                      
+                      // Show timestamp if:
+                      // 1. It's the first item, OR
+                      // 2. More than 1 minute has passed since the previous item
                       const shouldShowTimestamp =
                         !prevItem ||
-                        historyItem.timestamp.getTime() - prevItem.timestamp.getTime() > 60000;
+                        historyItem.timestamp.getTime() - prevItem.timestamp.getTime() > 60000; // 60 seconds
 
                       return (
                         <div
@@ -1904,24 +1909,19 @@ location
                       .map((historyItem, index) => {
                         // Check if we should show timestamp for this item
                         const reversedHistory = rollHistory.slice().reverse();
-                        const prevItem =
-                          index > 0 ? reversedHistory[index - 1] : null;
-
+                        const prevItem = index > 0 ? reversedHistory[index - 1] : null;
+                        
                         // Show timestamp if:
                         // 1. It's the first item, OR
                         // 2. More than 1 minute has passed since the previous item
                         const shouldShowTimestamp =
                           !prevItem ||
-                          historyItem.timestamp.getTime() -
-                            prevItem.timestamp.getTime() >
-                            60000; // 60 seconds
+                          historyItem.timestamp.getTime() - prevItem.timestamp.getTime() > 60000; // 60 seconds
 
                         return (
                           <div
                             key={`${historyItem.timestamp.getTime()}-${index}`}
-                            className={`history-item ${
-                              !shouldShowTimestamp ? "no-timestamp" : ""
-                            }`}
+                            className={`history-item ${!shouldShowTimestamp ? "no-timestamp" : ""}`}
                           >
                             {shouldShowTimestamp && (
                               <div className="history-timestamp">

@@ -940,47 +940,57 @@ body {
 }
 
 .history-item {
-  position: relative;
-  opacity: 0.7;
-  transition: opacity 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
 }
 
 .history-item.no-timestamp {
-  margin-top: 2px;
+  margin-bottom: 4px;
   /* Reduced spacing when no timestamp */
 }
 
 .history-item:hover {
-  opacity: 1;
+  background: var(--bg-tertiary);
+}
+
+.history-item:last-child {
+  margin-bottom: 0;
 }
 
 .history-timestamp {
   font-size: 10px;
   color: var(--text-muted);
-  margin-bottom: 2px;
-  text-align: center;
+  margin-bottom: 4px;
+  text-align: left;
   font-weight: 500;
+  font-family: monospace;
+  letter-spacing: 0.5px;
 }
 
 .roll-result-spotlight.history-result {
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
-  min-height: 40px;
-  padding: 8px 0 !important;
-  margin: 0 -6px;
-  transition: background-color 0.15s ease !important;
+  min-height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  transition: none !important;
   animation: none !important;
-  width: calc(100% + 12px);
-  margin-left: -6px;
-  padding-left: 12px;
-  padding-right: 12px;
+  width: 100% !important;
   box-shadow: none !important;
   transform: none !important;
+  text-align: left !important;
+  display: block !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
 }
 
 .roll-result-spotlight.history-result:hover {
-  background: var(--bg-tertiary) !important;
+  background: transparent !important;
   transform: none !important;
   box-shadow: none !important;
 }
@@ -988,11 +998,15 @@ body {
 .roll-result-spotlight.history-result:active {
   transform: none !important;
   box-shadow: none !important;
-  background: var(--bg-tertiary) !important;
+  background: transparent !important;
 }
 
 .roll-result-spotlight.history-result .result-text {
-  font-size: 13px;
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  margin: 0;
+  text-align: left;
 }
 
 .roll-result-spotlight {
