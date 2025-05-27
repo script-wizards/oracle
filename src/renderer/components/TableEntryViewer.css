@@ -76,12 +76,12 @@
   cursor: pointer;
   transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 6px;
-  padding: 6px 14px;
+  padding: 6px 10px;
   margin: -2px 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
   border: 1px solid rgba(255, 255, 255, 0.15);
   position: relative;
-  max-width: 200px;
+  max-width: 140px;
   justify-content: flex-start;
   box-shadow: 
     0 1px 3px rgba(0, 0, 0, 0.2),
@@ -113,6 +113,11 @@
   font-weight: 500;
   color: var(--text-primary);
   font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .section-count {

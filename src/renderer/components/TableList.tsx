@@ -13,6 +13,8 @@ interface TableListProps {
   isKeyboardNavigating?: boolean;
   rollResult?: RollResult;
   lastRolledTable?: Table;
+  onForceEntry?: (table: Table, sectionName: string, entryIndex: number) => void;
+  onRollSection?: (table: Table, sectionName: string) => void;
 }
 
 const TableList: React.FC<TableListProps> = ({
@@ -23,23 +25,31 @@ const TableList: React.FC<TableListProps> = ({
   searchQuery = "",
   isKeyboardNavigating = false,
   rollResult,
-  lastRolledTable
+  lastRolledTable,
+  onForceEntry,
+  onRollSection
 }) => {
-  const [expandedTableId, setExpandedTableId] = useState<string | null>(null);
+  const [expandedTableIds, setExpandedTableIds] = useState<Set<string>>(new Set());
   const listRef = useRef<HTMLDivElement>(null);
   const selectedItemRef = useRef<HTMLDivElement>(null);
   const t = useTranslations();
 
-  // Handle viewing a table
+  // Handle viewing a table (inline expansion)
   const handleViewTable = (table: Table) => {
-    if (expandedTableId === table.id) {
-      // Collapse if already expanded
-      setExpandedTableId(null);
-    } else {
-      // Expand this table
-      setExpandedTableId(table.id);
-    }
+    setExpandedTableIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(table.id)) {
+        // Collapse if already expanded
+        newSet.delete(table.id);
+      } else {
+        // Expand this table
+        newSet.add(table.id);
+      }
+      return newSet;
+    });
   };
+
+
 
   // Scroll selected item into view
   useEffect(() => {
@@ -142,7 +152,7 @@ const TableList: React.FC<TableListProps> = ({
                 ? "keyboard-selected"
                 : ""
             } ${table.errors && table.errors.length > 0 ? "has-errors" : ""} ${
-              expandedTableId === table.id ? "expanded" : ""
+              expandedTableIds.has(table.id) ? "expanded" : ""
             }`}
             onClick={() => onTableSelect(index)}
             role="option"
@@ -182,17 +192,17 @@ const TableList: React.FC<TableListProps> = ({
                   handleViewTable(table);
                 }}
                 title={
-                  expandedTableId === table.id
+                  expandedTableIds.has(table.id)
                     ? t.tables.hideDefinition
                     : t.tables.viewDefinition
                 }
                 aria-label={`${
-                  expandedTableId === table.id ? t.tables.hide : t.tables.view
+                  expandedTableIds.has(table.id) ? t.tables.hide : t.tables.view
                 } ${table.title} definition`}
               >
                 <i
                   className={`fas ${
-                    expandedTableId === table.id
+                    expandedTableIds.has(table.id)
                       ? "fa-caret-up"
                       : "fa-caret-down"
                   }`}
@@ -210,13 +220,15 @@ const TableList: React.FC<TableListProps> = ({
           </div>
 
           {/* Inline Table Viewer */}
-          {expandedTableId === table.id && (
+          {expandedTableIds.has(table.id) && (
             <div className="table-viewer-inline">
               <div className="table-viewer-content">
                 <TableEntryViewer 
                   table={table} 
                   searchQuery={searchQuery}
                   rollResult={rollResult && lastRolledTable?.id === table.id ? rollResult : undefined}
+                  onForceEntry={onForceEntry ? (sectionName, entryIndex) => onForceEntry(table, sectionName, entryIndex) : undefined}
+                  onRollSection={onRollSection ? (sectionName) => onRollSection(table, sectionName) : undefined}
                 />
               </div>
             </div>

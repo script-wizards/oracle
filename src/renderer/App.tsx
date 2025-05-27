@@ -2,7 +2,7 @@ import React, {useState, useEffect, useCallback, useRef} from "react";
 import {AppInfo, AppState, Table, RollResult} from "../shared/types";
 import {StorageService, createDefaultAppState} from "./services/StorageService";
 import {FileService} from "./services/FileService";
-import {rollOnTable, rerollSubtable} from "../shared/utils/TableRoller";
+import {rollOnTable, rerollSubtable, rollOnTableSection, rollOnTableWithForcedSelections, forceSubtableEntry} from "../shared/utils/TableRoller";
 import "./App.css";
 import SearchBar from "./components/SearchBar";
 import TableList from "./components/TableList";
@@ -296,6 +296,8 @@ const App: React.FC = () => {
     const saved = localStorage.getItem("oracle-show-history");
     return saved !== null ? JSON.parse(saved) : true;
   });
+
+
 
   // Mobile menu state
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -1156,6 +1158,35 @@ const App: React.FC = () => {
     }
   };
 
+  // Roll from a specific section
+  const handleRollSection = (table: Table, sectionName: string) => {
+    const rollResult = rollOnTableSection(table, sectionName, appState.tables);
+    addToHistoryAndSetCurrent(rollResult, table);
+  };
+
+  // Force a specific entry to be selected
+  const handleForceEntry = (table: Table, sectionName: string, entryIndex: number) => {
+    if (!lastRollResult || lastRolledTable?.id !== table.id) {
+      // If no current result for this table, start fresh with forced selection
+      const forcedSelections = [{ sectionName, entryIndex }];
+      const rollResult = rollOnTableWithForcedSelections(table, appState.tables, forcedSelections);
+      addToHistoryAndSetCurrent(rollResult, table);
+      return;
+    }
+
+    // If we have a current result for this table, force just this entry
+    const rollResult = forceSubtableEntry(
+      lastRollResult,
+      sectionName,
+      entryIndex,
+      table,
+      appState.tables
+    );
+    addToHistoryAndSetCurrent(rollResult, table);
+  };
+
+
+
   // Generate Perchance table definition for viewing
   const generateTableDefinition = (table: Table): string => {
     let definition = `title\n  ${table.title}\n\n`;
@@ -1282,15 +1313,26 @@ const App: React.FC = () => {
 
               <button
                 onClick={() => {
-                  setShowHistory(!showHistory);
+                  if (isCanvasMode) {
+                    // In canvas mode, toggle the history window
+                    if (openWindows.history) {
+                      closeWindow('history');
+                    } else {
+                      openWindow('history');
+                    }
+                  } else {
+                    // In stack mode, toggle history visibility
+                    setShowHistory(!showHistory);
+                  }
                   setShowMobileMenu(false);
                 }}
                 className="mobile-menu-item"
+                disabled={isCanvasMode && rollHistory.length === 0}
               >
                 <i className="fas fa-clock-rotate-left"></i>
-                {showHistory
-                  ? t.mobileMenu.hideHistory
-                  : t.mobileMenu.showHistory}
+                {isCanvasMode
+                  ? (openWindows.history ? 'Hide History' : 'Show History')
+                  : (showHistory ? t.mobileMenu.hideHistory : t.mobileMenu.showHistory)}
               </button>
 
               <div className="mobile-menu-item language-item">
@@ -1426,14 +1468,18 @@ const App: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      openWindow('history');
+                      if (openWindows.history) {
+                        closeWindow('history');
+                      } else {
+                        openWindow('history');
+                      }
                       setShowCanvasMenu(false);
                     }}
                     className="canvas-menu-item"
-                    disabled={openWindows.history || rollHistory.length === 0}
+                    disabled={rollHistory.length === 0}
                   >
                     <i className="fas fa-history"></i>
-                    History
+                    {openWindows.history ? 'Hide History' : 'Show History'}
                   </button>
                   <button
                     onClick={() => {
@@ -1661,6 +1707,12 @@ const App: React.FC = () => {
                   onSizeChange={(size) => updateTableWindowSize(tableId, size)}
                   onBringToFront={() => bringWindowToFront(tableWindowKey)}
                   zIndex={windowZIndices[tableWindowKey] || 6}
+                  onHistoryBringToFront={() => {
+                    const historyKey = `history-${tableId}`;
+                    const newZIndex = nextZIndex;
+                    bringWindowToFront(historyKey);
+                    return newZIndex;
+                  }}
                 />
               );
             })}
@@ -1876,11 +1928,12 @@ location
                         addToHistoryAndSetCurrent(rollResult, actualTable);
                       }, 100);
                     }}
-                    onTableOpen={openTableWindow}
                     searchQuery={searchQuery}
                     isKeyboardNavigating={keyboardNav.isNavigating}
                     rollResult={lastRollResult || undefined}
                     lastRolledTable={lastRolledTable || undefined}
+                    onForceEntry={handleForceEntry}
+                    onRollSection={handleRollSection}
                   />
                 </div>
               </div>
@@ -1974,6 +2027,8 @@ location
                   </div>
                 </div>
               )}
+
+
             </div>
           </div>
         </div>

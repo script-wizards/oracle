@@ -806,10 +806,14 @@ body {
     order: 2; /* History appears on the right */
   }
 
+
+
   /* Adjust history for sidebar layout */
   .roll-history {
     min-height: 200px;
   }
+
+
 
   /* Keep vertical resize handle for sidebar - just adjust max height */
   .history-resize-handle {
@@ -817,10 +821,19 @@ body {
   }
 }
 
-/* Extra large screens - wider history panel */
+/* Extra large screens - wider panels */
 @media (min-width: 1600px) {
   .history-container {
     width: 400px;
+  }
+
+
+}
+
+/* Very large screens - accommodate both panels */
+@media (min-width: 1800px) {
+  .main-content-layout {
+    gap: 20px;
   }
 }
 
@@ -834,6 +847,8 @@ body {
   overflow: hidden;
   position: relative;
 }
+
+
 
 .history-header {
   display: flex;
@@ -849,6 +864,8 @@ body {
   font-weight: 500;
   color: var(--text-primary);
 }
+
+
 
 .roll-history {
   display: flex;

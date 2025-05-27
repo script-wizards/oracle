@@ -16,6 +16,7 @@ interface TableWindowProps {
   onSizeChange: (size: { width: number; height: number }) => void;
   onBringToFront?: () => void;
   zIndex?: number;
+  onHistoryBringToFront?: () => number; // Returns the z-index for history popup
 }
 
 export const TableWindow: React.FC<TableWindowProps> = ({
@@ -27,7 +28,8 @@ export const TableWindow: React.FC<TableWindowProps> = ({
   onPositionChange,
   onSizeChange,
   onBringToFront,
-  zIndex = 5
+  zIndex = 5,
+  onHistoryBringToFront
 }) => {
   // Per-table state
   const [currentResult, setCurrentResult] = useState<RollResult | null>(null);
@@ -36,6 +38,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     timestamp: Date;
   }>>([]);
   const [showHistoryPopup, setShowHistoryPopup] = useState(false);
+  const [historyPopupZIndex, setHistoryPopupZIndex] = useState<number>(zIndex + 1);
   const [currentSection, setCurrentSection] = useState<string>(() => {
     // Auto-select the first section, or "output" if it exists
     const sections = table.sections || [];
@@ -176,6 +179,14 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     return table.title;
   };
 
+  // Handle bringing history popup to front
+  const handleHistoryBringToFront = () => {
+    if (onHistoryBringToFront) {
+      const newZIndex = onHistoryBringToFront();
+      setHistoryPopupZIndex(newZIndex);
+    }
+  };
+
   // Initial roll when component mounts
   useEffect(() => {
     const rollResult = rollOnTableSection(table, currentSection, allTables);
@@ -264,8 +275,8 @@ export const TableWindow: React.FC<TableWindowProps> = ({
         onClose={() => setShowHistoryPopup(false)}
         onPositionChange={() => {}} // No need to persist popup position
         onSizeChange={() => {}} // No need to persist popup size
-        onBringToFront={onBringToFront}
-        zIndex={(zIndex || 5) + 1} // Always above the main table window
+        onBringToFront={handleHistoryBringToFront}
+        zIndex={historyPopupZIndex}
         minWidth={300}
         minHeight={200}
         maxWidth={600}
