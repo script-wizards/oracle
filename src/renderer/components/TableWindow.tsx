@@ -194,7 +194,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
   useEffect(() => {
     const rollResult = rollOnTableSection(table, currentSection, allTables);
     setCurrentResult(rollResult);
-  }, [table, allTables, currentSection]);
+  }, [table, allTables]); // Removed currentSection dependency to prevent double-rolling
 
   const headerContent = (
     <button
