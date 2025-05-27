@@ -74,6 +74,18 @@ export interface RollResult {
 }
 
 /**
+ * Represents a forced selection for a specific section
+ */
+export interface ForcedSelection {
+    /** The section name to force */
+    sectionName: string;
+    /** The index of the entry to force */
+    entryIndex: number;
+}
+
+// Removed duplicate ForcedSelection interface declaration
+
+/**
  * Represents individual subtable resolutions within a roll result
  */
 export interface SubrollData {
@@ -87,6 +99,12 @@ export interface SubrollData {
     startIndex: number;
     /** End index in the original text for highlighting */
     endIndex: number;
+    /** The original entry text that was selected (before resolution) */
+    originalEntry?: string;
+    /** The index of the entry that was selected from the source section */
+    entryIndex?: number;
+    /** Whether this subroll contains nested references (used for rendering) */
+    hasNestedRefs?: boolean;
 }
 
 /**

@@ -2,11 +2,13 @@ import React, {useState, useEffect, useCallback, useRef} from "react";
 import {AppInfo, AppState, Table, RollResult} from "../shared/types";
 import {StorageService, createDefaultAppState} from "./services/StorageService";
 import {FileService} from "./services/FileService";
-import {rollOnTable, rerollSubtable} from "../shared/utils/TableRoller";
+import {rollOnTable, rerollSubtable, rollOnTableSection, rollOnTableWithForcedSelections, forceSubtableEntry} from "../shared/utils/TableRoller";
 import "./App.css";
 import SearchBar from "./components/SearchBar";
 import TableList from "./components/TableList";
 import InteractiveRollResult from "./components/InteractiveRollResult";
+import {DraggableWindow} from "./components/DraggableWindow";
+import {TableWindow} from "./components/TableWindow";
 import {useTableSearch} from "./hooks/useTableSearch";
 import {useKeyboardNav} from "./hooks/useKeyboardNav";
 import {
@@ -211,6 +213,8 @@ const App: React.FC = () => {
     return saved !== null ? parseInt(saved, 10) : 80;
   });
 
+
+
   // Resizing state
   const [isResizing, setIsResizing] = useState(false);
 
@@ -227,12 +231,17 @@ const App: React.FC = () => {
       e.preventDefault();
       setIsResizing(true);
 
+      // Always use vertical resize (height adjustment)
       const startY = e.clientY;
       const startHeight = historyHeight;
 
       const handleMouseMove = (e: MouseEvent) => {
         const deltaY = e.clientY - startY;
-        const newHeight = Math.max(40, Math.min(400, startHeight + deltaY)); // Min 40px, max 400px
+        // Check if we're in sidebar mode for different height limits
+        const isSidebarMode = window.innerWidth >= 1200;
+        const minHeight = 40;
+        const maxHeight = isSidebarMode ? 600 : 400; // Allow taller height in sidebar mode
+        const newHeight = Math.max(minHeight, Math.min(maxHeight, startHeight + deltaY));
         setHistoryHeight(newHeight);
       };
 
@@ -288,8 +297,107 @@ const App: React.FC = () => {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
+
+
   // Mobile menu state
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Canvas menu state
+  const [showCanvasMenu, setShowCanvasMenu] = useState(false);
+
+  // Canvas add button position
+  const [canvasButtonPosition, setCanvasButtonPosition] = useState(() => {
+    const saved = localStorage.getItem("oracle-canvas-button-position");
+    return saved !== null ? JSON.parse(saved) : { x: 20, y: 20 }; // Default bottom-left (20px from bottom and left)
+  });
+
+  // Canvas mode state
+  const [isCanvasMode, setIsCanvasMode] = useState(() => {
+    const saved = localStorage.getItem("oracle-canvas-mode");
+    return saved !== null ? JSON.parse(saved) : false;
+  });
+  
+  const [openWindows, setOpenWindows] = useState<{
+    welcome: boolean;
+    search: boolean;
+    history: boolean;
+    currentResult: boolean;
+  }>(() => {
+    const saved = localStorage.getItem("oracle-open-windows");
+    return saved !== null ? JSON.parse(saved) : {
+      welcome: true,
+      search: true,
+      history: true,
+      currentResult: false
+    };
+  });
+
+  // Table windows state - tracks which table windows are open
+  const [openTableWindows, setOpenTableWindows] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem("oracle-open-table-windows");
+    return saved !== null ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  // Z-index management for window stacking
+  const [windowZIndices, setWindowZIndices] = useState<{[key: string]: number}>({
+    welcome: 10,
+    search: 5,
+    history: 15, // Higher z-index to ensure history appears above table windows
+    currentResult: 8
+  });
+  const [nextZIndex, setNextZIndex] = useState(20);
+
+  // Window positions and sizes state
+  const [windowStates, setWindowStates] = useState<{
+    [key: string]: {
+      position: { x: number; y: number };
+      size: { width: number; height: number };
+    };
+  }>(() => {
+    const saved = localStorage.getItem("oracle-window-states");
+    return saved !== null ? JSON.parse(saved) : {
+      welcome: {
+        position: { x: 200, y: 100 },
+        size: { width: 500, height: 400 }
+      },
+      search: {
+        position: { x: 100, y: 150 },
+        size: { width: 450, height: 500 }
+      },
+      history: {
+        position: { x: 600, y: 100 },
+        size: { width: 400, height: 500 }
+      },
+      currentResult: {
+        position: { x: 300, y: 200 },
+        size: { width: 450, height: 350 }
+      }
+    };
+  });
+
+  // Helper function to get default position for new table windows
+  const getDefaultTableWindowPosition = (tableId: string): { x: number; y: number } => {
+    // Stagger new windows so they don't all appear in the same spot
+    const openTableCount = openTableWindows.size;
+    const baseX = 150;
+    const baseY = 120;
+    const offsetX = (openTableCount % 3) * 50;
+    const offsetY = Math.floor(openTableCount / 3) * 50;
+    
+    return {
+      x: baseX + offsetX,
+      y: baseY + offsetY
+    };
+  };
+
+  // Helper function to get window state for table windows
+  const getTableWindowState = (tableId: string) => {
+    const key = `table-${tableId}`;
+    return windowStates[key] || {
+      position: getDefaultTableWindowPosition(tableId),
+      size: { width: 400, height: 450 }
+    };
+  };
 
   // Language state
   const [currentLanguage, setCurrentLanguage] = useState<Language>(() =>
@@ -428,6 +536,33 @@ const App: React.FC = () => {
     localStorage.setItem("oracle-history-height", historyHeight.toString());
   }, [historyHeight]);
 
+  // Save canvas mode preference
+  useEffect(() => {
+    localStorage.setItem("oracle-canvas-mode", JSON.stringify(isCanvasMode));
+  }, [isCanvasMode]);
+
+  // Save open windows state
+  useEffect(() => {
+    localStorage.setItem("oracle-open-windows", JSON.stringify(openWindows));
+  }, [openWindows]);
+
+  // Save window states (positions and sizes)
+  useEffect(() => {
+    localStorage.setItem("oracle-window-states", JSON.stringify(windowStates));
+  }, [windowStates]);
+
+  // Save open table windows
+  useEffect(() => {
+    localStorage.setItem("oracle-open-table-windows", JSON.stringify(Array.from(openTableWindows)));
+  }, [openTableWindows]);
+
+  // Save canvas button position
+  useEffect(() => {
+    localStorage.setItem("oracle-canvas-button-position", JSON.stringify(canvasButtonPosition));
+  }, [canvasButtonPosition]);
+
+
+
   // Keyboard shortcut for toggling history (Ctrl+H / Cmd+H)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -437,8 +572,18 @@ const App: React.FC = () => {
         event.preventDefault();
         event.stopPropagation();
 
-        // Toggle history visibility
-        setShowHistory((prev: boolean) => !prev);
+        if (isCanvasMode) {
+          // In canvas mode, toggle the history window (only if there's history to show)
+          if (rollHistory.length > 0) {
+            setOpenWindows(prev => ({ 
+              ...prev, 
+              history: !prev.history
+            }));
+          }
+        } else {
+          // In normal mode, toggle history visibility
+          setShowHistory((prev: boolean) => !prev);
+        }
       }
     };
 
@@ -449,18 +594,27 @@ const App: React.FC = () => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []); // Empty dependency array since we only want to set this up once
+  }, [isCanvasMode, rollHistory.length]); // Include dependencies for canvas mode and history length
 
-  // Close mobile menu when clicking outside
+  // Close mobile menu and canvas menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
       if (showMobileMenu) {
-        const target = event.target as Element;
         if (
-          !target.closest(".header-controls-mobile") &&
+          !target.closest(".header-controls") &&
           !target.closest(".mobile-menu-dropdown")
         ) {
           setShowMobileMenu(false);
+        }
+      }
+      
+      if (showCanvasMenu) {
+        if (
+          !target.closest(".canvas-add-button-container")
+        ) {
+          setShowCanvasMenu(false);
         }
       }
     };
@@ -469,7 +623,7 @@ const App: React.FC = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showMobileMenu]);
+  }, [showMobileMenu, showCanvasMenu]);
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
@@ -537,6 +691,43 @@ const App: React.FC = () => {
       // Reset history height to default
       setHistoryHeight(80);
       localStorage.removeItem("oracle-history-height");
+
+      // Reset canvas mode and window states
+      setIsCanvasMode(false);
+      localStorage.removeItem("oracle-canvas-mode");
+      
+      setOpenWindows({
+        welcome: true,
+        search: true,
+        history: true,
+        currentResult: false
+      });
+      localStorage.removeItem("oracle-open-windows");
+      
+      setWindowStates({
+        welcome: {
+          position: { x: 200, y: 100 },
+          size: { width: 500, height: 400 }
+        },
+        search: {
+          position: { x: 100, y: 150 },
+          size: { width: 450, height: 500 }
+        },
+        history: {
+          position: { x: 600, y: 100 },
+          size: { width: 400, height: 500 }
+        },
+        currentResult: {
+          position: { x: 300, y: 200 },
+          size: { width: 450, height: 350 }
+        }
+      });
+      localStorage.removeItem("oracle-window-states");
+      
+      setOpenTableWindows(new Set());
+      localStorage.removeItem("oracle-open-table-windows");
+
+
 
       alert(t.clearStorage.successMessage);
     } catch (error) {
@@ -845,6 +1036,113 @@ const App: React.FC = () => {
     // Set new current result
     setLastRollResult(result);
     setLastRolledTable(table);
+
+    // Update selected table index to match the rolled table
+    const tableIndex = appState.tables.findIndex(t => t.id === table.id);
+    if (tableIndex >= 0) {
+      setAppState((prev) => ({
+        ...prev,
+        selectedTableIndex: tableIndex
+      }));
+    }
+
+    // Update keyboard navigation to match the rolled table in filtered results
+    const filteredIndex = filteredTables.findIndex(t => t.id === table.id);
+    if (filteredIndex >= 0) {
+      keyboardNav.setSelectedIndex(filteredIndex);
+    }
+
+    // In canvas mode, show the current result window
+    if (isCanvasMode) {
+      setOpenWindows(prev => ({ ...prev, currentResult: true }));
+    }
+  };
+
+  // Toggle canvas mode
+  const toggleCanvasMode = () => {
+    setIsCanvasMode(!isCanvasMode);
+    if (!isCanvasMode) {
+      // Entering canvas mode - show relevant windows
+      setOpenWindows({
+        welcome: !appState.vaultPath && showWelcome,
+        search: true,
+        history: showHistory && rollHistory.length > 0,
+        currentResult: !!lastRollResult
+      });
+    }
+  };
+
+  // Window management functions
+  const closeWindow = (windowName: keyof typeof openWindows) => {
+    setOpenWindows(prev => ({ ...prev, [windowName]: false }));
+  };
+
+  const openWindow = (windowName: keyof typeof openWindows) => {
+    setOpenWindows(prev => ({ ...prev, [windowName]: true }));
+  };
+
+  // Table window management functions
+  const openTableWindow = (table: Table) => {
+    const tableWindowKey = `table-${table.id}`;
+    setOpenTableWindows(prev => new Set([...prev, table.id]));
+    
+    // Initialize z-index for new table window if it doesn't exist
+    if (!windowZIndices[tableWindowKey]) {
+      setWindowZIndices(prev => ({
+        ...prev,
+        [tableWindowKey]: nextZIndex
+      }));
+      setNextZIndex(prev => prev + 1);
+    }
+  };
+
+  const closeTableWindow = (tableId: string) => {
+    setOpenTableWindows(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(tableId);
+      return newSet;
+    });
+  };
+
+  // Window state update functions
+  const updateWindowPosition = (windowName: string, position: { x: number; y: number }) => {
+    setWindowStates(prev => ({
+      ...prev,
+      [windowName]: {
+        ...prev[windowName],
+        position
+      }
+    }));
+  };
+
+  const updateWindowSize = (windowName: string, size: { width: number; height: number }) => {
+    setWindowStates(prev => ({
+      ...prev,
+      [windowName]: {
+        ...prev[windowName],
+        size
+      }
+    }));
+  };
+
+  // Bring window to front
+  const bringWindowToFront = (windowName: string) => {
+    setWindowZIndices(prev => ({
+      ...prev,
+      [windowName]: nextZIndex
+    }));
+    setNextZIndex(prev => prev + 1);
+  };
+
+  // Table window state update functions
+  const updateTableWindowPosition = (tableId: string, position: { x: number; y: number }) => {
+    const key = `table-${tableId}`;
+    updateWindowPosition(key, position);
+  };
+
+  const updateTableWindowSize = (tableId: string, size: { width: number; height: number }) => {
+    const key = `table-${tableId}`;
+    updateWindowSize(key, size);
   };
 
   // Reroll specific subtable
@@ -859,6 +1157,35 @@ const App: React.FC = () => {
       addToHistoryAndSetCurrent(newRollResult, lastRolledTable);
     }
   };
+
+  // Roll from a specific section
+  const handleRollSection = (table: Table, sectionName: string) => {
+    const rollResult = rollOnTableSection(table, sectionName, appState.tables);
+    addToHistoryAndSetCurrent(rollResult, table);
+  };
+
+  // Force a specific entry to be selected
+  const handleForceEntry = (table: Table, sectionName: string, entryIndex: number) => {
+    if (!lastRollResult || lastRolledTable?.id !== table.id) {
+      // If no current result for this table, start fresh with forced selection
+      const forcedSelections = [{ sectionName, entryIndex }];
+      const rollResult = rollOnTableWithForcedSelections(table, appState.tables, forcedSelections);
+      addToHistoryAndSetCurrent(rollResult, table);
+      return;
+    }
+
+    // If we have a current result for this table, force just this entry
+    const rollResult = forceSubtableEntry(
+      lastRollResult,
+      sectionName,
+      entryIndex,
+      table,
+      appState.tables
+    );
+    addToHistoryAndSetCurrent(rollResult, table);
+  };
+
+
 
   // Generate Perchance table definition for viewing
   const generateTableDefinition = (table: Table): string => {
@@ -887,7 +1214,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`app ${isMacOS ? "macos" : ""}`}>
+    <div className={`app ${isMacOS ? "macos" : ""} ${isCanvasMode ? "canvas-mode" : ""}`}>
       <header className="app-header">
         <div className="title-bar">
           <h1 className="app-title">Oracle</h1>
@@ -918,6 +1245,15 @@ const App: React.FC = () => {
         </div>
 
         <div className="header-controls">
+          {/* Canvas Mode Toggle */}
+          <button
+            onClick={toggleCanvasMode}
+            className={`header-button ${isCanvasMode ? "active" : ""}`}
+            title="Toggle Canvas Mode"
+          >
+            <i className={`fas ${isCanvasMode ? "fa-table-list" : "fa-layer-group"}`}></i>
+          </button>
+
           {/* Unified Menu Button */}
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -977,15 +1313,26 @@ const App: React.FC = () => {
 
               <button
                 onClick={() => {
-                  setShowHistory(!showHistory);
+                  if (isCanvasMode) {
+                    // In canvas mode, toggle the history window
+                    if (openWindows.history) {
+                      closeWindow('history');
+                    } else {
+                      openWindow('history');
+                    }
+                  } else {
+                    // In stack mode, toggle history visibility
+                    setShowHistory(!showHistory);
+                  }
                   setShowMobileMenu(false);
                 }}
                 className="mobile-menu-item"
+                disabled={isCanvasMode && rollHistory.length === 0}
               >
                 <i className="fas fa-clock-rotate-left"></i>
-                {showHistory
-                  ? t.mobileMenu.hideHistory
-                  : t.mobileMenu.showHistory}
+                {isCanvasMode
+                  ? (openWindows.history ? 'Hide History' : 'Show History')
+                  : (showHistory ? t.mobileMenu.hideHistory : t.mobileMenu.showHistory)}
               </button>
 
               <div className="mobile-menu-item language-item">
@@ -1022,7 +1369,357 @@ const App: React.FC = () => {
       </header>
 
       <main className="app-main">
-        <div className="welcome-section">
+        {/* Canvas Mode */}
+        {isCanvasMode ? (
+          <div className="canvas-container">
+            {/* Canvas Add Button */}
+            <div 
+              className="canvas-add-button-container"
+              style={{
+                bottom: `${canvasButtonPosition.y}px`,
+                left: `${canvasButtonPosition.x}px`
+              }}
+            >
+              <button
+                className="canvas-add-button"
+                onClick={(e) => {
+                  // Only open menu if we didn't drag
+                  if (!e.currentTarget.dataset.dragged) {
+                    setShowCanvasMenu(!showCanvasMenu);
+                  }
+                  // Reset drag flag
+                  delete e.currentTarget.dataset.dragged;
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  const button = e.currentTarget;
+                  const startX = e.clientX - canvasButtonPosition.x;
+                  const startY = e.clientY;
+                  const startBottom = canvasButtonPosition.y;
+                  let hasDragged = false;
+
+                  const handleMouseMove = (e: MouseEvent) => {
+                    hasDragged = true;
+                    button.dataset.dragged = "true";
+                    
+                    // Get header and footer heights to constrain movement
+                    const header = document.querySelector('.app-header') as HTMLElement;
+                    const footer = document.querySelector('.app-footer') as HTMLElement;
+                    const headerHeight = header ? header.offsetHeight : 40; // Default 40px if not found
+                    const footerHeight = footer ? footer.offsetHeight : 24; // Default 24px if not found
+                    
+                    // Consistent margin from all edges
+                    const margin = 10;
+                    const buttonSize = 40; // Button is 40px wide/tall
+                    
+                    // Calculate available canvas area with consistent margins
+                    const minX = margin;
+                    const maxX = window.innerWidth - buttonSize - margin;
+                    const minY = footerHeight + margin; // Distance from bottom (footer height + margin)
+                    const maxY = window.innerHeight - headerHeight - buttonSize - margin; // Distance from bottom, accounting for header + margin
+                    
+                    const newX = Math.max(minX, Math.min(maxX, e.clientX - startX));
+                    const newY = Math.max(minY, Math.min(maxY, startBottom + (startY - e.clientY)));
+                    setCanvasButtonPosition({ x: newX, y: newY });
+                  };
+
+                  const handleMouseUp = () => {
+                    document.removeEventListener("mousemove", handleMouseMove);
+                    document.removeEventListener("mouseup", handleMouseUp);
+                    
+                    // If we didn't drag, allow the click to proceed
+                    if (!hasDragged) {
+                      delete button.dataset.dragged;
+                    }
+                  };
+
+                  document.addEventListener("mousemove", handleMouseMove);
+                  document.addEventListener("mouseup", handleMouseUp);
+                }}
+                title="Add Window (drag to move)"
+              >
+                <i className="fas fa-plus"></i>
+              </button>
+              
+              {/* Canvas Menu */}
+              {showCanvasMenu && (
+                <div className="canvas-menu">
+                  <button
+                    onClick={() => {
+                      openWindow('welcome');
+                      setShowCanvasMenu(false);
+                    }}
+                    className="canvas-menu-item"
+                    disabled={openWindows.welcome}
+                  >
+                    <i className="fas fa-home"></i>
+                    Welcome
+                  </button>
+                  <button
+                    onClick={() => {
+                      openWindow('search');
+                      setShowCanvasMenu(false);
+                    }}
+                    className="canvas-menu-item"
+                    disabled={openWindows.search}
+                  >
+                    <i className="fas fa-search"></i>
+                    Search
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (openWindows.history) {
+                        closeWindow('history');
+                      } else {
+                        openWindow('history');
+                      }
+                      setShowCanvasMenu(false);
+                    }}
+                    className="canvas-menu-item"
+                    disabled={rollHistory.length === 0}
+                  >
+                    <i className="fas fa-history"></i>
+                    {openWindows.history ? 'Hide History' : 'Show History'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      openWindow('currentResult');
+                      setShowCanvasMenu(false);
+                    }}
+                    className="canvas-menu-item"
+                    disabled={openWindows.currentResult || !lastRollResult}
+                  >
+                    <i className="fas fa-dice-d20"></i>
+                    Current Roll
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Welcome Window */}
+            {openWindows.welcome && !appState.vaultPath && (
+              <DraggableWindow
+                title="Welcome"
+                initialPosition={windowStates.welcome.position}
+                initialSize={windowStates.welcome.size}
+                onClose={() => closeWindow('welcome')}
+                onPositionChange={(position) => updateWindowPosition('welcome', position)}
+                onSizeChange={(size) => updateWindowSize('welcome', size)}
+                onBringToFront={() => bringWindowToFront('welcome')}
+                zIndex={windowZIndices.welcome}
+              >
+                <div className="window-content">
+                  <div className="welcome-window-content">
+                    <p className="welcome-description">
+                    {(() => {
+                      const parts = t.welcome.description.split("{perchanceLink}");
+                      return (
+                        <>
+                          {parts[0]}
+                          <a
+                            href="https://perchance.org/tutorial"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="perchance-link"
+                          >
+                            Perchance syntax
+                          </a>
+                          {parts[1] || ""}
+                        </>
+                      );
+                    })()}
+                  </p>
+                  <p className="setup-instruction">
+                    {t.welcome.setupInstruction}{" "}
+                    <button
+                      onClick={handleSelectVault}
+                      disabled={isSelectingVault || !FileService.isElectronAPIAvailable()}
+                      className="inline-vault-button"
+                      title={t.tooltips.selectVaultFolder}
+                    >
+                      {isSelectingVault ? "..." : t.welcome.obsidianVault}
+                    </button>{" "}
+                    {t.welcome.letsRoll}
+                  </p>
+                  </div>
+                </div>
+              </DraggableWindow>
+            )}
+
+            {/* Search Window */}
+            {openWindows.search && (
+              <DraggableWindow
+                title="Search"
+                initialPosition={windowStates.search.position}
+                initialSize={windowStates.search.size}
+                onClose={() => closeWindow('search')}
+                onPositionChange={(position) => updateWindowPosition('search', position)}
+                onSizeChange={(size) => updateWindowSize('search', size)}
+                onBringToFront={() => bringWindowToFront('search')}
+                zIndex={windowZIndices.search}
+              >
+                <div style={{ padding: '12px' }}>
+                  <SearchBar
+                    onSearch={setSearchQuery}
+                    onArrowUp={keyboardNav.handleArrowUp}
+                    onArrowDown={keyboardNav.handleArrowDown}
+                    onEnter={keyboardNav.handleEnter}
+                    onEscape={keyboardNav.handleEscape}
+                    onTab={keyboardNav.handleTab}
+                    onNumberKey={keyboardNav.handleNumberKey}
+                    value={searchQuery}
+                    resultCount={resultCount}
+                    selectedIndex={keyboardNav.selectedIndex}
+                  />
+                  <div className="tables-display" style={{ marginTop: '12px' }}>
+                    <TableList
+                      tables={filteredTables}
+                      selectedIndex={keyboardNav.selectedIndex}
+                      onTableSelect={(index: number) => {
+                        const actualTable = filteredTables[index];
+                        const actualIndex = appState.tables.findIndex(
+                          (table: Table) => table.id === actualTable.id
+                        );
+                        handleTableSelect(actualIndex);
+                        keyboardNav.setSelectedIndex(index);
+                        setTimeout(() => {
+                          const rollResult = rollOnTable(actualTable, appState.tables);
+                          addToHistoryAndSetCurrent(rollResult, actualTable);
+                        }, 100);
+                      }}
+                      onTableOpen={openTableWindow}
+                      searchQuery={searchQuery}
+                      isKeyboardNavigating={keyboardNav.isNavigating}
+                      rollResult={lastRollResult || undefined}
+                      lastRolledTable={lastRolledTable || undefined}
+                    />
+                  </div>
+                </div>
+              </DraggableWindow>
+            )}
+
+            {/* History Window */}
+            {openWindows.history && rollHistory.length > 0 && (
+              <DraggableWindow
+                title="Roll History"
+                initialPosition={windowStates.history.position}
+                initialSize={windowStates.history.size}
+                onClose={() => closeWindow('history')}
+                onPositionChange={(position) => updateWindowPosition('history', position)}
+                onSizeChange={(size) => updateWindowSize('history', size)}
+                onBringToFront={() => bringWindowToFront('history')}
+                zIndex={windowZIndices.history}
+              >
+                <div className="roll-history" style={{ padding: '8px', height: '100%', overflow: 'auto' }}>
+                  {rollHistory
+                    .slice()
+                    .reverse()
+                    .map((historyItem, index) => {
+                      // Check if we should show timestamp for this item
+                      const reversedHistory = rollHistory.slice().reverse();
+                      const prevItem = index > 0 ? reversedHistory[index - 1] : null;
+                      
+                      // Show timestamp if:
+                      // 1. It's the first item, OR
+                      // 2. More than 1 minute has passed since the previous item
+                      const shouldShowTimestamp =
+                        !prevItem ||
+                        historyItem.timestamp.getTime() - prevItem.timestamp.getTime() > 60000; // 60 seconds
+
+                      return (
+                        <div
+                          key={`${historyItem.timestamp.getTime()}-${index}`}
+                          className={`history-item ${!shouldShowTimestamp ? "no-timestamp" : ""}`}
+                        >
+                          {shouldShowTimestamp && (
+                            <div className="history-timestamp">
+                              {historyItem.timestamp.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                              })}
+                            </div>
+                          )}
+                          <InteractiveRollResult
+                            rollResult={historyItem.result}
+                            onReroll={() => {
+                              const rollResult = rollOnTable(historyItem.table, appState.tables);
+                              addToHistoryAndSetCurrent(rollResult, historyItem.table);
+                            }}
+                            onSubtableReroll={(subrollIndex: number) => {
+                              const newRollResult = rerollSubtable(
+                                historyItem.result,
+                                subrollIndex,
+                                historyItem.table,
+                                appState.tables
+                              );
+                              addToHistoryAndSetCurrent(newRollResult, historyItem.table);
+                            }}
+                            lastRolledTable={historyItem.table}
+                            isHistoryItem={true}
+                          />
+                        </div>
+                      );
+                    })}
+                </div>
+              </DraggableWindow>
+            )}
+
+            {/* Current Result Window */}
+            {openWindows.currentResult && lastRollResult && (
+              <DraggableWindow
+                title="Current Roll"
+                initialPosition={windowStates.currentResult.position}
+                initialSize={windowStates.currentResult.size}
+                onClose={() => closeWindow('currentResult')}
+                onPositionChange={(position) => updateWindowPosition('currentResult', position)}
+                onSizeChange={(size) => updateWindowSize('currentResult', size)}
+                onBringToFront={() => bringWindowToFront('currentResult')}
+                zIndex={windowZIndices.currentResult}
+              >
+                <div style={{ padding: '12px' }}>
+                  <InteractiveRollResult
+                    rollResult={lastRollResult}
+                    onReroll={handleReroll}
+                    onSubtableReroll={handleSubtableReroll}
+                    lastRolledTable={lastRolledTable}
+                  />
+                </div>
+              </DraggableWindow>
+            )}
+
+            {/* Table Windows */}
+            {Array.from(openTableWindows).map((tableId) => {
+              const table = appState.tables.find(t => t.id === tableId);
+              if (!table) return null;
+              
+              const windowState = getTableWindowState(tableId);
+              const tableWindowKey = `table-${tableId}`;
+              
+              return (
+                <TableWindow
+                  key={tableId}
+                  table={table}
+                  allTables={appState.tables}
+                  position={windowState.position}
+                  size={windowState.size}
+                  onClose={() => closeTableWindow(tableId)}
+                  onPositionChange={(position) => updateTableWindowPosition(tableId, position)}
+                  onSizeChange={(size) => updateTableWindowSize(tableId, size)}
+                  onBringToFront={() => bringWindowToFront(tableWindowKey)}
+                  zIndex={windowZIndices[tableWindowKey] || 6}
+                  onHistoryBringToFront={() => {
+                    const historyKey = `history-${tableId}`;
+                    const newZIndex = nextZIndex;
+                    bringWindowToFront(historyKey);
+                    return newZIndex;
+                  }}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          /* Normal Mode */
+          <div className="welcome-section">
           {/* Welcome and Setup - Only when no vault is selected and welcome is visible */}
           {!appState.vaultPath && showWelcome && (
             <div className="window-container">
@@ -1037,7 +1734,8 @@ const App: React.FC = () => {
                 </button>
               </div>
               <div className="window-content">
-                <p className="welcome-description">
+                <div className="welcome-window-content">
+                  <p className="welcome-description">
                   {(() => {
                     const parts =
                       t.welcome.description.split("{perchanceLink}");
@@ -1160,6 +1858,7 @@ location
                   </button>{" "}
                   {t.welcome.letsRoll}
                 </p>
+                </div>
               </div>
             </div>
           )}
@@ -1179,154 +1878,161 @@ location
 
           {/* Spotlight Search Interface */}
           <div className="spotlight-search-section">
-            {/* Roll History - Stack grows above */}
-            {showHistory && rollHistory.length > 0 && (
-              <div className="history-container">
-                <div className="history-header">
-                  <span className="history-title">{t.history.title}</span>
-                  <button
-                    onClick={() => setShowHistory(false)}
-                    className="history-close-button"
-                    title={t.history.hideHistory}
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
-                </div>
-                <div
-                  className="roll-history"
-                  ref={historyRef}
-                  style={{maxHeight: `${historyHeight}px`}}
-                >
-                  {rollHistory
-                    .slice()
-                    .reverse()
-                    .map((historyItem, index) => {
-                      // Check if we should show timestamp for this item
-                      const reversedHistory = rollHistory.slice().reverse();
-                      const prevItem =
-                        index > 0 ? reversedHistory[index - 1] : null;
+            <div className="main-content-layout">
+              {/* Main content area */}
+              <div className="main-content">
+                {/* Current Roll Result - Most Important */}
+                {lastRollResult && (
+                  <InteractiveRollResult
+                    rollResult={lastRollResult}
+                    onReroll={handleReroll}
+                    onSubtableReroll={handleSubtableReroll}
+                    lastRolledTable={lastRolledTable}
+                  />
+                )}
 
-                      // Show timestamp if:
-                      // 1. It's the first item, OR
-                      // 2. More than 1 minute has passed since the previous item
-                      const shouldShowTimestamp =
-                        !prevItem ||
-                        historyItem.timestamp.getTime() -
-                          prevItem.timestamp.getTime() >
-                          60000; // 60 seconds
+                <SearchBar
+                  onSearch={setSearchQuery}
+                  onArrowUp={keyboardNav.handleArrowUp}
+                  onArrowDown={keyboardNav.handleArrowDown}
+                  onEnter={keyboardNav.handleEnter}
+                  onEscape={keyboardNav.handleEscape}
+                  onTab={keyboardNav.handleTab}
+                  onNumberKey={keyboardNav.handleNumberKey}
+                  value={searchQuery}
+                  resultCount={resultCount}
+                  selectedIndex={keyboardNav.selectedIndex}
+                />
 
-                      return (
-                        <div
-                          key={`${historyItem.timestamp.getTime()}-${index}`}
-                          className={`history-item ${
-                            !shouldShowTimestamp ? "no-timestamp" : ""
-                          }`}
-                        >
-                          {shouldShowTimestamp && (
-                            <div className="history-timestamp">
-                              {historyItem.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit"
-                              })}
-                            </div>
-                          )}
-                          <InteractiveRollResult
-                            rollResult={historyItem.result}
-                            onReroll={() => {
-                              const rollResult = rollOnTable(
-                                historyItem.table,
-                                appState.tables
-                              );
-                              addToHistoryAndSetCurrent(
-                                rollResult,
-                                historyItem.table
-                              );
-                            }}
-                            onSubtableReroll={(subrollIndex: number) => {
-                              const newRollResult = rerollSubtable(
-                                historyItem.result,
-                                subrollIndex,
-                                historyItem.table,
-                                appState.tables
-                              );
-                              addToHistoryAndSetCurrent(
-                                newRollResult,
-                                historyItem.table
-                              );
-                            }}
-                            lastRolledTable={historyItem.table}
-                            isHistoryItem={true}
-                          />
-                        </div>
+                {/* Table List - Always visible, filtered by search */}
+                <div className="tables-display">
+                  <TableList
+                    tables={filteredTables}
+                    selectedIndex={keyboardNav.selectedIndex}
+                    onTableSelect={(index: number) => {
+                      const actualTable = filteredTables[index];
+                      const actualIndex = appState.tables.findIndex(
+                        (table: Table) => table.id === actualTable.id
                       );
-                    })}
-                </div>
-                <div
-                  className="history-resize-handle"
-                  onMouseDown={handleResizeStart}
-                  onTouchStart={handleResizeTouchStart}
-                  style={{cursor: isResizing ? "ns-resize" : "ns-resize"}}
-                >
-                  <div className="resize-indicator">
-                    <i className="fas fa-grip-lines"></i>
-                  </div>
+                      handleTableSelect(actualIndex);
+
+                      // Update keyboard navigation to match
+                      keyboardNav.setSelectedIndex(index);
+
+                      // Automatically roll on the selected table
+                      setTimeout(() => {
+                        const rollResult = rollOnTable(
+                          actualTable,
+                          appState.tables
+                        );
+                        addToHistoryAndSetCurrent(rollResult, actualTable);
+                      }, 100);
+                    }}
+                    searchQuery={searchQuery}
+                    isKeyboardNavigating={keyboardNav.isNavigating}
+                    rollResult={lastRollResult || undefined}
+                    lastRolledTable={lastRolledTable || undefined}
+                    onForceEntry={handleForceEntry}
+                    onRollSection={handleRollSection}
+                  />
                 </div>
               </div>
-            )}
 
-            {/* Current Roll Result - Most Important */}
-            {lastRollResult && (
-              <InteractiveRollResult
-                rollResult={lastRollResult}
-                onReroll={handleReroll}
-                onSubtableReroll={handleSubtableReroll}
-                lastRolledTable={lastRolledTable}
-              />
-            )}
+              {/* Roll History - Sidebar on large screens, above content on small screens */}
+              {showHistory && rollHistory.length > 0 && (
+                <div className="history-container">
+                  <div className="history-header">
+                    <span className="history-title">{t.history.title}</span>
+                    <button
+                      onClick={() => setShowHistory(false)}
+                      className="history-close-button"
+                      title={t.history.hideHistory}
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div
+                    className="roll-history"
+                    ref={historyRef}
+                    style={{maxHeight: `${historyHeight}px`}}
+                  >
+                    {rollHistory
+                      .slice()
+                      .reverse()
+                      .map((historyItem, index) => {
+                        // Check if we should show timestamp for this item
+                        const reversedHistory = rollHistory.slice().reverse();
+                        const prevItem = index > 0 ? reversedHistory[index - 1] : null;
+                        
+                        // Show timestamp if:
+                        // 1. It's the first item, OR
+                        // 2. More than 1 minute has passed since the previous item
+                        const shouldShowTimestamp =
+                          !prevItem ||
+                          historyItem.timestamp.getTime() - prevItem.timestamp.getTime() > 60000; // 60 seconds
 
-            <SearchBar
-              onSearch={setSearchQuery}
-              onArrowUp={keyboardNav.handleArrowUp}
-              onArrowDown={keyboardNav.handleArrowDown}
-              onEnter={keyboardNav.handleEnter}
-              onEscape={keyboardNav.handleEscape}
-              onTab={keyboardNav.handleTab}
-              onNumberKey={keyboardNav.handleNumberKey}
-              value={searchQuery}
-              resultCount={resultCount}
-              selectedIndex={keyboardNav.selectedIndex}
-            />
+                        return (
+                          <div
+                            key={`${historyItem.timestamp.getTime()}-${index}`}
+                            className={`history-item ${!shouldShowTimestamp ? "no-timestamp" : ""}`}
+                          >
+                            {shouldShowTimestamp && (
+                              <div className="history-timestamp">
+                                {historyItem.timestamp.toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </div>
+                            )}
+                            <InteractiveRollResult
+                              rollResult={historyItem.result}
+                              onReroll={() => {
+                                const rollResult = rollOnTable(
+                                  historyItem.table,
+                                  appState.tables
+                                );
+                                addToHistoryAndSetCurrent(
+                                  rollResult,
+                                  historyItem.table
+                                );
+                              }}
+                              onSubtableReroll={(subrollIndex: number) => {
+                                const newRollResult = rerollSubtable(
+                                  historyItem.result,
+                                  subrollIndex,
+                                  historyItem.table,
+                                  appState.tables
+                                );
+                                addToHistoryAndSetCurrent(
+                                  newRollResult,
+                                  historyItem.table
+                                );
+                              }}
+                              lastRolledTable={historyItem.table}
+                              isHistoryItem={true}
+                            />
+                          </div>
+                        );
+                      })}
+                  </div>
+                  <div
+                    className="history-resize-handle"
+                    onMouseDown={handleResizeStart}
+                    onTouchStart={handleResizeTouchStart}
+                    style={{cursor: isResizing ? "ns-resize" : "ns-resize"}}
+                  >
+                    <div className="resize-indicator">
+                      <i className="fas fa-grip-lines"></i>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            {/* Table List - Always visible, filtered by search */}
-            <div className="tables-display">
-              <TableList
-                tables={filteredTables}
-                selectedIndex={keyboardNav.selectedIndex}
-                onTableSelect={(index: number) => {
-                  const actualTable = filteredTables[index];
-                  const actualIndex = appState.tables.findIndex(
-                    (table: Table) => table.id === actualTable.id
-                  );
-                  handleTableSelect(actualIndex);
 
-                  // Update keyboard navigation to match
-                  keyboardNav.setSelectedIndex(index);
-
-                  // Automatically roll on the selected table
-                  setTimeout(() => {
-                    const rollResult = rollOnTable(
-                      actualTable,
-                      appState.tables
-                    );
-                    addToHistoryAndSetCurrent(rollResult, actualTable);
-                  }, 100);
-                }}
-                searchQuery={searchQuery}
-                isKeyboardNavigating={keyboardNav.isNavigating}
-              />
             </div>
           </div>
         </div>
+        )}
       </main>
 
       <footer className="app-footer">

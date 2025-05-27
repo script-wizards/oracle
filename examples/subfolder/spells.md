@@ -7,9 +7,6 @@ title
   Wild Magic Surges
 
 output
-  The magic goes awry! [effect]
-
-effect
   You grow a [feature] that lasts [duration]
   All creatures within 30 feet turn [color] for 24 hours
   You teleport [distance] to a random location
@@ -18,7 +15,7 @@ effect
 
 feature
   long beard of [color] feathers
-  pair of butterfly wings
+  pair of [color] butterfly wings
   third eye on your forehead
   tail like a cat
   scales on your arms

@@ -1,56 +1,55 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Table} from "../../shared/types";
+import {Table, RollResult} from "../../shared/types";
 import "./TableList.css";
 import {useTranslations} from "../i18n";
+import TableEntryViewer from "./TableEntryViewer";
 
 interface TableListProps {
   tables: Table[];
   selectedIndex: number;
   onTableSelect: (index: number) => void;
+  onTableOpen?: (table: Table) => void;
   searchQuery?: string;
   isKeyboardNavigating?: boolean;
+  rollResult?: RollResult;
+  lastRolledTable?: Table;
+  onForceEntry?: (table: Table, sectionName: string, entryIndex: number) => void;
+  onRollSection?: (table: Table, sectionName: string) => void;
 }
 
 const TableList: React.FC<TableListProps> = ({
   tables,
   selectedIndex,
   onTableSelect,
+  onTableOpen,
   searchQuery = "",
-  isKeyboardNavigating = false
+  isKeyboardNavigating = false,
+  rollResult,
+  lastRolledTable,
+  onForceEntry,
+  onRollSection
 }) => {
-  const [expandedTableId, setExpandedTableId] = useState<string | null>(null);
+  const [expandedTableIds, setExpandedTableIds] = useState<Set<string>>(new Set());
   const listRef = useRef<HTMLDivElement>(null);
   const selectedItemRef = useRef<HTMLDivElement>(null);
   const t = useTranslations();
 
-  // Generate Perchance table definition for viewing
-  const generateTableDefinition = (table: Table): string => {
-    let definition = `title\n  ${table.title}\n\n`;
-
-    // Add each section
-    if (table.sections) {
-      table.sections.forEach((section) => {
-        definition += `${section.name}\n`;
-        section.entries.forEach((entry) => {
-          definition += `  ${entry}\n`;
-        });
-        definition += "\n";
-      });
-    }
-
-    return definition.trim();
-  };
-
-  // Handle viewing a table
+  // Handle viewing a table (inline expansion)
   const handleViewTable = (table: Table) => {
-    if (expandedTableId === table.id) {
-      // Collapse if already expanded
-      setExpandedTableId(null);
-    } else {
-      // Expand this table
-      setExpandedTableId(table.id);
-    }
+    setExpandedTableIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(table.id)) {
+        // Collapse if already expanded
+        newSet.delete(table.id);
+      } else {
+        // Expand this table
+        newSet.add(table.id);
+      }
+      return newSet;
+    });
   };
+
+
 
   // Scroll selected item into view
   useEffect(() => {
@@ -153,7 +152,7 @@ const TableList: React.FC<TableListProps> = ({
                 ? "keyboard-selected"
                 : ""
             } ${table.errors && table.errors.length > 0 ? "has-errors" : ""} ${
-              expandedTableId === table.id ? "expanded" : ""
+              expandedTableIds.has(table.id) ? "expanded" : ""
             }`}
             onClick={() => onTableSelect(index)}
             role="option"
@@ -171,13 +170,21 @@ const TableList: React.FC<TableListProps> = ({
               <div className="table-item-subtitle">
                 {getTableSubtitle(table)}
               </div>
-              {table.filePath && (
-                <div className="table-item-path">
-                  {table.filePath.split("/").pop()}
-                </div>
-              )}
             </div>
             <div className="table-item-status">
+              {onTableOpen && (
+                <button
+                  className="table-open-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTableOpen(table);
+                  }}
+                  title="Open table in new window"
+                  aria-label={`Open ${table.title} in new window`}
+                >
+                  <i className="fas fa-external-link-alt"></i>
+                </button>
+              )}
               <button
                 className="table-view-button"
                 onClick={(e) => {
@@ -185,17 +192,17 @@ const TableList: React.FC<TableListProps> = ({
                   handleViewTable(table);
                 }}
                 title={
-                  expandedTableId === table.id
+                  expandedTableIds.has(table.id)
                     ? t.tables.hideDefinition
                     : t.tables.viewDefinition
                 }
                 aria-label={`${
-                  expandedTableId === table.id ? t.tables.hide : t.tables.view
+                  expandedTableIds.has(table.id) ? t.tables.hide : t.tables.view
                 } ${table.title} definition`}
               >
                 <i
                   className={`fas ${
-                    expandedTableId === table.id
+                    expandedTableIds.has(table.id)
                       ? "fa-caret-up"
                       : "fa-caret-down"
                   }`}
@@ -213,29 +220,16 @@ const TableList: React.FC<TableListProps> = ({
           </div>
 
           {/* Inline Table Viewer */}
-          {expandedTableId === table.id && (
+          {expandedTableIds.has(table.id) && (
             <div className="table-viewer-inline">
               <div className="table-viewer-content">
-                <div className="table-viewer-info">
-                  <p className="table-viewer-path">
-                    <strong>{t.tables.file}:</strong> {table.filePath}
-                  </p>
-                  {table.errors && table.errors.length > 0 && (
-                    <div className="table-viewer-errors">
-                      <strong>{t.tables.errorsLabel}:</strong>
-                      <ul>
-                        {table.errors.map((error, errorIndex) => (
-                          <li key={errorIndex}>{error}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-                <div className="table-definition">
-                  <pre>
-                    <code>{generateTableDefinition(table)}</code>
-                  </pre>
-                </div>
+                <TableEntryViewer 
+                  table={table} 
+                  searchQuery={searchQuery}
+                  rollResult={rollResult && lastRolledTable?.id === table.id ? rollResult : undefined}
+                  onForceEntry={onForceEntry ? (sectionName, entryIndex) => onForceEntry(table, sectionName, entryIndex) : undefined}
+                  onRollSection={onRollSection ? (sectionName) => onRollSection(table, sectionName) : undefined}
+                />
               </div>
             </div>
           )}

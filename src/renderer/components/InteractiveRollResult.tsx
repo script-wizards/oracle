@@ -33,86 +33,225 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
       );
     }
 
-    // Sort subrolls by start index to process them in order
-    const sortedSubrolls = [...rollResult.subrolls].sort(
-      (a, b) => a.startIndex - b.startIndex
+    // Create a hierarchical structure of clickable subrolls
+    // We'll render all subtable subrolls (except output and root) with nested visual indicators
+    const rootSubroll = rollResult.subrolls.find(subroll => 
+      subroll.startIndex === 0 && subroll.endIndex === rollResult.text.length
     );
+    
+    const allClickableSubrolls = rollResult.subrolls
+      .filter(subroll => {
+        // Exclude output subrolls (used for highlighting in table viewer)
+        if (subroll.source === 'output') return false;
+        
+        // Exclude the root section subroll (the section we originally rolled from)
+        if (rootSubroll && subroll === rootSubroll) return false;
+        
+        // Include all other subtable subrolls (both containers and leaf nodes)
+        return subroll.type === 'subtable';
+      })
+      .sort((a, b) => a.startIndex - b.startIndex);
 
-    const elements: React.ReactNode[] = [];
-    let lastIndex = 0;
-
-    sortedSubrolls.forEach((subroll, sortedIndex) => {
-      // Find the original index of this subroll in the unsorted array
-      const originalIndex = rollResult.subrolls.findIndex(
-        (s) =>
-          s.startIndex === subroll.startIndex &&
-          s.endIndex === subroll.endIndex &&
-          s.text === subroll.text
-      );
-
-      // Add text before this subroll
-      if (subroll.startIndex > lastIndex) {
-        const beforeText = rollResult.text.substring(
-          lastIndex,
-          subroll.startIndex
-        );
-        if (beforeText) {
-          elements.push(
-            <span key={`before-${sortedIndex}`} className="static-text">
-              {beforeText}
-            </span>
-          );
+    // Group subrolls by their nesting level for visual styling
+    const getSubrollDepth = (subroll: any) => {
+      let depth = 0;
+      for (const otherSubroll of allClickableSubrolls) {
+        if (otherSubroll !== subroll &&
+            otherSubroll.startIndex <= subroll.startIndex &&
+            otherSubroll.endIndex >= subroll.endIndex) {
+          depth++;
         }
       }
+      return depth;
+    };
 
-      // Add the subroll as clickable if it's a subtable
-      if (subroll.type === "subtable" && subroll.source) {
-        elements.push(
-          <span
-            key={`subroll-${sortedIndex}`}
-            className="subtable-result clickable-subtable"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSubtableReroll(originalIndex);
-            }}
-            title={t.rollResults.clickToRerollSubtable.replace(
-              "{source}",
-              subroll.source || ""
-            )}
-            data-source={subroll.source}
-          >
-            {subroll.text}
-          </span>
+    // Nested approach with proper recursion bounds and termination conditions
+    const renderNestedClickable = () => {
+      // Helper function with proper bounds checking and termination
+      const renderTextSegment = (
+        text: string,
+        startOffset: number,
+        relevantSubrolls: typeof allClickableSubrolls,
+        depth: number = 0
+      ): React.ReactNode[] => {
+        // Base case 1: Prevent infinite recursion with max depth
+        // This prevents crashes when rerolling creates deeply nested identical structures
+        if (depth > 10) {
+          return [<span key="max-depth" className="static-text">{text}</span>];
+        }
+
+        // Base case 2: No subrolls to process
+        if (!relevantSubrolls || relevantSubrolls.length === 0) {
+          return [<span key="no-subrolls" className="static-text">{text}</span>];
+        }
+
+        // Base case 3: Empty or invalid text
+        if (!text || text.length === 0) {
+          return [];
+        }
+
+        const elements: React.ReactNode[] = [];
+        let lastIndex = 0;
+
+        // Filter and sort subrolls that are valid for this text segment
+        const validSubrolls = relevantSubrolls
+          .filter(subroll => {
+            // Bounds checking: subroll must be within the current text segment
+            const relativeStart = subroll.startIndex - startOffset;
+            const relativeEnd = subroll.endIndex - startOffset;
+            return relativeStart >= 0 && 
+                   relativeEnd <= text.length && 
+                   relativeStart < relativeEnd &&
+                   subroll.startIndex >= startOffset &&
+                   subroll.endIndex <= startOffset + text.length;
+          })
+          .sort((a, b) => a.startIndex - b.startIndex);
+
+        validSubrolls.forEach((subroll, index) => {
+          const relativeStart = subroll.startIndex - startOffset;
+          const relativeEnd = subroll.endIndex - startOffset;
+
+          // Skip if this overlaps with what we've already rendered
+          if (relativeStart < lastIndex) {
+            return;
+          }
+
+          // Add text before this subroll
+          if (relativeStart > lastIndex) {
+            const beforeText = text.substring(lastIndex, relativeStart);
+            if (beforeText) {
+              elements.push(
+                <span key={`before-${index}`} className="static-text">
+                  {beforeText}
+                </span>
+              );
+            }
+          }
+
+          // Find the original index for click handling
+          const originalIndex = rollResult.subrolls.findIndex(
+            (s) =>
+              s.startIndex === subroll.startIndex &&
+              s.endIndex === subroll.endIndex &&
+              s.text === subroll.text &&
+              s.source === subroll.source
+          );
+
+          // Calculate visual depth
+          const visualDepth = getSubrollDepth(subroll);
+          
+          // Find child subrolls that are completely contained within this subroll
+          const childSubrolls = allClickableSubrolls.filter(child =>
+            child !== subroll &&
+            child.startIndex >= subroll.startIndex &&
+            child.endIndex <= subroll.endIndex &&
+            child.startIndex < child.endIndex // Valid child
+          );
+          
+          // Determine styling
+          let depthClass = '';
+          if (childSubrolls.length > 0) {
+            depthClass = 'container-element'; // Containers 
+          } else {
+            depthClass = 'leaf-element'; // Leaf nodes
+          }
+
+          // Get the text content of this subroll
+          const subrollText = text.substring(relativeStart, relativeEnd);
+
+          if (childSubrolls.length > 0) {
+            // This subroll has children - render them nested inside with recursion
+            const nestedContent = renderTextSegment(
+              subrollText, 
+              subroll.startIndex, 
+              childSubrolls,
+              depth + 1 // Increment depth to prevent infinite recursion
+            );
+            
+            elements.push(
+              <span
+                key={`subroll-${index}`}
+                className={`subtable-result clickable-subtable ${depthClass}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSubtableReroll(originalIndex);
+                }}
+                title={t.rollResults.clickToRerollSubtable.replace(
+                  "{source}",
+                  subroll.source || ""
+                )}
+                data-source={subroll.source}
+                data-depth={visualDepth}
+              >
+                {nestedContent}
+              </span>
+            );
+          } else {
+            // Leaf node - no children
+            elements.push(
+              <span
+                key={`subroll-${index}`}
+                className={`subtable-result clickable-subtable ${depthClass}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSubtableReroll(originalIndex);
+                }}
+                title={t.rollResults.clickToRerollSubtable.replace(
+                  "{source}",
+                  subroll.source || ""
+                )}
+                data-source={subroll.source}
+                data-depth={visualDepth}
+              >
+                {subrollText}
+              </span>
+            );
+          }
+
+          lastIndex = relativeEnd;
+        });
+
+        // Add any remaining text after the last subroll
+        if (lastIndex < text.length) {
+          const afterText = text.substring(lastIndex);
+          if (afterText) {
+            elements.push(
+              <span key="after" className="static-text">
+                {afterText}
+              </span>
+            );
+          }
+        }
+
+        return elements;
+      };
+
+      // Start with the full text and top-level subrolls
+      const topLevelSubrolls = allClickableSubrolls.filter(subroll => {
+        // A subroll is top-level if no other subroll completely contains it
+        return !allClickableSubrolls.some(otherSubroll =>
+          otherSubroll !== subroll &&
+          otherSubroll.startIndex <= subroll.startIndex &&
+          otherSubroll.endIndex >= subroll.endIndex
         );
-      } else {
-        // Non-subtable subroll (like dice), show as static
-        elements.push(
-          <span key={`subroll-${sortedIndex}`} className="static-text">
-            {subroll.text}
-          </span>
-        );
-      }
+      });
 
-      lastIndex = subroll.endIndex;
-    });
+      return renderTextSegment(rollResult.text, 0, topLevelSubrolls, 0);
+    };
 
-    // Add any remaining text after the last subroll
-    if (lastIndex < rollResult.text.length) {
-      const afterText = rollResult.text.substring(lastIndex);
-      if (afterText) {
-        elements.push(
-          <span key="after" className="static-text">
-            {afterText}
-          </span>
-        );
-      }
-    }
-
-    return <>{elements}</>;
+    return <>{renderNestedClickable()}</>;
   };
 
-  const subtableCount =
-    rollResult.subrolls?.filter((s) => s.type === "subtable").length || 0;
+  // Count clickable subtables using the same logic as the filtering above
+  const rootSubrollForCount = rollResult.subrolls?.find(subroll => 
+    subroll.startIndex === 0 && subroll.endIndex === rollResult.text.length
+  );
+  
+  const subtableCount = rollResult.subrolls?.filter(subroll => {
+    if (subroll.source === 'output') return false;
+    if (rootSubrollForCount && subroll === rootSubrollForCount) return false;
+    return subroll.type === 'subtable';
+  }).length || 0;
 
   // Handle clicks on the result box (for full reroll)
   const handleResultBoxClick = (e: React.MouseEvent) => {
