@@ -83,15 +83,7 @@ export interface ForcedSelection {
     entryIndex: number;
 }
 
-/**
- * Represents a forced selection for a specific section
- */
-export interface ForcedSelection {
-    /** The section name to force */
-    sectionName: string;
-    /** The index of the entry to force */
-    entryIndex: number;
-}
+// Removed duplicate ForcedSelection interface declaration
 
 /**
  * Represents individual subtable resolutions within a roll result
