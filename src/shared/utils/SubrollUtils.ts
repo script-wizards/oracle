@@ -30,12 +30,11 @@ export function getClickableSubrolls(rollResult: RollResult): SubrollData[] {
              subroll.startIndex < subroll.endIndex;
     })
     // Handle nested subroll chains: [food] -> [fruit] -> [berry] -> "strawberry"
-    // When multiple subrolls have identical positions and text, keep only the most specific one
+    // When multiple subrolls have identical positions, keep only the most specific one
     .filter((subroll, index, array) => {
       const overlappingSubrolls = array.filter(other => 
         other.startIndex === subroll.startIndex &&
-        other.endIndex === subroll.endIndex &&
-        other.text === subroll.text
+        other.endIndex === subroll.endIndex
       );
       
       if (overlappingSubrolls.length <= 1) {
@@ -121,11 +120,42 @@ export function findOriginalSubrollIndex(
   targetSubroll: SubrollData, 
   allSubrolls: SubrollData[]
 ): number {
+  // First, try to find by source and type (most reliable for rerolls)
+  if (targetSubroll.source) {
+    const sourceMatches = allSubrolls
+      .map((s, index) => ({ subroll: s, index }))
+      .filter(({ subroll }) => 
+        subroll.source === targetSubroll.source &&
+        subroll.type === targetSubroll.type
+      );
+    
+    if (sourceMatches.length === 1) {
+      // Unique match by source - this is the most reliable
+      return sourceMatches[0].index;
+    }
+    
+    if (sourceMatches.length > 1) {
+      // Multiple matches by source, try to narrow down by position
+      const positionMatch = sourceMatches.find(({ subroll }) =>
+        subroll.startIndex === targetSubroll.startIndex &&
+        subroll.endIndex === targetSubroll.endIndex
+      );
+      
+      if (positionMatch) {
+        return positionMatch.index;
+      }
+      
+      // If no exact position match, return the first source match
+      // This handles cases where positions have shifted due to rerolls
+      return sourceMatches[0].index;
+    }
+  }
+  
+  // Fallback: try to find by position and source (original logic)
   return allSubrolls.findIndex(
     (s) =>
       s.startIndex === targetSubroll.startIndex &&
       s.endIndex === targetSubroll.endIndex &&
-      s.text === targetSubroll.text &&
       s.source === targetSubroll.source
   );
-} 
+}

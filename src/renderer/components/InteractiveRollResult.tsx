@@ -42,7 +42,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
     }
 
     const allClickableSubrolls = getClickableSubrolls(rollResult);
-
+    
     // Nested approach with proper recursion bounds and termination conditions
     const renderNestedClickable = () => {
       // Helper function with proper bounds checking and termination
@@ -228,6 +228,9 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
       // Find the original index for click handling
       const originalIndex = findOriginalSubrollIndex(subroll, rollResult.subrolls);
       
+      // Get the actual text at the subroll's position in the full result
+      const actualSubrollText = rollResult.text.substring(subroll.startIndex, subroll.endIndex);
+      
       // Add the clickable subroll
       elements.push(
         <span
@@ -243,7 +246,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
           )}
           data-source={subroll.source}
         >
-          {subroll.text}
+          {actualSubrollText}
         </span>
       );
       
