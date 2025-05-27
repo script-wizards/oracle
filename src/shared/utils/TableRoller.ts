@@ -296,7 +296,7 @@ export function forceSubtableEntry(
     // Calculate the length difference
     const lengthDiff = resolved.text.length - targetSubroll.text.length;
 
-    // Update all subrolls
+    // Update all subrolls with corrected positions and text
     const newSubrolls: SubrollData[] = [];
 
     for (let i = 0; i < originalResult.subrolls.length; i++) {
@@ -729,18 +729,6 @@ export function rerollSubtable(
     allTables: Table[],
     maxDepth: number = 10
 ): RollResult {
-    console.log('=== REROLL FUNCTION CALLED ===');
-    console.log('Full text:', `"${originalResult.text}"`);
-    console.log('All subrolls:', originalResult.subrolls.map((s, i) => ({
-        index: i,
-        source: s.source,
-        text: s.text,
-        startIndex: s.startIndex,
-        endIndex: s.endIndex,
-        actualText: originalResult.text.substring(s.startIndex, s.endIndex)
-    })));
-    console.log('Target subroll index:', subrollIndex);
-    
     if (subrollIndex < 0 || subrollIndex >= originalResult.subrolls.length) {
         console.warn(`Invalid subroll index: ${subrollIndex}`);
         return originalResult;
@@ -793,21 +781,20 @@ export function rerollSubtable(
     // Calculate the length difference
     const lengthDiff = newSubtableResult.text.length - actualTextToReplace.length;
 
-    // Update all subrolls with corrected positions
+    // Update all subrolls with corrected positions and text
     const newSubrolls: SubrollData[] = [];
 
     for (let i = 0; i < originalResult.subrolls.length; i++) {
         const subroll = originalResult.subrolls[i];
 
         if (i === subrollIndex) {
-            // Update the target subroll with new text, correct end position, and metadata
-            // Make sure the subroll.text matches what's actually at those positions
+            // Update the target subroll with new text and correct boundaries
             const newEndIndex = subroll.startIndex + newSubtableResult.text.length;
             const actualTextAtPosition = newText.substring(subroll.startIndex, newEndIndex);
             
             newSubrolls.push({
                 ...subroll,
-                text: actualTextAtPosition, // Use the actual text at the position
+                text: actualTextAtPosition,
                 endIndex: newEndIndex,
                 originalEntry: newSubtableResult.originalEntry,
                 entryIndex: newSubtableResult.entryIndex,
@@ -819,14 +806,16 @@ export function rerollSubtable(
                 ...subroll,
                 startIndex: subroll.startIndex + lengthDiff,
                 endIndex: subroll.endIndex + lengthDiff,
-                // Update text to match new position
                 text: newText.substring(subroll.startIndex + lengthDiff, subroll.endIndex + lengthDiff)
             });
         } else if (subroll.endIndex <= targetSubroll.startIndex) {
             // Keep subrolls before the rerolled one unchanged
             newSubrolls.push(subroll);
         } else if (subroll.startIndex <= targetSubroll.startIndex && subroll.endIndex >= targetSubroll.endIndex) {
-            // This is a parent subroll that contains the target - update its text and end position
+            // CRITICAL FIX: Update parent subrolls that contain the target subroll
+            // This ensures entries like "[coins] coins" have correct boundaries after reroll
+            // Example: when "2d6 × 10 gold" becomes "1d4 × 100 silver", 
+            // the parent "treasure" subroll must include the full "1d4 × 100 silver coins"
             const newParentEndIndex = subroll.endIndex + lengthDiff;
             const newParentText = newText.substring(subroll.startIndex, newParentEndIndex);
             
@@ -836,12 +825,11 @@ export function rerollSubtable(
                 endIndex: newParentEndIndex
             });
         } else {
-            // This subroll overlaps with the target - remove nested subrolls to prevent stacking
+            // Remove overlapping subrolls to prevent stacking
             // Only keep subrolls that are NOT completely contained within the target
             if (!(subroll.startIndex >= targetSubroll.startIndex && subroll.endIndex <= targetSubroll.endIndex)) {
                 newSubrolls.push(subroll);
             }
-            // If it's completely contained, skip it (it will be replaced by new nested subrolls)
         }
     }
 
