@@ -32,7 +32,7 @@ jobs:
 
       - name: Package for macOS
         if: matrix.os == 'macos-latest'
-        run: npx electron-builder --mac dmg zip
+        run: npx electron-builder --mac dmg zip --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
