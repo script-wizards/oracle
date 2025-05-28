@@ -40,11 +40,13 @@ export const TableWindow: React.FC<TableWindowProps> = ({
   const [showHistoryPopup, setShowHistoryPopup] = useState(false);
   const [historyPopupZIndex, setHistoryPopupZIndex] = useState<number>(zIndex + 1);
   const [currentSection, setCurrentSection] = useState<string>(() => {
-    // Auto-select the first section, or "output" if it exists
+    // Auto-select the first section (prefer "output" if it exists, otherwise use the first section)
     const sections = table.sections || [];
     const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-    return outputSection ? outputSection.name : (sections[0]?.name || 'output');
+    const firstSection = outputSection || sections[0];
+    return firstSection ? firstSection.name : 'output';
   });
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Roll on a specific section
   const handleRollSection = (sectionName: string) => {
@@ -99,10 +101,11 @@ export const TableWindow: React.FC<TableWindowProps> = ({
 
   // Roll from history
   const handleHistoryReroll = (historyResult: RollResult) => {
-    // Auto-select the first section, or "output" if it exists
+    // Auto-select the first section (prefer "output" if it exists, otherwise use the first section)
     const sections = table.sections || [];
     const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-    const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
+    const firstSection = outputSection || sections[0];
+    const defaultSection = firstSection ? firstSection.name : 'output';
     
     const rollResult = rollOnTableSection(table, defaultSection, allTables);
     
@@ -153,12 +156,14 @@ export const TableWindow: React.FC<TableWindowProps> = ({
   const getTableSubtitle = (): string => {
     const parts = [];
     
-    if (table.entries.length > 0) {
-      parts.push(`${table.entries.length} entries`);
+    // Show number of sections (the actual functional units)
+    if (table.sections && table.sections.length > 0) {
+      parts.push(`${table.sections.length} ${table.sections.length === 1 ? 'section' : 'sections'}`);
     }
     
-    if (table.subtables && table.subtables.length > 0) {
-      parts.push(`${table.subtables.length} subtables`);
+    // Show errors if any
+    if (table.errors && table.errors.length > 0) {
+      parts.push(`${table.errors.length} ${table.errors.length === 1 ? 'error' : 'errors'}`);
     }
     
     return parts.join(' • ');
@@ -191,7 +196,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
   useEffect(() => {
     const rollResult = rollOnTableSection(table, currentSection, allTables);
     setCurrentResult(rollResult);
-  }, [table, allTables, currentSection]);
+  }, [table, allTables]); // Removed currentSection dependency to prevent double-rolling
 
   const headerContent = (
     <button
@@ -221,8 +226,6 @@ export const TableWindow: React.FC<TableWindowProps> = ({
         maxHeight={800}
       >
       <div className="table-window-content">
-
-
         {/* Current Result at the top */}
         {currentResult && (
           <div className="current-result-section">
@@ -235,17 +238,38 @@ export const TableWindow: React.FC<TableWindowProps> = ({
           </div>
         )}
 
-
+        {/* Search Box */}
+        <div className="table-search-section">
+          <div className="table-search-box">
+            <input
+              type="text"
+              className="table-search-input"
+              placeholder="Search table entries..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="table-search-clear"
+                onClick={() => setSearchQuery('')}
+                title="Clear search"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* No results state - compact banner */}
         {!currentResult && rollHistory.length === 0 && (
           <div 
             className="table-empty-banner clickable-empty"
             onClick={() => {
-              // Auto-select the first section, or "output" if it exists
+              // Auto-select the first section (prefer "output" if it exists, otherwise use the first section)
               const sections = table.sections || [];
               const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-              const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
+              const firstSection = outputSection || sections[0];
+              const defaultSection = firstSection ? firstSection.name : 'output';
               handleRollSection(defaultSection);
             }}
             style={{ cursor: 'pointer' }}
@@ -258,6 +282,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
         <div className="table-structure-section">
           <TableEntryViewer 
             table={table}
+            searchQuery={searchQuery}
             rollResult={currentResult || undefined}
             onForceEntry={handleForceEntry}
             onRollSection={handleRollSection}

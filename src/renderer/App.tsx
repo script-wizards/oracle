@@ -1254,6 +1254,35 @@ const App: React.FC = () => {
             <i className={`fas ${isCanvasMode ? "fa-table-list" : "fa-layer-group"}`}></i>
           </button>
 
+          {/* Refresh Vault Button */}
+          <button
+            onClick={async () => {
+              try {
+                await handleScanFiles();
+                try {
+                  await handleParseTables();
+                } catch (parseError) {
+                  console.error("Failed to parse tables:", parseError);
+                }
+              } catch (scanError) {
+                console.error("Failed to scan files:", scanError);
+              }
+            }}
+            disabled={
+              isScanningFiles || isParsingTables || !appState.vaultPath
+            }
+            className="header-button refresh-vault"
+            title={t.mobileMenu.refreshVault}
+          >
+            <i
+              className={`fas ${
+                isScanningFiles || isParsingTables
+                  ? "fa-sync fa-spin"
+                  : "fa-sync-alt"
+              }`}
+            ></i>
+          </button>
+
           {/* Unified Menu Button */}
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -1282,34 +1311,7 @@ const App: React.FC = () => {
                   : t.mobileMenu.loadVault}
               </button>
 
-              <button
-                onClick={async () => {
-                  setShowMobileMenu(false);
-                  try {
-                    await handleScanFiles();
-                    try {
-                      await handleParseTables();
-                    } catch (parseError) {
-                      console.error("Failed to parse tables:", parseError);
-                    }
-                  } catch (scanError) {
-                    console.error("Failed to scan files:", scanError);
-                  }
-                }}
-                disabled={
-                  isScanningFiles || isParsingTables || !appState.vaultPath
-                }
-                className="mobile-menu-item"
-              >
-                <i
-                  className={`fas ${
-                    isScanningFiles || isParsingTables
-                      ? "fa-sync fa-spin"
-                      : "fa-sync-alt"
-                  }`}
-                ></i>
-                {t.mobileMenu.refreshVault}
-              </button>
+
 
               <button
                 onClick={() => {

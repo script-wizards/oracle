@@ -1,6 +1,13 @@
 import React from "react";
 import {RollResult, Table} from "../../shared/types";
 import {useTranslations} from "../i18n";
+import { 
+  getClickableSubrolls, 
+  getSubrollDepth, 
+  getTopLevelSubrolls, 
+  countClickableSubtables,
+  findOriginalSubrollIndex 
+} from "../../shared/utils/SubrollUtils";
 
 interface InteractiveRollResultProps {
   rollResult: RollResult;
@@ -18,6 +25,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
   isHistoryItem = false
 }) => {
   const t = useTranslations();
+
   // Parse the text to identify subtable results and make them clickable
   const renderInteractiveText = () => {
     if (!rollResult.subrolls || rollResult.subrolls.length === 0) {
@@ -33,38 +41,8 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
       );
     }
 
-    // Create a hierarchical structure of clickable subrolls
-    // We'll render all subtable subrolls (except output and root) with nested visual indicators
-    const rootSubroll = rollResult.subrolls.find(subroll => 
-      subroll.startIndex === 0 && subroll.endIndex === rollResult.text.length
-    );
+    const allClickableSubrolls = getClickableSubrolls(rollResult);
     
-    const allClickableSubrolls = rollResult.subrolls
-      .filter(subroll => {
-        // Exclude output subrolls (used for highlighting in table viewer)
-        if (subroll.source === 'output') return false;
-        
-        // Exclude the root section subroll (the section we originally rolled from)
-        if (rootSubroll && subroll === rootSubroll) return false;
-        
-        // Include all other subtable subrolls (both containers and leaf nodes)
-        return subroll.type === 'subtable';
-      })
-      .sort((a, b) => a.startIndex - b.startIndex);
-
-    // Group subrolls by their nesting level for visual styling
-    const getSubrollDepth = (subroll: any) => {
-      let depth = 0;
-      for (const otherSubroll of allClickableSubrolls) {
-        if (otherSubroll !== subroll &&
-            otherSubroll.startIndex <= subroll.startIndex &&
-            otherSubroll.endIndex >= subroll.endIndex) {
-          depth++;
-        }
-      }
-      return depth;
-    };
-
     // Nested approach with proper recursion bounds and termination conditions
     const renderNestedClickable = () => {
       // Helper function with proper bounds checking and termination
@@ -129,16 +107,10 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
           }
 
           // Find the original index for click handling
-          const originalIndex = rollResult.subrolls.findIndex(
-            (s) =>
-              s.startIndex === subroll.startIndex &&
-              s.endIndex === subroll.endIndex &&
-              s.text === subroll.text &&
-              s.source === subroll.source
-          );
+          const originalIndex = findOriginalSubrollIndex(subroll, rollResult.subrolls);
 
           // Calculate visual depth
-          const visualDepth = getSubrollDepth(subroll);
+          const visualDepth = getSubrollDepth(subroll, allClickableSubrolls);
           
           // Find child subrolls that are completely contained within this subroll
           const childSubrolls = allClickableSubrolls.filter(child =>
@@ -149,12 +121,7 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
           );
           
           // Determine styling
-          let depthClass = '';
-          if (childSubrolls.length > 0) {
-            depthClass = 'container-element'; // Containers 
-          } else {
-            depthClass = 'leaf-element'; // Leaf nodes
-          }
+          const depthClass = childSubrolls.length > 0 ? 'container-element' : 'leaf-element';
 
           // Get the text content of this subroll
           const subrollText = text.substring(relativeStart, relativeEnd);
@@ -227,31 +194,82 @@ const InteractiveRollResult: React.FC<InteractiveRollResultProps> = ({
       };
 
       // Start with the full text and top-level subrolls
-      const topLevelSubrolls = allClickableSubrolls.filter(subroll => {
-        // A subroll is top-level if no other subroll completely contains it
-        return !allClickableSubrolls.some(otherSubroll =>
-          otherSubroll !== subroll &&
-          otherSubroll.startIndex <= subroll.startIndex &&
-          otherSubroll.endIndex >= subroll.endIndex
-        );
-      });
-
+      const topLevelSubrolls = getTopLevelSubrolls(allClickableSubrolls);
       return renderTextSegment(rollResult.text, 0, topLevelSubrolls, 0);
     };
 
-    return <>{renderNestedClickable()}</>;
+    // Try the complex nested rendering first, but fall back to simple if needed
+    try {
+      return <>{renderNestedClickable()}</>;
+    } catch (error) {
+      console.warn('Complex rendering failed, falling back to simple rendering:', error);
+      return renderSimpleFallback(allClickableSubrolls);
+    }
   };
 
-  // Count clickable subtables using the same logic as the filtering above
-  const rootSubrollForCount = rollResult.subrolls?.find(subroll => 
-    subroll.startIndex === 0 && subroll.endIndex === rollResult.text.length
-  );
-  
-  const subtableCount = rollResult.subrolls?.filter(subroll => {
-    if (subroll.source === 'output') return false;
-    if (rootSubrollForCount && subroll === rootSubrollForCount) return false;
-    return subroll.type === 'subtable';
-  }).length || 0;
+  // Simple fallback rendering extracted to separate function
+  const renderSimpleFallback = (allClickableSubrolls: any[]) => {
+    const elements: React.ReactNode[] = [];
+    let lastIndex = 0;
+    
+    allClickableSubrolls.forEach((subroll, index) => {
+      // Add text before this subroll
+      if (subroll.startIndex > lastIndex) {
+        const beforeText = rollResult.text.substring(lastIndex, subroll.startIndex);
+        if (beforeText) {
+          elements.push(
+            <span key={`before-${index}`} className="static-text">
+              {beforeText}
+            </span>
+          );
+        }
+      }
+      
+      // Find the original index for click handling
+      const originalIndex = findOriginalSubrollIndex(subroll, rollResult.subrolls);
+      
+      // Get the actual text at the subroll's position in the full result
+      const actualSubrollText = rollResult.text.substring(subroll.startIndex, subroll.endIndex);
+      
+      // Add the clickable subroll
+      elements.push(
+        <span
+          key={`subroll-${index}`}
+          className="subtable-result clickable-subtable leaf-element"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSubtableReroll(originalIndex);
+          }}
+          title={t.rollResults.clickToRerollSubtable.replace(
+            "{source}",
+            subroll.source || ""
+          )}
+          data-source={subroll.source}
+        >
+          {actualSubrollText}
+        </span>
+      );
+      
+      lastIndex = subroll.endIndex;
+    });
+    
+    // Add any remaining text
+    if (lastIndex < rollResult.text.length) {
+      const afterText = rollResult.text.substring(lastIndex);
+      if (afterText) {
+        elements.push(
+          <span key="after" className="static-text">
+            {afterText}
+          </span>
+        );
+      }
+    }
+    
+    return <>{elements}</>;
+  };
+
+  // Count clickable subtables using utility function
+  const subtableCount = countClickableSubtables(rollResult);
 
   // Handle clicks on the result box (for full reroll)
   const handleResultBoxClick = (e: React.MouseEvent) => {

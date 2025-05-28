@@ -221,6 +221,13 @@ body {
   padding: 4px 8px;
 }
 
+.header-button.refresh-vault:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  border-color: var(--border-secondary);
+  cursor: not-allowed;
+}
+
 /* Font Awesome handles the fa-spin animation automatically */
 
 /* Footer */

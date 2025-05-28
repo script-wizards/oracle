@@ -23,10 +23,12 @@ export function rollOnTable(
         tableMap.set(t.id, t);
     });
 
-    // Find the output section
+    // Find the first section to roll from (prefer "output" if it exists, otherwise use the first section)
     const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-    if (!outputSection || outputSection.entries.length === 0) {
-        console.warn(`No output section found in table "${table.title}"`);
+    const firstSection = outputSection || sections[0];
+    
+    if (!firstSection || firstSection.entries.length === 0) {
+        console.warn(`No sections found in table "${table.title}"`);
         // Fallback to random entry from main table
         const randomEntry = table.entries[Math.floor(Math.random() * table.entries.length)];
         return {
@@ -37,31 +39,31 @@ export function rollOnTable(
                 startIndex: 0,
                 endIndex: randomEntry.length
             }],
-            errors: [`No output section found in table "${table.title}"`]
+            errors: [`No sections found in table "${table.title}"`]
         };
     }
 
-    // Get a random output entry (usually there's only one)
-    const outputEntryIndex = Math.floor(Math.random() * outputSection.entries.length);
-    const outputEntry = outputSection.entries[outputEntryIndex];
+    // Get a random entry from the first section
+    const entryIndex = Math.floor(Math.random() * firstSection.entries.length);
+    const selectedEntry = firstSection.entries[entryIndex];
 
-    // Resolve the output text using the sections from this table
-    const result = resolveText(outputEntry, sections, tableMap, [], maxDepth);
+    // Resolve the selected entry using the sections from this table
+    const result = resolveText(selectedEntry, sections, tableMap, [], maxDepth);
 
-    // Add a subroll to track which output entry was selected
-    // This allows the table viewer to highlight the correct output entry
-    const outputSubroll: SubrollData = {
+    // Add a subroll to track which entry was selected from the first section
+    // This allows the table viewer to highlight the correct entry
+    const sectionSubroll: SubrollData = {
         text: result.text,
         type: 'subtable',
-        source: 'output',
+        source: firstSection.name,
         startIndex: 0,
         endIndex: result.text.length,
-        originalEntry: outputEntry,
-        entryIndex: outputEntryIndex
+        originalEntry: selectedEntry,
+        entryIndex: entryIndex
     };
 
-    // Add the output subroll at the beginning so it encompasses the entire result
-    result.subrolls.unshift(outputSubroll);
+    // Add the section subroll at the beginning so it encompasses the entire result
+    result.subrolls.unshift(sectionSubroll);
 
     return result;
 }
@@ -97,10 +99,12 @@ export function rollOnTableWithForcedSelections(
         forcedMap.set(selection.sectionName.toLowerCase(), selection.entryIndex);
     });
 
-    // Find the output section
+    // Find the first section to roll from (prefer "output" if it exists, otherwise use the first section)
     const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-    if (!outputSection || outputSection.entries.length === 0) {
-        console.warn(`No output section found in table "${table.title}"`);
+    const firstSection = outputSection || sections[0];
+    
+    if (!firstSection || firstSection.entries.length === 0) {
+        console.warn(`No sections found in table "${table.title}"`);
         // Fallback to random entry from main table
         const randomEntry = table.entries[Math.floor(Math.random() * table.entries.length)];
         return {
@@ -111,32 +115,32 @@ export function rollOnTableWithForcedSelections(
                 startIndex: 0,
                 endIndex: randomEntry.length
             }],
-            errors: [`No output section found in table "${table.title}"`]
+            errors: [`No sections found in table "${table.title}"`]
         };
     }
 
-    // Get output entry (forced or random)
-    const forcedOutputIndex = forcedMap.get('output');
-    const outputEntryIndex = forcedOutputIndex !== undefined ? forcedOutputIndex : Math.floor(Math.random() * outputSection.entries.length);
-    const outputEntry = outputSection.entries[outputEntryIndex];
+    // Get entry from the first section (forced or random)
+    const forcedIndex = forcedMap.get(firstSection.name.toLowerCase());
+    const entryIndex = forcedIndex !== undefined ? forcedIndex : Math.floor(Math.random() * firstSection.entries.length);
+    const selectedEntry = firstSection.entries[entryIndex];
 
-    // Resolve the output text using the sections from this table
-    const result = resolveTextWithForcedSelections(outputEntry, sections, tableMap, [], forcedMap, maxDepth);
+    // Resolve the selected entry using the sections from this table
+    const result = resolveTextWithForcedSelections(selectedEntry, sections, tableMap, [], forcedMap, maxDepth);
 
-    // Add a subroll to track which output entry was selected
-    // This allows the table viewer to highlight the correct output entry
-    const outputSubroll: SubrollData = {
+    // Add a subroll to track which entry was selected from the first section
+    // This allows the table viewer to highlight the correct entry
+    const sectionSubroll: SubrollData = {
         text: result.text,
         type: 'subtable',
-        source: 'output',
+        source: firstSection.name,
         startIndex: 0,
         endIndex: result.text.length,
-        originalEntry: outputEntry,
-        entryIndex: outputEntryIndex
+        originalEntry: selectedEntry,
+        entryIndex: entryIndex
     };
 
-    // Add the output subroll at the beginning so it encompasses the entire result
-    result.subrolls.unshift(outputSubroll);
+    // Add the section subroll at the beginning so it encompasses the entire result
+    result.subrolls.unshift(sectionSubroll);
 
     return result;
 }
@@ -242,8 +246,13 @@ export function forceSubtableEntry(
     allTables: Table[],
     maxDepth: number = 10
 ): RollResult {
-    // If forcing the output section, use the full forced rolling
-    if (sectionName.toLowerCase() === 'output') {
+    // Get the table sections to determine the first section
+    const sections = table.sections || reconstructTableSections(table);
+    const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
+    const firstSection = outputSection || sections[0];
+    
+    // If forcing the first section (output or first defined section), use the full forced rolling
+    if (firstSection && sectionName.toLowerCase() === firstSection.name.toLowerCase()) {
         const forcedSelections: ForcedSelection[] = [
             { sectionName, entryIndex }
         ];
@@ -262,9 +271,6 @@ export function forceSubtableEntry(
     }
 
     const targetSubroll = originalResult.subrolls[targetSubrollIndex];
-    
-    // Get the table sections
-    const sections = table.sections || reconstructTableSections(table);
     
     // Create a map of table names to tables for quick lookup
     const tableMap = new Map<string, Table>();
@@ -296,7 +302,7 @@ export function forceSubtableEntry(
     // Calculate the length difference
     const lengthDiff = resolved.text.length - targetSubroll.text.length;
 
-    // Update all subrolls
+    // Update all subrolls with corrected positions and text
     const newSubrolls: SubrollData[] = [];
 
     for (let i = 0; i < originalResult.subrolls.length; i++) {
@@ -406,134 +412,54 @@ function reconstructTableSections(table: Table): TableSection[] {
 }
 
 /**
- * Resolves text by replacing subtable references with rolled results, using forced selections when available
+ * Utility function to create a main subroll with nested subrolls
  */
-function resolveTextWithForcedSelections(
+function createSubrollWithNested(
     text: string,
-    sections: TableSection[],
-    tableMap: Map<string, Table>,
-    subrolls: SubrollData[],
-    forcedMap: Map<string, number>,
-    maxDepth: number,
-    depth: number = 0
-): RollResult {
-    if (depth >= maxDepth) {
-        console.warn(`Maximum recursion depth reached while resolving: "${text}"`);
-        return {
-            text,
-            subrolls,
-            errors: [`Maximum recursion depth reached`]
-        };
-    }
-
-    let resolvedText = text;
-    const errors: string[] = [];
-    const newSubrolls: SubrollData[] = [...subrolls];
-
-    // Find all subtable references in the format [tableName]
-    const subtableRegex = /\[([^\]]+)\]/g;
-    const matches: Array<{
-        fullMatch: string;
-        tableName: string;
-        startIndex: number;
-        endIndex: number;
-    }> = [];
-
-    let match;
-    while ((match = subtableRegex.exec(text)) !== null) {
-        matches.push({
-            fullMatch: match[0], // e.g., "[encounter]"
-            tableName: match[1], // e.g., "encounter"
-            startIndex: match.index,
-            endIndex: match.index + match[0].length
-        });
-    }
-
-    // Process matches in reverse order to maintain correct positions
-    for (let i = matches.length - 1; i >= 0; i--) {
-        const matchInfo = matches[i];
-
-        // Try to resolve this subtable reference with forced selection
-        const subtableResult = resolveSubtableWithForcedSelection(
-            matchInfo.tableName,
-            sections,
-            tableMap,
-            forcedMap,
-            maxDepth,
-            depth + 1
-        );
-
-        if (subtableResult.success) {
-            // Replace the reference with the resolved text
-            const beforeText = resolvedText.substring(0, matchInfo.startIndex);
-            const afterText = resolvedText.substring(matchInfo.endIndex);
-            resolvedText = beforeText + subtableResult.text + afterText;
-
-            // Calculate the length difference for this replacement
-            const lengthDiff = subtableResult.text.length - matchInfo.fullMatch.length;
-
-            // Update positions of existing subrolls that come after this replacement
-            for (let j = 0; j < newSubrolls.length; j++) {
-                const existingSubroll = newSubrolls[j];
-                if (existingSubroll.startIndex >= matchInfo.endIndex) {
-                    existingSubroll.startIndex += lengthDiff;
-                    existingSubroll.endIndex += lengthDiff;
-                }
-            }
-
-            // Add subroll information with correct positions in the final text
-            // Always create a subroll for this subtable to enable proper highlighting
-            const mainSubroll: SubrollData = {
-                text: subtableResult.text,
-                type: 'subtable',
-                source: matchInfo.tableName,
-                startIndex: matchInfo.startIndex,
-                endIndex: matchInfo.startIndex + subtableResult.text.length,
-                originalEntry: subtableResult.originalEntry,
-                entryIndex: subtableResult.entryIndex,
-                hasNestedRefs: !!(subtableResult.subrolls && subtableResult.subrolls.length > 0)
-            };
-
-            // Add the main subroll to the list
-            newSubrolls.push(mainSubroll);
-
-            // Add any nested subrolls (adjust their positions relative to the main subroll)
-            if (subtableResult.subrolls) {
-                const adjustedNestedSubrolls = subtableResult.subrolls.map((nestedSubroll: SubrollData) => ({
-                    ...nestedSubroll,
-                    startIndex: matchInfo.startIndex + nestedSubroll.startIndex,
-                    endIndex: matchInfo.startIndex + nestedSubroll.endIndex
-                }));
-
-                // Add nested subrolls
-                newSubrolls.push(...adjustedNestedSubrolls);
-            }
-        } else {
-            console.warn(`Failed to resolve subtable: "${matchInfo.tableName}"`);
-            errors.push(`Could not resolve subtable reference: [${matchInfo.tableName}]`);
-        }
-    }
-
-    // Sort subrolls by start position to ensure correct order
-    newSubrolls.sort((a, b) => a.startIndex - b.startIndex);
-
-    return {
-        text: resolvedText,
-        subrolls: newSubrolls,
-        errors: errors.length > 0 ? errors : undefined
+    source: string,
+    startIndex: number,
+    endIndex: number,
+    originalEntry?: string,
+    entryIndex?: number,
+    nestedSubrolls?: SubrollData[]
+): SubrollData[] {
+    const mainSubroll: SubrollData = {
+        text,
+        type: 'subtable',
+        source,
+        startIndex,
+        endIndex,
+        originalEntry,
+        entryIndex,
+        hasNestedRefs: !!(nestedSubrolls && nestedSubrolls.length > 0)
     };
+
+    const result = [mainSubroll];
+
+    // Add any nested subrolls with adjusted positions
+    if (nestedSubrolls) {
+        const adjustedNestedSubrolls = nestedSubrolls.map((nestedSubroll: SubrollData) => ({
+            ...nestedSubroll,
+            startIndex: startIndex + nestedSubroll.startIndex,
+            endIndex: startIndex + nestedSubroll.endIndex
+        }));
+        result.push(...adjustedNestedSubrolls);
+    }
+
+    return result;
 }
 
 /**
- * Resolves text by replacing subtable references with rolled results
+ * Core text resolution function that handles both forced and random selections
  */
-function resolveText(
+function resolveTextCore(
     text: string,
     sections: TableSection[],
     tableMap: Map<string, Table>,
     subrolls: SubrollData[],
     maxDepth: number,
-    depth: number = 0
+    depth: number = 0,
+    forcedMap?: Map<string, number>
 ): RollResult {
     if (depth >= maxDepth) {
         console.warn(`Maximum recursion depth reached while resolving: "${text}"`);
@@ -572,13 +498,22 @@ function resolveText(
         const matchInfo = matches[i];
 
         // Try to resolve this subtable reference
-        const subtableResult = resolveSubtable(
-            matchInfo.tableName,
-            sections,
-            tableMap,
-            maxDepth,
-            depth + 1
-        );
+        const subtableResult = forcedMap 
+            ? resolveSubtableWithForcedSelection(
+                matchInfo.tableName,
+                sections,
+                tableMap,
+                forcedMap,
+                maxDepth,
+                depth + 1
+            )
+            : resolveSubtable(
+                matchInfo.tableName,
+                sections,
+                tableMap,
+                maxDepth,
+                depth + 1
+            );
 
         if (subtableResult.success) {
             // Replace the reference with the resolved text
@@ -589,42 +524,35 @@ function resolveText(
             // Calculate the length difference for this replacement
             const lengthDiff = subtableResult.text.length - matchInfo.fullMatch.length;
 
-            // Update positions of existing subrolls that come after this replacement
+            // Update positions of existing subrolls using utility function
             for (let j = 0; j < newSubrolls.length; j++) {
                 const existingSubroll = newSubrolls[j];
+                // Only adjust subrolls that start at or after the END of the current match
+                // This ensures we don't double-adjust subrolls from earlier matches
                 if (existingSubroll.startIndex >= matchInfo.endIndex) {
                     existingSubroll.startIndex += lengthDiff;
                     existingSubroll.endIndex += lengthDiff;
                 }
             }
 
-            // Add subroll information with correct positions in the final text
-            // Always create a subroll for this subtable to enable proper highlighting
-            const mainSubroll: SubrollData = {
-                text: subtableResult.text,
-                type: 'subtable',
-                source: matchInfo.tableName,
-                startIndex: matchInfo.startIndex,
-                endIndex: matchInfo.startIndex + subtableResult.text.length,
-                originalEntry: subtableResult.originalEntry,
-                entryIndex: subtableResult.entryIndex,
-                hasNestedRefs: !!(subtableResult.subrolls && subtableResult.subrolls.length > 0)
-            };
-
-            // Add the main subroll to the list
-            newSubrolls.push(mainSubroll);
-
-            // Add any nested subrolls (adjust their positions relative to the main subroll)
-            if (subtableResult.subrolls) {
-                const adjustedNestedSubrolls = subtableResult.subrolls.map(nestedSubroll => ({
-                    ...nestedSubroll,
-                    startIndex: matchInfo.startIndex + nestedSubroll.startIndex,
-                    endIndex: matchInfo.startIndex + nestedSubroll.endIndex
-                }));
-
-                // Add nested subrolls
-                newSubrolls.push(...adjustedNestedSubrolls);
+            // Debug logging for troubleshooting (only for forced selections)
+            if (forcedMap && depth === 1) { // Only log top-level resolutions to avoid spam
+                console.log(`Created subroll for [${matchInfo.tableName}]: "${subtableResult.text}" at ${matchInfo.startIndex}-${matchInfo.startIndex + subtableResult.text.length}`);
             }
+
+            // Create main subroll with nested subrolls using utility function
+            const newSubrollsToAdd = createSubrollWithNested(
+                subtableResult.text,
+                matchInfo.tableName,
+                matchInfo.startIndex,
+                matchInfo.startIndex + subtableResult.text.length,
+                subtableResult.originalEntry,
+                subtableResult.entryIndex,
+                subtableResult.subrolls
+            );
+
+            // Add all the new subrolls
+            newSubrolls.push(...newSubrollsToAdd);
         } else {
             console.warn(`Failed to resolve subtable: "${matchInfo.tableName}"`);
             errors.push(`Could not resolve subtable reference: [${matchInfo.tableName}]`);
@@ -639,6 +567,35 @@ function resolveText(
         subrolls: newSubrolls,
         errors: errors.length > 0 ? errors : undefined
     };
+}
+
+/**
+ * Resolves text by replacing subtable references with rolled results, using forced selections when available
+ */
+function resolveTextWithForcedSelections(
+    text: string,
+    sections: TableSection[],
+    tableMap: Map<string, Table>,
+    subrolls: SubrollData[],
+    forcedMap: Map<string, number>,
+    maxDepth: number,
+    depth: number = 0
+): RollResult {
+    return resolveTextCore(text, sections, tableMap, subrolls, maxDepth, depth, forcedMap);
+}
+
+/**
+ * Resolves text by replacing subtable references with rolled results
+ */
+function resolveText(
+    text: string,
+    sections: TableSection[],
+    tableMap: Map<string, Table>,
+    subrolls: SubrollData[],
+    maxDepth: number,
+    depth: number = 0
+): RollResult {
+    return resolveTextCore(text, sections, tableMap, subrolls, maxDepth, depth);
 }
 
 /**
@@ -787,48 +744,70 @@ export function rerollSubtable(
         return originalResult;
     }
 
-    // Rebuild the text by replacing the specific subtable result
-    const newSubtableText = newSubtableResult.text;
-    const oldText = originalResult.text;
+    // Get the actual text that should be replaced
+    // This is the text at the subroll's position in the original result
+    const actualTextToReplace = originalResult.text.substring(
+        targetSubroll.startIndex, 
+        targetSubroll.endIndex
+    );
 
     // Build new text by replacing the exact range
-    const newText = oldText.substring(0, targetSubroll.startIndex) +
-        newSubtableText +
-        oldText.substring(targetSubroll.endIndex);
+    const newText = originalResult.text.substring(0, targetSubroll.startIndex) +
+        newSubtableResult.text +
+        originalResult.text.substring(targetSubroll.endIndex);
 
     // Calculate the length difference
-    const lengthDiff = newSubtableText.length - targetSubroll.text.length;
+    const lengthDiff = newSubtableResult.text.length - actualTextToReplace.length;
 
-    // Update all subrolls with corrected positions
+    // Update all subrolls with corrected positions and text
     const newSubrolls: SubrollData[] = [];
 
     for (let i = 0; i < originalResult.subrolls.length; i++) {
         const subroll = originalResult.subrolls[i];
 
         if (i === subrollIndex) {
-            // Update the target subroll with new text and correct end position
+            // Update the target subroll with new text and correct boundaries
+            const newEndIndex = subroll.startIndex + newSubtableResult.text.length;
+            const actualTextAtPosition = newText.substring(subroll.startIndex, newEndIndex);
+            
             newSubrolls.push({
                 ...subroll,
-                text: newSubtableText,
-                endIndex: subroll.startIndex + newSubtableText.length
+                text: actualTextAtPosition,
+                endIndex: newEndIndex,
+                originalEntry: newSubtableResult.originalEntry,
+                entryIndex: newSubtableResult.entryIndex,
+                hasNestedRefs: !!(newSubtableResult.subrolls && newSubtableResult.subrolls.length > 0)
             });
         } else if (subroll.startIndex >= targetSubroll.endIndex) {
             // Adjust positions for subrolls that come after the rerolled one
             newSubrolls.push({
                 ...subroll,
                 startIndex: subroll.startIndex + lengthDiff,
-                endIndex: subroll.endIndex + lengthDiff
+                endIndex: subroll.endIndex + lengthDiff,
+                text: newText.substring(subroll.startIndex + lengthDiff, subroll.endIndex + lengthDiff)
             });
         } else if (subroll.endIndex <= targetSubroll.startIndex) {
             // Keep subrolls before the rerolled one unchanged
             newSubrolls.push(subroll);
+        } else if (subroll.startIndex <= targetSubroll.startIndex && subroll.endIndex >= targetSubroll.endIndex) {
+            // CRITICAL FIX: Update parent subrolls that contain the target subroll
+            // This ensures entries like "[coins] coins" have correct boundaries after reroll
+            // Example: when "2d6 × 10 gold" becomes "1d4 × 100 silver", 
+            // the parent "treasure" subroll must include the full "1d4 × 100 silver coins"
+            const newParentEndIndex = subroll.endIndex + lengthDiff;
+            const newParentText = newText.substring(subroll.startIndex, newParentEndIndex);
+            
+            newSubrolls.push({
+                ...subroll,
+                text: newParentText,
+                endIndex: newParentEndIndex
+            });
         } else {
-            // This subroll overlaps with the target - remove nested subrolls to prevent stacking
+            // Remove overlapping subrolls to prevent stacking
             // Only keep subrolls that are NOT completely contained within the target
             if (!(subroll.startIndex >= targetSubroll.startIndex && subroll.endIndex <= targetSubroll.endIndex)) {
                 newSubrolls.push(subroll);
             }
-            // If it's completely contained, skip it (it will be replaced by new nested subrolls)
         }
     }
 
