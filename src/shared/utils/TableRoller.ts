@@ -406,34 +406,6 @@ function reconstructTableSections(table: Table): TableSection[] {
 }
 
 /**
- * Utility function to adjust subroll positions after text replacement
- */
-function adjustSubrollPositions(
-    subrolls: SubrollData[],
-    replacementStartIndex: number,
-    replacementEndIndex: number,
-    lengthDiff: number
-): SubrollData[] {
-    return subrolls.map(subroll => {
-        if (subroll.startIndex >= replacementEndIndex) {
-            // Adjust positions for subrolls that come after the replacement
-            return {
-                ...subroll,
-                startIndex: subroll.startIndex + lengthDiff,
-                endIndex: subroll.endIndex + lengthDiff
-            };
-        } else if (subroll.endIndex <= replacementStartIndex) {
-            // Keep subrolls before the replacement unchanged
-            return subroll;
-        } else {
-            // Handle overlapping subrolls - this depends on the specific use case
-            // For now, we'll keep them unchanged and let the caller handle conflicts
-            return subroll;
-        }
-    });
-}
-
-/**
  * Utility function to create a main subroll with nested subrolls
  */
 function createSubrollWithNested(
