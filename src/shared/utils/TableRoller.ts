@@ -23,10 +23,12 @@ export function rollOnTable(
         tableMap.set(t.id, t);
     });
 
-    // Find the output section
+    // Find the first section to roll from (prefer "output" if it exists, otherwise use the first section)
     const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-    if (!outputSection || outputSection.entries.length === 0) {
-        console.warn(`No output section found in table "${table.title}"`);
+    const firstSection = outputSection || sections[0];
+    
+    if (!firstSection || firstSection.entries.length === 0) {
+        console.warn(`No sections found in table "${table.title}"`);
         // Fallback to random entry from main table
         const randomEntry = table.entries[Math.floor(Math.random() * table.entries.length)];
         return {
@@ -37,31 +39,31 @@ export function rollOnTable(
                 startIndex: 0,
                 endIndex: randomEntry.length
             }],
-            errors: [`No output section found in table "${table.title}"`]
+            errors: [`No sections found in table "${table.title}"`]
         };
     }
 
-    // Get a random output entry (usually there's only one)
-    const outputEntryIndex = Math.floor(Math.random() * outputSection.entries.length);
-    const outputEntry = outputSection.entries[outputEntryIndex];
+    // Get a random entry from the first section
+    const entryIndex = Math.floor(Math.random() * firstSection.entries.length);
+    const selectedEntry = firstSection.entries[entryIndex];
 
-    // Resolve the output text using the sections from this table
-    const result = resolveText(outputEntry, sections, tableMap, [], maxDepth);
+    // Resolve the selected entry using the sections from this table
+    const result = resolveText(selectedEntry, sections, tableMap, [], maxDepth);
 
-    // Add a subroll to track which output entry was selected
-    // This allows the table viewer to highlight the correct output entry
-    const outputSubroll: SubrollData = {
+    // Add a subroll to track which entry was selected from the first section
+    // This allows the table viewer to highlight the correct entry
+    const sectionSubroll: SubrollData = {
         text: result.text,
         type: 'subtable',
-        source: 'output',
+        source: firstSection.name,
         startIndex: 0,
         endIndex: result.text.length,
-        originalEntry: outputEntry,
-        entryIndex: outputEntryIndex
+        originalEntry: selectedEntry,
+        entryIndex: entryIndex
     };
 
-    // Add the output subroll at the beginning so it encompasses the entire result
-    result.subrolls.unshift(outputSubroll);
+    // Add the section subroll at the beginning so it encompasses the entire result
+    result.subrolls.unshift(sectionSubroll);
 
     return result;
 }
@@ -97,10 +99,12 @@ export function rollOnTableWithForcedSelections(
         forcedMap.set(selection.sectionName.toLowerCase(), selection.entryIndex);
     });
 
-    // Find the output section
+    // Find the first section to roll from (prefer "output" if it exists, otherwise use the first section)
     const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-    if (!outputSection || outputSection.entries.length === 0) {
-        console.warn(`No output section found in table "${table.title}"`);
+    const firstSection = outputSection || sections[0];
+    
+    if (!firstSection || firstSection.entries.length === 0) {
+        console.warn(`No sections found in table "${table.title}"`);
         // Fallback to random entry from main table
         const randomEntry = table.entries[Math.floor(Math.random() * table.entries.length)];
         return {
@@ -111,32 +115,32 @@ export function rollOnTableWithForcedSelections(
                 startIndex: 0,
                 endIndex: randomEntry.length
             }],
-            errors: [`No output section found in table "${table.title}"`]
+            errors: [`No sections found in table "${table.title}"`]
         };
     }
 
-    // Get output entry (forced or random)
-    const forcedOutputIndex = forcedMap.get('output');
-    const outputEntryIndex = forcedOutputIndex !== undefined ? forcedOutputIndex : Math.floor(Math.random() * outputSection.entries.length);
-    const outputEntry = outputSection.entries[outputEntryIndex];
+    // Get entry from the first section (forced or random)
+    const forcedIndex = forcedMap.get(firstSection.name.toLowerCase());
+    const entryIndex = forcedIndex !== undefined ? forcedIndex : Math.floor(Math.random() * firstSection.entries.length);
+    const selectedEntry = firstSection.entries[entryIndex];
 
-    // Resolve the output text using the sections from this table
-    const result = resolveTextWithForcedSelections(outputEntry, sections, tableMap, [], forcedMap, maxDepth);
+    // Resolve the selected entry using the sections from this table
+    const result = resolveTextWithForcedSelections(selectedEntry, sections, tableMap, [], forcedMap, maxDepth);
 
-    // Add a subroll to track which output entry was selected
-    // This allows the table viewer to highlight the correct output entry
-    const outputSubroll: SubrollData = {
+    // Add a subroll to track which entry was selected from the first section
+    // This allows the table viewer to highlight the correct entry
+    const sectionSubroll: SubrollData = {
         text: result.text,
         type: 'subtable',
-        source: 'output',
+        source: firstSection.name,
         startIndex: 0,
         endIndex: result.text.length,
-        originalEntry: outputEntry,
-        entryIndex: outputEntryIndex
+        originalEntry: selectedEntry,
+        entryIndex: entryIndex
     };
 
-    // Add the output subroll at the beginning so it encompasses the entire result
-    result.subrolls.unshift(outputSubroll);
+    // Add the section subroll at the beginning so it encompasses the entire result
+    result.subrolls.unshift(sectionSubroll);
 
     return result;
 }
@@ -242,8 +246,13 @@ export function forceSubtableEntry(
     allTables: Table[],
     maxDepth: number = 10
 ): RollResult {
-    // If forcing the output section, use the full forced rolling
-    if (sectionName.toLowerCase() === 'output') {
+    // Get the table sections to determine the first section
+    const sections = table.sections || reconstructTableSections(table);
+    const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
+    const firstSection = outputSection || sections[0];
+    
+    // If forcing the first section (output or first defined section), use the full forced rolling
+    if (firstSection && sectionName.toLowerCase() === firstSection.name.toLowerCase()) {
         const forcedSelections: ForcedSelection[] = [
             { sectionName, entryIndex }
         ];
@@ -262,9 +271,6 @@ export function forceSubtableEntry(
     }
 
     const targetSubroll = originalResult.subrolls[targetSubrollIndex];
-    
-    // Get the table sections
-    const sections = table.sections || reconstructTableSections(table);
     
     // Create a map of table names to tables for quick lookup
     const tableMap = new Map<string, Table>();

@@ -67,8 +67,15 @@ const canForceEntrySelection = (rollResult: RollResult | undefined, sectionName:
   return matchingSubrolls.length === 1;
 };
 
-const shouldAutoExpandSection = (section: TableSection): boolean => {
-  return section.name.toLowerCase() === 'output' || section.entries.length <= 3;
+const shouldAutoExpandSection = (section: TableSection, table: Table): boolean => {
+  // Auto-expand the first section (prefer "output" if it exists, otherwise the first section)
+  const sections = table.sections || [];
+  const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
+  const firstSection = outputSection || sections[0];
+  
+  const isFirstSection = firstSection && section.name.toLowerCase() === firstSection.name.toLowerCase();
+  
+  return isFirstSection || section.entries.length <= 3;
 };
 
 const TableEntryViewer: React.FC<TableEntryViewerProps> = ({ 
@@ -83,7 +90,7 @@ const TableEntryViewer: React.FC<TableEntryViewerProps> = ({
     const initialState: SectionViewState = {};
     if (table.sections) {
       table.sections.forEach(section => {
-        initialState[section.name] = shouldAutoExpandSection(section);
+        initialState[section.name] = shouldAutoExpandSection(section, table);
       });
     }
     return initialState;

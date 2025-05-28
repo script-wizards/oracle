@@ -40,10 +40,11 @@ export const TableWindow: React.FC<TableWindowProps> = ({
   const [showHistoryPopup, setShowHistoryPopup] = useState(false);
   const [historyPopupZIndex, setHistoryPopupZIndex] = useState<number>(zIndex + 1);
   const [currentSection, setCurrentSection] = useState<string>(() => {
-    // Auto-select the first section, or "output" if it exists
+    // Auto-select the first section (prefer "output" if it exists, otherwise use the first section)
     const sections = table.sections || [];
     const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-    return outputSection ? outputSection.name : (sections[0]?.name || 'output');
+    const firstSection = outputSection || sections[0];
+    return firstSection ? firstSection.name : 'output';
   });
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -100,10 +101,11 @@ export const TableWindow: React.FC<TableWindowProps> = ({
 
   // Roll from history
   const handleHistoryReroll = (historyResult: RollResult) => {
-    // Auto-select the first section, or "output" if it exists
+    // Auto-select the first section (prefer "output" if it exists, otherwise use the first section)
     const sections = table.sections || [];
     const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-    const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
+    const firstSection = outputSection || sections[0];
+    const defaultSection = firstSection ? firstSection.name : 'output';
     
     const rollResult = rollOnTableSection(table, defaultSection, allTables);
     
@@ -258,17 +260,16 @@ export const TableWindow: React.FC<TableWindowProps> = ({
           </div>
         </div>
 
-
-
         {/* No results state - compact banner */}
         {!currentResult && rollHistory.length === 0 && (
           <div 
             className="table-empty-banner clickable-empty"
             onClick={() => {
-              // Auto-select the first section, or "output" if it exists
+              // Auto-select the first section (prefer "output" if it exists, otherwise use the first section)
               const sections = table.sections || [];
               const outputSection = sections.find(s => s.name.toLowerCase() === 'output');
-              const defaultSection = outputSection ? outputSection.name : (sections[0]?.name || 'output');
+              const firstSection = outputSection || sections[0];
+              const defaultSection = firstSection ? firstSection.name : 'output';
               handleRollSection(defaultSection);
             }}
             style={{ cursor: 'pointer' }}
