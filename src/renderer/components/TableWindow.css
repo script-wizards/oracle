@@ -88,11 +88,6 @@
   outline: none;
 }
 
-/* Override global focus styling within table window when search is active */
-.table-window-content:focus-within *:not(.table-search-input):focus-visible {
-  outline: none !important;
-}
-
 .table-search-clear {
   background: transparent;
   border: none;
