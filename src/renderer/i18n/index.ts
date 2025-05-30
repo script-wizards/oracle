@@ -76,6 +76,8 @@ export interface Translations {
         section: string;
         sections: string;
         error: string;
+        table: string;
+        tables: string;
         tableList: string;
         openInNewWindow: string;
         searchPlaceholder: string;
@@ -205,6 +207,8 @@ const en: Translations = {
         section: "section",
         sections: "sections",
         error: "error",
+        table: "table",
+        tables: "tables",
         tableList: "Table List",
         openInNewWindow: "Open in new window",
         searchPlaceholder: "Search...",
@@ -328,6 +332,8 @@ const pt: Translations = {
         section: "seção",
         sections: "seções",
         error: "erro",
+        table: "tabela",
+        tables: "tabelas",
         tableList: "Lista de tabelas",
         openInNewWindow: "Abrir em nova janela",
         searchPlaceholder: "Pesquisar...",
@@ -495,6 +501,8 @@ const ja: Translations = {
         section: "セクション",
         sections: "セクション",
         error: "エラー",
+        table: "テーブル",
+        tables: "テーブル",
         tableList: "テーブルリスト",
         openInNewWindow: "新しいウィンドウで開く",
         searchPlaceholder: "検索...",
@@ -618,6 +626,8 @@ const fr: Translations = {
         section: "section",
         sections: "sections",
         error: "erreur",
+        table: "table",
+        tables: "tables",
         tableList: "Liste des tables",
         openInNewWindow: "Ouvrir dans une nouvelle fenêtre",
         searchPlaceholder: "Rechercher...",

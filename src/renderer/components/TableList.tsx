@@ -133,7 +133,7 @@ const TableList: React.FC<TableListProps> = ({
       className="table-list"
       ref={listRef}
       role="listbox"
-      aria-label={t.tables.tableList}
+      aria-label={`${t.tables.tableList}, ${tables.length} ${tables.length === 1 ? t.tables.table : t.tables.tables}`}
       aria-activedescendant={
         selectedIndex >= 0 ? `table-item-${selectedIndex}` : undefined
       }
@@ -155,7 +155,7 @@ const TableList: React.FC<TableListProps> = ({
             onClick={() => onTableSelect(index)}
             role="option"
             aria-selected={index === selectedIndex}
-            aria-label={`Table ${index + 1}: ${table.title}, ${getTableSubtitle(
+            aria-label={`${t.tables.table} ${index + 1}: ${table.title}, ${getTableSubtitle(
               table
             )}`}
             tabIndex={-1}
