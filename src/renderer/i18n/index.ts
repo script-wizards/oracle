@@ -1,4 +1,4 @@
-export type Language = 'en' | 'es' | 'de' | 'fr' | 'pt' | 'ja';
+export type Language = 'en' | 'de' | 'es' | 'fr' | 'it' | 'ja' | 'pt';
 
 export interface Translations {
     // Search
@@ -511,6 +511,131 @@ const de: Translations = {
     },
 };
 
+const it: Translations = {
+    search: {
+        placeholder: "Cerca...",
+        ariaLabel: {
+            searchTables: "Cerca tabelle",
+            resultsFound: "Risultati trovati",
+            noResultsFound: "Nessun risultato trovato",
+            selectedOf: "Selezionato di",
+        },
+        hints: {
+            navigate: "↑↓ naviga",
+            enterToRoll: "Invio per tirare",
+            focus: "Ctrl+K focus",
+            clear: "Ctrl+L cancella",
+            history: "Ctrl+H cronologia",
+            quickSelect: "1-9 selezione rapida",
+            back: "Esc indietro",
+        },
+    },
+
+    mobileMenu: {
+        menu: "Menu",
+        loadVault: "Carica vault",
+        changeVault: "Cambia vault",
+        refreshVault: "Aggiorna vault",
+        showHistory: "Mostra cronologia",
+        hideHistory: "Nascondi cronologia",
+        clearStorage: "Cancella memoria",
+    },
+
+    header: {
+        loadVault: "carica vault",
+        tooltips: {
+            changeVault: "Clicca per cambiare vault",
+            selectVault: "Clicca per selezionare vault",
+            refreshVault: "Aggiorna vault e analizza tabelle",
+            selectVaultFirst: "Seleziona prima un vault",
+            showHistory: "Mostra cronologia tiri (Ctrl+H)",
+            hideHistory: "Nascondi cronologia tiri (Ctrl+H)",
+            clearStorage: "Cancella tutti i dati memorizzati",
+            closeWelcome: "Chiudi schermata di benvenuto",
+        },
+    },
+
+    welcome: {
+        title: "Benvenuto in Oracle",
+        description: "Un generatore di tabelle casuali per il tuo vault Obsidian. Cerca tra le tue tabelle, clicca per tirare, ottieni risultati interattivi con sottotabelle cliccabili. Costruito per gestire la {perchanceLink}.",
+        tableInstructions: "Le tabelle dovrebbero essere in blocchi di codice markdown etichettati con ```perchance:",
+        bracketInstructions: "Puoi anche usare [parentesi] per riferimenti ad altre sezioni:",
+        credits: "Creato da {scriptWizardsLink}. Codice sorgente su {githubLink} se vuoi contribuire o dare feedback.",
+        setupInstruction: "Puntalo al tuo",
+        obsidianVault: "vault Obsidian",
+        letsRoll: "e iniziamo a tirare.",
+    },
+
+    tables: {
+        noTablesFound: "Nessuna tabella trovata",
+        noTablesLoaded: "Nessuna tabella caricata",
+        tryDifferentSearch: "Prova un termine di ricerca diverso",
+        viewDefinition: "Visualizza definizione tabella",
+        hideDefinition: "Nascondi definizione tabella",
+        entries: "voci",
+        subtables: "sottotabelle",
+        errors: "errori",
+        view: "Visualizza",
+        hide: "Nascondi",
+        file: "File",
+        errorsLabel: "Errori",
+        section: "sezione",
+        sections: "sezioni",
+        error: "errore",
+        table: "tabella",
+        tables: "tabelle",
+        tableList: "Elenco tabelle",
+        openInNewWindow: "Apri in nuova finestra",
+        searchPlaceholder: "Cerca...",
+        openHistoryWindow: "Apri finestra cronologia",
+        clearSearch: "Cancella ricerca",
+        clickToRoll: "Clicca per tirare",
+        noHistoryYet: "Nessuna cronologia ancora",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "Clicca per ritirare l'intero risultato",
+        clickToRerollSubtable: "Clicca per ritirare [{source}]",
+        clickAnywhereToRerollEverything: "Clicca ovunque per ritirare tutto, o clicca sulle parti evidenziate per ritirare risultati individuali",
+        clickHighlightedPartsToRerollIndividual: "Clicca ovunque per ritirare tutto, o clicca sulle parti evidenziate per ritirare risultati individuali",
+        clickToReroll: "Clicca per ritirare",
+        howToReroll: "Come ritirare",
+        clickHighlightedParts: "Clicca sulle parti evidenziate per ritirare risultati individuali",
+        clickAnywhereElse: "Clicca ovunque altro per ritirare tutto",
+    },
+
+    status: {
+        loading: "Caricamento...",
+        saving: "Salvataggio...",
+        saved: "Salvato",
+        saveFailed: "Salvataggio fallito",
+    },
+
+    history: {
+        title: "Cronologia",
+        hideHistory: "Nascondi cronologia tiri",
+        historyFor: "Cronologia - {tableName}",
+    },
+
+    tooltips: {
+        viewOnGitHub: "Visualizza su GitHub",
+        visitScriptWizards: "Visita Script Wizards",
+        selectVaultFolder: "Seleziona cartella vault",
+        toggleCanvasMode: "Attiva/disattiva modalità canvas",
+        addWindow: "Aggiungi finestra",
+        welcome: "Benvenuto",
+        search: "Cerca",
+        rollHistory: "Cronologia tiri",
+        currentRoll: "Tiro attuale",
+    },
+
+    clearStorage: {
+        confirmMessage: "Sei sicuro di voler cancellare tutti i dati memorizzati?\n\nQuesto:\n• Rimuoverà il percorso del tuo vault\n• Cancellerà tutte le tabelle analizzate\n• Resetterà tutte le impostazioni\n• Cancellerà la cronologia dei tiri\n\nQuesta azione non può essere annullata.",
+        successMessage: "Memoria cancellata con successo!",
+        failedMessage: "Errore nella cancellazione della memoria",
+    },
+};
+
 const pt: Translations = {
     search: {
         placeholder: "Pesquisar...",
@@ -677,7 +802,7 @@ export const getTranslations = (): Translations => currentTranslations;
 
 // Validate language code
 const isValidLanguage = (lang: string): boolean => {
-    return ['en', 'es', 'de', 'fr', 'pt', 'ja'].includes(lang);
+    return ['en', 'de', 'es', 'fr', 'it', 'ja', 'pt'].includes(lang);
 };
 
 const ja: Translations = {
@@ -935,12 +1060,14 @@ const getTranslationsForLanguage = (language: Language): Translations => {
     switch (language) {
         case 'en':
             return en;
-        case 'es':
-            return es;
         case 'de':
             return de;
+        case 'es':
+            return es;
         case 'fr':
             return fr;
+        case 'it':
+            return it;
         case 'ja':
             return ja;
         case 'pt':
