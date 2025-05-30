@@ -261,6 +261,131 @@ const en: Translations = {
     },
 };
 
+const es: Translations = {
+    search: {
+        placeholder: "Buscar...",
+        ariaLabel: {
+            searchTables: "Buscar tablas",
+            resultsFound: "Resultados encontrados",
+            noResultsFound: "No se encontraron resultados",
+            selectedOf: "Seleccionado de",
+        },
+        hints: {
+            navigate: "↑↓ navegar",
+            enterToRoll: "Enter para tirar",
+            focus: "Ctrl+K enfocar",
+            clear: "Ctrl+L limpiar",
+            history: "Ctrl+H historial",
+            quickSelect: "1-9 selección rápida",
+            back: "Esc volver",
+        },
+    },
+
+    mobileMenu: {
+        menu: "Menú",
+        loadVault: "Cargar bóveda",
+        changeVault: "Cambiar bóveda",
+        refreshVault: "Actualizar bóveda",
+        showHistory: "Mostrar historial",
+        hideHistory: "Ocultar historial",
+        clearStorage: "Limpiar almacenamiento",
+    },
+
+    header: {
+        loadVault: "cargar bóveda",
+        tooltips: {
+            changeVault: "Haz clic para cambiar de bóveda",
+            selectVault: "Haz clic para seleccionar una bóveda",
+            refreshVault: "Actualizar bóveda y analizar tablas",
+            selectVaultFirst: "Selecciona una bóveda primero",
+            showHistory: "Mostrar historial de tiradas (Ctrl+H)",
+            hideHistory: "Ocultar historial de tiradas (Ctrl+H)",
+            clearStorage: "Limpiar todos los datos almacenados",
+            closeWelcome: "Cerrar pantalla de bienvenida",
+        },
+    },
+
+    welcome: {
+        title: "Bienvenido a Oracle",
+        description: "Un generador de tablas aleatorias para tu bóveda de Obsidian. Busca entre tus tablas, haz clic para tirar, obtén resultados interactivos con subtablas clicables. Construido para manejar {perchanceLink}.",
+        tableInstructions: "Las tablas deben estar en bloques de código markdown etiquetados con ```perchance:",
+        bracketInstructions: "También puedes usar [corchetes] para referenciar otras secciones:",
+        credits: "Hecho por {scriptWizardsLink}. Código fuente en {githubLink} si quieres contribuir o dar retroalimentación.",
+        setupInstruction: "Apúntalo a tu",
+        obsidianVault: "bóveda de Obsidian",
+        letsRoll: "y empecemos a tirar.",
+    },
+
+    tables: {
+        noTablesFound: "No se encontraron tablas",
+        noTablesLoaded: "No hay tablas cargadas",
+        tryDifferentSearch: "Prueba con un término de búsqueda diferente",
+        viewDefinition: "Ver definición de tabla",
+        hideDefinition: "Ocultar definición de tabla",
+        entries: "entradas",
+        subtables: "subtablas",
+        errors: "errores",
+        view: "Ver",
+        hide: "Ocultar",
+        file: "Archivo",
+        errorsLabel: "Errores",
+        section: "sección",
+        sections: "secciones",
+        error: "error",
+        table: "tabla",
+        tables: "tablas",
+        tableList: "Lista de tablas",
+        openInNewWindow: "Abrir en nueva ventana",
+        searchPlaceholder: "Buscar...",
+        openHistoryWindow: "Abrir ventana de historial",
+        clearSearch: "Limpiar búsqueda",
+        clickToRoll: "Haz clic para tirar",
+        noHistoryYet: "Aún no hay historial",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "Haz clic para volver a tirar todo el resultado",
+        clickToRerollSubtable: "Haz clic para volver a tirar [{source}]",
+        clickAnywhereToRerollEverything: "Haz clic en cualquier lugar para volver a tirar todo, o haz clic en las partes resaltadas para volver a tirar resultados individuales",
+        clickHighlightedPartsToRerollIndividual: "Haz clic en cualquier lugar para volver a tirar todo, o haz clic en las partes resaltadas para volver a tirar resultados individuales",
+        clickToReroll: "Haz clic para volver a tirar",
+        howToReroll: "Cómo volver a tirar",
+        clickHighlightedParts: "Haz clic en las partes resaltadas para volver a tirar resultados individuales",
+        clickAnywhereElse: "Haz clic en cualquier otro lugar para volver a tirar todo",
+    },
+
+    status: {
+        loading: "Cargando...",
+        saving: "Guardando...",
+        saved: "Guardado",
+        saveFailed: "Error al guardar",
+    },
+
+    history: {
+        title: "Historial",
+        hideHistory: "Ocultar historial de tiradas",
+        historyFor: "Historial - {tableName}",
+    },
+
+    tooltips: {
+        viewOnGitHub: "Ver en GitHub",
+        visitScriptWizards: "Visitar Script Wizards",
+        selectVaultFolder: "Seleccionar carpeta de bóveda",
+        toggleCanvasMode: "Alternar modo lienzo",
+        addWindow: "Agregar ventana",
+        welcome: "Bienvenida",
+        search: "Buscar",
+        rollHistory: "Historial de tiradas",
+        currentRoll: "Tirada actual",
+    },
+
+    clearStorage: {
+        confirmMessage: "¿Estás seguro de que quieres limpiar todos los datos almacenados?\n\nEsto hará:\n• Eliminar la ruta de tu bóveda\n• Limpiar todas las tablas analizadas\n• Restablecer todas las configuraciones\n• Limpiar historial de tiradas\n\nEsta acción no se puede deshacer.",
+        successMessage: "¡Almacenamiento limpiado exitosamente!",
+        failedMessage: "Error al limpiar almacenamiento",
+    },
+};
+
 const pt: Translations = {
     search: {
         placeholder: "Pesquisar...",
@@ -685,6 +810,8 @@ const getTranslationsForLanguage = (language: Language): Translations => {
     switch (language) {
         case 'en':
             return en;
+        case 'es':
+            return es;
         case 'fr':
             return fr;
         case 'ja':
