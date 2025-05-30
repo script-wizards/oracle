@@ -1,4 +1,4 @@
-export type Language = 'en' | 'es' | 'de' | 'fr' | 'pt' | 'ja';
+export type Language = 'en' | 'de' | 'es' | 'fr' | 'it' | 'ja' | 'pt';
 
 export interface Translations {
     // Search
@@ -261,6 +261,381 @@ const en: Translations = {
     },
 };
 
+const es: Translations = {
+    search: {
+        placeholder: "Buscar...",
+        ariaLabel: {
+            searchTables: "Buscar tablas",
+            resultsFound: "Resultados encontrados",
+            noResultsFound: "No se encontraron resultados",
+            selectedOf: "Seleccionado de",
+        },
+        hints: {
+            navigate: "↑↓ navegar",
+            enterToRoll: "Enter para tirar",
+            focus: "Ctrl+K enfocar",
+            clear: "Ctrl+L limpiar",
+            history: "Ctrl+H historial",
+            quickSelect: "1-9 selección rápida",
+            back: "Esc volver",
+        },
+    },
+
+    mobileMenu: {
+        menu: "Menú",
+        loadVault: "Cargar bóveda",
+        changeVault: "Cambiar bóveda",
+        refreshVault: "Actualizar bóveda",
+        showHistory: "Mostrar historial",
+        hideHistory: "Ocultar historial",
+        clearStorage: "Limpiar almacenamiento",
+    },
+
+    header: {
+        loadVault: "cargar bóveda",
+        tooltips: {
+            changeVault: "Haz clic para cambiar de bóveda",
+            selectVault: "Haz clic para seleccionar una bóveda",
+            refreshVault: "Actualizar bóveda y analizar tablas",
+            selectVaultFirst: "Selecciona una bóveda primero",
+            showHistory: "Mostrar historial de tiradas (Ctrl+H)",
+            hideHistory: "Ocultar historial de tiradas (Ctrl+H)",
+            clearStorage: "Limpiar todos los datos almacenados",
+            closeWelcome: "Cerrar pantalla de bienvenida",
+        },
+    },
+
+    welcome: {
+        title: "Bienvenido a Oracle",
+        description: "Un generador de tablas aleatorias para tu bóveda de Obsidian. Busca entre tus tablas, haz clic para tirar, obtén resultados interactivos con subtablas clicables. Construido para manejar {perchanceLink}.",
+        tableInstructions: "Las tablas deben estar en bloques de código markdown etiquetados con ```perchance:",
+        bracketInstructions: "También puedes usar [corchetes] para referenciar otras secciones:",
+        credits: "Hecho por {scriptWizardsLink}. Código fuente en {githubLink} si quieres contribuir o dar retroalimentación.",
+        setupInstruction: "Apúntalo a tu",
+        obsidianVault: "bóveda de Obsidian",
+        letsRoll: "y empecemos a tirar.",
+    },
+
+    tables: {
+        noTablesFound: "No se encontraron tablas",
+        noTablesLoaded: "No hay tablas cargadas",
+        tryDifferentSearch: "Prueba con un término de búsqueda diferente",
+        viewDefinition: "Ver definición de tabla",
+        hideDefinition: "Ocultar definición de tabla",
+        entries: "entradas",
+        subtables: "subtablas",
+        errors: "errores",
+        view: "Ver",
+        hide: "Ocultar",
+        file: "Archivo",
+        errorsLabel: "Errores",
+        section: "sección",
+        sections: "secciones",
+        error: "error",
+        table: "tabla",
+        tables: "tablas",
+        tableList: "Lista de tablas",
+        openInNewWindow: "Abrir en nueva ventana",
+        searchPlaceholder: "Buscar...",
+        openHistoryWindow: "Abrir ventana de historial",
+        clearSearch: "Limpiar búsqueda",
+        clickToRoll: "Haz clic para tirar",
+        noHistoryYet: "Aún no hay historial",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "Haz clic para volver a tirar todo el resultado",
+        clickToRerollSubtable: "Haz clic para volver a tirar [{source}]",
+        clickAnywhereToRerollEverything: "Haz clic en cualquier lugar para volver a tirar todo, o haz clic en las partes resaltadas para volver a tirar resultados individuales",
+        clickHighlightedPartsToRerollIndividual: "Haz clic en cualquier lugar para volver a tirar todo, o haz clic en las partes resaltadas para volver a tirar resultados individuales",
+        clickToReroll: "Haz clic para volver a tirar",
+        howToReroll: "Cómo volver a tirar",
+        clickHighlightedParts: "Haz clic en las partes resaltadas para volver a tirar resultados individuales",
+        clickAnywhereElse: "Haz clic en cualquier otro lugar para volver a tirar todo",
+    },
+
+    status: {
+        loading: "Cargando...",
+        saving: "Guardando...",
+        saved: "Guardado",
+        saveFailed: "Error al guardar",
+    },
+
+    history: {
+        title: "Historial",
+        hideHistory: "Ocultar historial de tiradas",
+        historyFor: "Historial - {tableName}",
+    },
+
+    tooltips: {
+        viewOnGitHub: "Ver en GitHub",
+        visitScriptWizards: "Visitar Script Wizards",
+        selectVaultFolder: "Seleccionar carpeta de bóveda",
+        toggleCanvasMode: "Alternar modo lienzo",
+        addWindow: "Agregar ventana",
+        welcome: "Bienvenida",
+        search: "Buscar",
+        rollHistory: "Historial de tiradas",
+        currentRoll: "Tirada actual",
+    },
+
+    clearStorage: {
+        confirmMessage: "¿Estás seguro de que quieres limpiar todos los datos almacenados?\n\nEsto hará:\n• Eliminar la ruta de tu bóveda\n• Limpiar todas las tablas analizadas\n• Restablecer todas las configuraciones\n• Limpiar historial de tiradas\n\nEsta acción no se puede deshacer.",
+        successMessage: "¡Almacenamiento limpiado exitosamente!",
+        failedMessage: "Error al limpiar almacenamiento",
+    },
+};
+
+const de: Translations = {
+    search: {
+        placeholder: "Suchen...",
+        ariaLabel: {
+            searchTables: "Tabellen durchsuchen",
+            resultsFound: "Ergebnisse gefunden",
+            noResultsFound: "Keine Ergebnisse gefunden",
+            selectedOf: "Ausgewählt von",
+        },
+        hints: {
+            navigate: "↑↓ navigieren",
+            enterToRoll: "Enter zum Würfeln",
+            focus: "Strg+K fokussieren",
+            clear: "Strg+L löschen",
+            history: "Strg+H Verlauf",
+            quickSelect: "1-9 Schnellauswahl",
+            back: "Esc zurück",
+        },
+    },
+
+    mobileMenu: {
+        menu: "Menü",
+        loadVault: "Tresor laden",
+        changeVault: "Tresor wechseln",
+        refreshVault: "Tresor aktualisieren",
+        showHistory: "Verlauf anzeigen",
+        hideHistory: "Verlauf ausblenden",
+        clearStorage: "Speicher löschen",
+    },
+
+    header: {
+        loadVault: "Tresor laden",
+        tooltips: {
+            changeVault: "Klicken zum Tresor wechseln",
+            selectVault: "Klicken zum Tresor auswählen",
+            refreshVault: "Tresor aktualisieren und Tabellen analysieren",
+            selectVaultFirst: "Zuerst einen Tresor auswählen",
+            showHistory: "Würfel-Verlauf anzeigen (Strg+H)",
+            hideHistory: "Würfel-Verlauf ausblenden (Strg+H)",
+            clearStorage: "Alle gespeicherten Daten löschen",
+            closeWelcome: "Willkommensbildschirm schließen",
+        },
+    },
+
+    welcome: {
+        title: "Willkommen bei Oracle",
+        description: "Ein Zufallstabellen-Würfler für deinen Obsidian-Tresor. Durchsuche deine Tabellen, klicke zum Würfeln, erhalte interaktive Ergebnisse mit anklickbaren Untertabellen. Entwickelt für {perchanceLink}.",
+        tableInstructions: "Tabellen sollten in Markdown-Codeblöcken mit ```perchance-Tag stehen:",
+        bracketInstructions: "Du kannst auch [Klammern] verwenden, um andere Abschnitte zu referenzieren:",
+        credits: "Erstellt von {scriptWizardsLink}. Quellcode auf {githubLink}, wenn du beitragen oder Feedback geben möchtest.",
+        setupInstruction: "Richte es auf deinen",
+        obsidianVault: "Obsidian-Tresor",
+        letsRoll: "aus und lass uns würfeln.",
+    },
+
+    tables: {
+        noTablesFound: "Keine Tabellen gefunden",
+        noTablesLoaded: "Keine Tabellen geladen",
+        tryDifferentSearch: "Versuche einen anderen Suchbegriff",
+        viewDefinition: "Tabellendefinition anzeigen",
+        hideDefinition: "Tabellendefinition ausblenden",
+        entries: "Einträge",
+        subtables: "Untertabellen",
+        errors: "Fehler",
+        view: "Anzeigen",
+        hide: "Ausblenden",
+        file: "Datei",
+        errorsLabel: "Fehler",
+        section: "Abschnitt",
+        sections: "Abschnitte",
+        error: "Fehler",
+        table: "Tabelle",
+        tables: "Tabellen",
+        tableList: "Tabellenliste",
+        openInNewWindow: "In neuem Fenster öffnen",
+        searchPlaceholder: "Suchen...",
+        openHistoryWindow: "Verlaufsfenster öffnen",
+        clearSearch: "Suche löschen",
+        clickToRoll: "Klicken zum Würfeln",
+        noHistoryYet: "Noch kein Verlauf",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "Klicken, um das gesamte Ergebnis neu zu würfeln",
+        clickToRerollSubtable: "Klicken, um [{source}] neu zu würfeln",
+        clickAnywhereToRerollEverything: "Klicke irgendwo, um alles neu zu würfeln, oder klicke auf hervorgehobene Teile, um einzelne Ergebnisse neu zu würfeln",
+        clickHighlightedPartsToRerollIndividual: "Klicke irgendwo, um alles neu zu würfeln, oder klicke auf hervorgehobene Teile, um einzelne Ergebnisse neu zu würfeln",
+        clickToReroll: "Klicken zum neu würfeln",
+        howToReroll: "Wie neu würfeln",
+        clickHighlightedParts: "Klicke auf hervorgehobene Teile, um einzelne Ergebnisse neu zu würfeln",
+        clickAnywhereElse: "Klicke irgendwo anders, um alles neu zu würfeln",
+    },
+
+    status: {
+        loading: "Lädt...",
+        saving: "Speichert...",
+        saved: "Gespeichert",
+        saveFailed: "Speichern fehlgeschlagen",
+    },
+
+    history: {
+        title: "Verlauf",
+        hideHistory: "Würfel-Verlauf ausblenden",
+        historyFor: "Verlauf - {tableName}",
+    },
+
+    tooltips: {
+        viewOnGitHub: "Auf GitHub anzeigen",
+        visitScriptWizards: "Script Wizards besuchen",
+        selectVaultFolder: "Tresor-Ordner auswählen",
+        toggleCanvasMode: "Canvas-Modus umschalten",
+        addWindow: "Fenster hinzufügen",
+        welcome: "Willkommen",
+        search: "Suchen",
+        rollHistory: "Würfel-Verlauf",
+        currentRoll: "Aktueller Wurf",
+    },
+
+    clearStorage: {
+        confirmMessage: "Bist du sicher, dass du alle gespeicherten Daten löschen möchtest?\n\nDies wird:\n• Deinen Tresor-Pfad entfernen\n• Alle analysierten Tabellen löschen\n• Alle Einstellungen zurücksetzen\n• Den Würfel-Verlauf löschen\n\nDiese Aktion kann nicht rückgängig gemacht werden.",
+        successMessage: "Speicher erfolgreich gelöscht!",
+        failedMessage: "Fehler beim Löschen des Speichers",
+    },
+};
+
+const it: Translations = {
+    search: {
+        placeholder: "Cerca...",
+        ariaLabel: {
+            searchTables: "Cerca tabelle",
+            resultsFound: "Risultati trovati",
+            noResultsFound: "Nessun risultato trovato",
+            selectedOf: "Selezionato di",
+        },
+        hints: {
+            navigate: "↑↓ naviga",
+            enterToRoll: "Invio per tirare",
+            focus: "Ctrl+K focus",
+            clear: "Ctrl+L cancella",
+            history: "Ctrl+H cronologia",
+            quickSelect: "1-9 selezione rapida",
+            back: "Esc indietro",
+        },
+    },
+
+    mobileMenu: {
+        menu: "Menu",
+        loadVault: "Carica vault",
+        changeVault: "Cambia vault",
+        refreshVault: "Aggiorna vault",
+        showHistory: "Mostra cronologia",
+        hideHistory: "Nascondi cronologia",
+        clearStorage: "Cancella memoria",
+    },
+
+    header: {
+        loadVault: "carica vault",
+        tooltips: {
+            changeVault: "Clicca per cambiare vault",
+            selectVault: "Clicca per selezionare vault",
+            refreshVault: "Aggiorna vault e analizza tabelle",
+            selectVaultFirst: "Seleziona prima un vault",
+            showHistory: "Mostra cronologia tiri (Ctrl+H)",
+            hideHistory: "Nascondi cronologia tiri (Ctrl+H)",
+            clearStorage: "Cancella tutti i dati memorizzati",
+            closeWelcome: "Chiudi schermata di benvenuto",
+        },
+    },
+
+    welcome: {
+        title: "Benvenuto in Oracle",
+        description: "Un generatore di tabelle casuali per il tuo vault Obsidian. Cerca tra le tue tabelle, clicca per tirare, ottieni risultati interattivi con sottotabelle cliccabili. Costruito per gestire la {perchanceLink}.",
+        tableInstructions: "Le tabelle dovrebbero essere in blocchi di codice markdown etichettati con ```perchance:",
+        bracketInstructions: "Puoi anche usare [parentesi] per riferimenti ad altre sezioni:",
+        credits: "Creato da {scriptWizardsLink}. Codice sorgente su {githubLink} se vuoi contribuire o dare feedback.",
+        setupInstruction: "Puntalo al tuo",
+        obsidianVault: "vault Obsidian",
+        letsRoll: "e iniziamo a tirare.",
+    },
+
+    tables: {
+        noTablesFound: "Nessuna tabella trovata",
+        noTablesLoaded: "Nessuna tabella caricata",
+        tryDifferentSearch: "Prova un termine di ricerca diverso",
+        viewDefinition: "Visualizza definizione tabella",
+        hideDefinition: "Nascondi definizione tabella",
+        entries: "voci",
+        subtables: "sottotabelle",
+        errors: "errori",
+        view: "Visualizza",
+        hide: "Nascondi",
+        file: "File",
+        errorsLabel: "Errori",
+        section: "sezione",
+        sections: "sezioni",
+        error: "errore",
+        table: "tabella",
+        tables: "tabelle",
+        tableList: "Elenco tabelle",
+        openInNewWindow: "Apri in nuova finestra",
+        searchPlaceholder: "Cerca...",
+        openHistoryWindow: "Apri finestra cronologia",
+        clearSearch: "Cancella ricerca",
+        clickToRoll: "Clicca per tirare",
+        noHistoryYet: "Nessuna cronologia ancora",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "Clicca per ritirare l'intero risultato",
+        clickToRerollSubtable: "Clicca per ritirare [{source}]",
+        clickAnywhereToRerollEverything: "Clicca ovunque per ritirare tutto, o clicca sulle parti evidenziate per ritirare risultati individuali",
+        clickHighlightedPartsToRerollIndividual: "Clicca ovunque per ritirare tutto, o clicca sulle parti evidenziate per ritirare risultati individuali",
+        clickToReroll: "Clicca per ritirare",
+        howToReroll: "Come ritirare",
+        clickHighlightedParts: "Clicca sulle parti evidenziate per ritirare risultati individuali",
+        clickAnywhereElse: "Clicca ovunque altro per ritirare tutto",
+    },
+
+    status: {
+        loading: "Caricamento...",
+        saving: "Salvataggio...",
+        saved: "Salvato",
+        saveFailed: "Salvataggio fallito",
+    },
+
+    history: {
+        title: "Cronologia",
+        hideHistory: "Nascondi cronologia tiri",
+        historyFor: "Cronologia - {tableName}",
+    },
+
+    tooltips: {
+        viewOnGitHub: "Visualizza su GitHub",
+        visitScriptWizards: "Visita Script Wizards",
+        selectVaultFolder: "Seleziona cartella vault",
+        toggleCanvasMode: "Attiva/disattiva modalità canvas",
+        addWindow: "Aggiungi finestra",
+        welcome: "Benvenuto",
+        search: "Cerca",
+        rollHistory: "Cronologia tiri",
+        currentRoll: "Tiro attuale",
+    },
+
+    clearStorage: {
+        confirmMessage: "Sei sicuro di voler cancellare tutti i dati memorizzati?\n\nQuesto:\n• Rimuoverà il percorso del tuo vault\n• Cancellerà tutte le tabelle analizzate\n• Resetterà tutte le impostazioni\n• Cancellerà la cronologia dei tiri\n\nQuesta azione non può essere annullata.",
+        successMessage: "Memoria cancellata con successo!",
+        failedMessage: "Errore nella cancellazione della memoria",
+    },
+};
+
 const pt: Translations = {
     search: {
         placeholder: "Pesquisar...",
@@ -427,7 +802,7 @@ export const getTranslations = (): Translations => currentTranslations;
 
 // Validate language code
 const isValidLanguage = (lang: string): boolean => {
-    return ['en', 'es', 'de', 'fr', 'pt', 'ja'].includes(lang);
+    return ['en', 'de', 'es', 'fr', 'it', 'ja', 'pt'].includes(lang);
 };
 
 const ja: Translations = {
@@ -685,8 +1060,14 @@ const getTranslationsForLanguage = (language: Language): Translations => {
     switch (language) {
         case 'en':
             return en;
+        case 'de':
+            return de;
+        case 'es':
+            return es;
         case 'fr':
             return fr;
+        case 'it':
+            return it;
         case 'ja':
             return ja;
         case 'pt':
