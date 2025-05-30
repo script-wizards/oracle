@@ -152,13 +152,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
     if (query && resultCount > 0) {
       const selectedText =
         selectedIndex >= 0
-          ? `, ${selectedIndex + 1} of ${resultCount} selected`
+          ? `, ${selectedIndex + 1} ${t.search.ariaLabel.selectedOf} ${resultCount}`
           : "";
-      return `Search tables, ${resultCount} results found${selectedText}`;
+      return `${t.search.ariaLabel.searchTables}, ${resultCount} ${t.search.ariaLabel.resultsFound}${selectedText}`;
     } else if (query && resultCount === 0) {
-      return "Search tables, no results found";
+      return `${t.search.ariaLabel.searchTables}, ${t.search.ariaLabel.noResultsFound}`;
     }
-    return "Search tables";
+    return t.search.ariaLabel.searchTables;
   };
 
   const getSearchHint = () => {

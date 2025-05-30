@@ -94,12 +94,12 @@ const TableList: React.FC<TableListProps> = ({
 
     // Show number of sections (the actual functional units)
     if (table.sections && table.sections.length > 0) {
-      parts.push(`${table.sections.length} ${table.sections.length === 1 ? 'section' : 'sections'}`);
+      parts.push(`${table.sections.length} ${table.sections.length === 1 ? t.tables.section : t.tables.sections}`);
     }
 
     // Show errors if any
     if (table.errors && table.errors.length > 0) {
-      parts.push(`${table.errors.length} ${table.errors.length === 1 ? 'error' : 'errors'}`);
+      parts.push(`${table.errors.length} ${table.errors.length === 1 ? t.tables.error : t.tables.errors}`);
     }
 
     return parts.join(" • ");
@@ -115,7 +115,7 @@ const TableList: React.FC<TableListProps> = ({
 
   if (tables.length === 0) {
     return (
-      <div className="table-list empty" role="listbox" aria-label="Table list">
+      <div className="table-list empty" role="listbox" aria-label={t.tables.tableList}>
         <div className="empty-state">
           <div className="empty-message">
             {searchQuery ? t.tables.noTablesFound : t.tables.noTablesLoaded}
@@ -133,7 +133,7 @@ const TableList: React.FC<TableListProps> = ({
       className="table-list"
       ref={listRef}
       role="listbox"
-      aria-label={`Table list, ${tables.length} tables`}
+      aria-label={`${t.tables.tableList}, ${tables.length} ${tables.length === 1 ? t.tables.table : t.tables.tables}`}
       aria-activedescendant={
         selectedIndex >= 0 ? `table-item-${selectedIndex}` : undefined
       }
@@ -155,7 +155,7 @@ const TableList: React.FC<TableListProps> = ({
             onClick={() => onTableSelect(index)}
             role="option"
             aria-selected={index === selectedIndex}
-            aria-label={`Table ${index + 1}: ${table.title}, ${getTableSubtitle(
+            aria-label={`${t.tables.table} ${index + 1}: ${table.title}, ${getTableSubtitle(
               table
             )}`}
             tabIndex={-1}
@@ -177,8 +177,8 @@ const TableList: React.FC<TableListProps> = ({
                     e.stopPropagation();
                     onTableOpen(table);
                   }}
-                  title="Open table in new window"
-                  aria-label={`Open ${table.title} in new window`}
+                  title={t.tables.openInNewWindow}
+                  aria-label={`${t.tables.openInNewWindow}: ${table.title}`}
                 >
                   <i className="fas fa-external-link-alt"></i>
                 </button>
