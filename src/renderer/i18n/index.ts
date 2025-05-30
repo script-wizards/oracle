@@ -257,6 +257,129 @@ const en: Translations = {
     },
 };
 
+const pt: Translations = {
+    search: {
+        placeholder: "Pesquisar...",
+        ariaLabel: {
+            searchTables: "Pesquisar tabelas",
+            resultsFound: "Resultados encontrados",
+            noResultsFound: "Nenhum resultado encontrado",
+            selectedOf: "Selecionado de",
+        },
+        hints: {
+            navigate: "↑↓ navegar",
+            enterToRoll: "Enter para rolar",
+            focus: "Ctrl+K focar",
+            clear: "Ctrl+L limpar",
+            history: "Ctrl+H histórico",
+            quickSelect: "1-9 seleção rápida",
+            back: "Esc voltar",
+        },
+    },
+
+    mobileMenu: {
+        menu: "Menu",
+        loadVault: "Carregar cofre",
+        changeVault: "Mudar cofre",
+        refreshVault: "Atualizar cofre",
+        showHistory: "Mostrar histórico",
+        hideHistory: "Ocultar histórico",
+        clearStorage: "Limpar armazenamento",
+    },
+
+    header: {
+        loadVault: "carregar cofre",
+        tooltips: {
+            changeVault: "Clique para mudar de cofre",
+            selectVault: "Clique para selecionar um cofre",
+            refreshVault: "Atualizar cofre e analisar tabelas",
+            selectVaultFirst: "Selecione um cofre primeiro",
+            showHistory: "Mostrar histórico de rolagens (Ctrl+H)",
+            hideHistory: "Ocultar histórico de rolagens (Ctrl+H)",
+            clearStorage: "Limpar todos os dados armazenados",
+            closeWelcome: "Fechar tela de boas-vindas",
+        },
+    },
+
+    welcome: {
+        title: "Bem-vindo ao Oracle",
+        description: "Um rolador de tabelas aleatórias para seu cofre Obsidian. Pesquise suas tabelas, clique para rolar, obtenha resultados interativos com subtabelas clicáveis. Construído para lidar com {perchanceLink}.",
+        tableInstructions: "As tabelas devem estar em blocos de código markdown marcados com ```perchance:",
+        bracketInstructions: "Você também pode usar [colchetes] para referenciar outras seções:",
+        credits: "Feito por {scriptWizardsLink}. Código fonte no {githubLink} se você quiser contribuir ou dar feedback.",
+        setupInstruction: "Aponte para seu",
+        obsidianVault: "cofre Obsidian",
+        letsRoll: "e vamos rolar.",
+    },
+
+    tables: {
+        noTablesFound: "Nenhuma tabela encontrada",
+        noTablesLoaded: "Nenhuma tabela carregada",
+        tryDifferentSearch: "Tente um termo de pesquisa diferente",
+        viewDefinition: "Ver definição da tabela",
+        hideDefinition: "Ocultar definição da tabela",
+        entries: "entradas",
+        subtables: "subtabelas",
+        errors: "erros",
+        view: "Ver",
+        hide: "Ocultar",
+        file: "Arquivo",
+        errorsLabel: "Erros",
+        section: "seção",
+        sections: "seções",
+        error: "erro",
+        tableList: "Lista de tabelas",
+        openInNewWindow: "Abrir em nova janela",
+        searchPlaceholder: "Pesquisar...",
+        openHistoryWindow: "Abrir janela de histórico",
+        clearSearch: "Limpar pesquisa",
+        clickToRoll: "Clique para rolar",
+        noHistoryYet: "Ainda sem histórico",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "Clique para rolar novamente o resultado inteiro",
+        clickToRerollSubtable: "Clique para rolar novamente [{source}]",
+        clickAnywhereToRerollEverything: "Clique em qualquer lugar para rolar tudo novamente, ou clique nas partes destacadas para rolar resultados individuais",
+        clickHighlightedPartsToRerollIndividual: "Clique em qualquer lugar para rolar tudo novamente, ou clique nas partes destacadas para rolar resultados individuais",
+        clickToReroll: "Clique para rolar novamente",
+        howToReroll: "Como rolar novamente",
+        clickHighlightedParts: "Clique nas partes destacadas para rolar resultados individuais",
+        clickAnywhereElse: "Clique em qualquer outro lugar para rolar tudo novamente",
+    },
+
+    status: {
+        loading: "Carregando...",
+        saving: "Salvando...",
+        saved: "Salvo",
+        saveFailed: "Falha ao salvar",
+    },
+
+    history: {
+        title: "Histórico",
+        hideHistory: "Ocultar histórico de rolagens",
+        historyFor: "Histórico - {tableName}",
+    },
+
+    tooltips: {
+        viewOnGitHub: "Ver no GitHub",
+        visitScriptWizards: "Visitar Script Wizards",
+        selectVaultFolder: "Selecionar pasta do cofre",
+        toggleCanvasMode: "Alternar modo canvas",
+        addWindow: "Adicionar janela",
+        welcome: "Boas-vindas",
+        search: "Pesquisar",
+        rollHistory: "Histórico de rolagens",
+        currentRoll: "Rolagem atual",
+    },
+
+    clearStorage: {
+        confirmMessage: "Tem certeza de que deseja limpar todos os dados armazenados?\n\nIsso irá:\n• Remover o caminho do seu cofre\n• Limpar todas as tabelas analisadas\n• Redefinir todas as configurações\n• Limpar histórico de rolagens\n\nEsta ação não pode ser desfeita.",
+        successMessage: "Armazenamento limpo com sucesso!",
+        failedMessage: "Falha ao limpar armazenamento",
+    },
+};
+
 // Language storage key
 const LANGUAGE_STORAGE_KEY = 'oracle-language';
 
@@ -402,7 +525,7 @@ const ja: Translations = {
     history: {
         title: "履歴",
         hideHistory: "ロール履歴を非表示",
-        historyFor: "History - {tableName}",
+        historyFor: "履歴 - {tableName}",
     },
 
     tooltips: {
@@ -525,7 +648,7 @@ const fr: Translations = {
     history: {
         title: "Histoire",
         hideHistory: "Masquer l'historique des lancers",
-        historyFor: "History - {tableName}",
+        historyFor: "Historique - {tableName}",
     },
 
     tooltips: {
@@ -556,6 +679,8 @@ const getTranslationsForLanguage = (language: Language): Translations => {
             return fr;
         case 'ja':
             return ja;
+        case 'pt':
+            return pt;
         default:
             return en;
     }
