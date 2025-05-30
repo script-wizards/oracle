@@ -386,6 +386,131 @@ const es: Translations = {
     },
 };
 
+const de: Translations = {
+    search: {
+        placeholder: "Suchen...",
+        ariaLabel: {
+            searchTables: "Tabellen durchsuchen",
+            resultsFound: "Ergebnisse gefunden",
+            noResultsFound: "Keine Ergebnisse gefunden",
+            selectedOf: "Ausgewählt von",
+        },
+        hints: {
+            navigate: "↑↓ navigieren",
+            enterToRoll: "Enter zum Würfeln",
+            focus: "Strg+K fokussieren",
+            clear: "Strg+L löschen",
+            history: "Strg+H Verlauf",
+            quickSelect: "1-9 Schnellauswahl",
+            back: "Esc zurück",
+        },
+    },
+
+    mobileMenu: {
+        menu: "Menü",
+        loadVault: "Tresor laden",
+        changeVault: "Tresor wechseln",
+        refreshVault: "Tresor aktualisieren",
+        showHistory: "Verlauf anzeigen",
+        hideHistory: "Verlauf ausblenden",
+        clearStorage: "Speicher löschen",
+    },
+
+    header: {
+        loadVault: "Tresor laden",
+        tooltips: {
+            changeVault: "Klicken zum Tresor wechseln",
+            selectVault: "Klicken zum Tresor auswählen",
+            refreshVault: "Tresor aktualisieren und Tabellen analysieren",
+            selectVaultFirst: "Zuerst einen Tresor auswählen",
+            showHistory: "Würfel-Verlauf anzeigen (Strg+H)",
+            hideHistory: "Würfel-Verlauf ausblenden (Strg+H)",
+            clearStorage: "Alle gespeicherten Daten löschen",
+            closeWelcome: "Willkommensbildschirm schließen",
+        },
+    },
+
+    welcome: {
+        title: "Willkommen bei Oracle",
+        description: "Ein Zufallstabellen-Würfler für deinen Obsidian-Tresor. Durchsuche deine Tabellen, klicke zum Würfeln, erhalte interaktive Ergebnisse mit anklickbaren Untertabellen. Entwickelt für {perchanceLink}.",
+        tableInstructions: "Tabellen sollten in Markdown-Codeblöcken mit ```perchance-Tag stehen:",
+        bracketInstructions: "Du kannst auch [Klammern] verwenden, um andere Abschnitte zu referenzieren:",
+        credits: "Erstellt von {scriptWizardsLink}. Quellcode auf {githubLink}, wenn du beitragen oder Feedback geben möchtest.",
+        setupInstruction: "Richte es auf deinen",
+        obsidianVault: "Obsidian-Tresor",
+        letsRoll: "aus und lass uns würfeln.",
+    },
+
+    tables: {
+        noTablesFound: "Keine Tabellen gefunden",
+        noTablesLoaded: "Keine Tabellen geladen",
+        tryDifferentSearch: "Versuche einen anderen Suchbegriff",
+        viewDefinition: "Tabellendefinition anzeigen",
+        hideDefinition: "Tabellendefinition ausblenden",
+        entries: "Einträge",
+        subtables: "Untertabellen",
+        errors: "Fehler",
+        view: "Anzeigen",
+        hide: "Ausblenden",
+        file: "Datei",
+        errorsLabel: "Fehler",
+        section: "Abschnitt",
+        sections: "Abschnitte",
+        error: "Fehler",
+        table: "Tabelle",
+        tables: "Tabellen",
+        tableList: "Tabellenliste",
+        openInNewWindow: "In neuem Fenster öffnen",
+        searchPlaceholder: "Suchen...",
+        openHistoryWindow: "Verlaufsfenster öffnen",
+        clearSearch: "Suche löschen",
+        clickToRoll: "Klicken zum Würfeln",
+        noHistoryYet: "Noch kein Verlauf",
+    },
+
+    rollResults: {
+        clickToRerollEntire: "Klicken, um das gesamte Ergebnis neu zu würfeln",
+        clickToRerollSubtable: "Klicken, um [{source}] neu zu würfeln",
+        clickAnywhereToRerollEverything: "Klicke irgendwo, um alles neu zu würfeln, oder klicke auf hervorgehobene Teile, um einzelne Ergebnisse neu zu würfeln",
+        clickHighlightedPartsToRerollIndividual: "Klicke irgendwo, um alles neu zu würfeln, oder klicke auf hervorgehobene Teile, um einzelne Ergebnisse neu zu würfeln",
+        clickToReroll: "Klicken zum neu würfeln",
+        howToReroll: "Wie neu würfeln",
+        clickHighlightedParts: "Klicke auf hervorgehobene Teile, um einzelne Ergebnisse neu zu würfeln",
+        clickAnywhereElse: "Klicke irgendwo anders, um alles neu zu würfeln",
+    },
+
+    status: {
+        loading: "Lädt...",
+        saving: "Speichert...",
+        saved: "Gespeichert",
+        saveFailed: "Speichern fehlgeschlagen",
+    },
+
+    history: {
+        title: "Verlauf",
+        hideHistory: "Würfel-Verlauf ausblenden",
+        historyFor: "Verlauf - {tableName}",
+    },
+
+    tooltips: {
+        viewOnGitHub: "Auf GitHub anzeigen",
+        visitScriptWizards: "Script Wizards besuchen",
+        selectVaultFolder: "Tresor-Ordner auswählen",
+        toggleCanvasMode: "Canvas-Modus umschalten",
+        addWindow: "Fenster hinzufügen",
+        welcome: "Willkommen",
+        search: "Suchen",
+        rollHistory: "Würfel-Verlauf",
+        currentRoll: "Aktueller Wurf",
+    },
+
+    clearStorage: {
+        confirmMessage: "Bist du sicher, dass du alle gespeicherten Daten löschen möchtest?\n\nDies wird:\n• Deinen Tresor-Pfad entfernen\n• Alle analysierten Tabellen löschen\n• Alle Einstellungen zurücksetzen\n• Den Würfel-Verlauf löschen\n\nDiese Aktion kann nicht rückgängig gemacht werden.",
+        successMessage: "Speicher erfolgreich gelöscht!",
+        failedMessage: "Fehler beim Löschen des Speichers",
+    },
+};
+
 const pt: Translations = {
     search: {
         placeholder: "Pesquisar...",
@@ -812,6 +937,8 @@ const getTranslationsForLanguage = (language: Language): Translations => {
             return en;
         case 'es':
             return es;
+        case 'de':
+            return de;
         case 'fr':
             return fr;
         case 'ja':
