@@ -4,6 +4,12 @@ export interface Translations {
     // Search
     search: {
         placeholder: string;
+        ariaLabel: {
+            searchTables: string;
+            resultsFound: string;
+            noResultsFound: string;
+            selectedOf: string;
+        };
         hints: {
             navigate: string;
             enterToRoll: string;
@@ -67,6 +73,16 @@ export interface Translations {
         hide: string;
         file: string;
         errorsLabel: string;
+        section: string;
+        sections: string;
+        error: string;
+        tableList: string;
+        openInNewWindow: string;
+        searchPlaceholder: string;
+        openHistoryWindow: string;
+        clearSearch: string;
+        clickToRoll: string;
+        noHistoryYet: string;
     };
 
     // Roll results
@@ -93,6 +109,7 @@ export interface Translations {
     history: {
         title: string;
         hideHistory: string;
+        historyFor: string;
     };
 
     // Tooltips
@@ -100,6 +117,12 @@ export interface Translations {
         viewOnGitHub: string;
         visitScriptWizards: string;
         selectVaultFolder: string;
+        toggleCanvasMode: string;
+        addWindow: string;
+        welcome: string;
+        search: string;
+        rollHistory: string;
+        currentRoll: string;
     };
 
     // Clear storage dialog
@@ -114,6 +137,12 @@ export interface Translations {
 const en: Translations = {
     search: {
         placeholder: "Search...",
+        ariaLabel: {
+            searchTables: "Search tables",
+            resultsFound: "Results found",
+            noResultsFound: "No results found",
+            selectedOf: "Selected of",
+        },
         hints: {
             navigate: "↑↓ navigate",
             enterToRoll: "Enter to roll",
@@ -173,6 +202,16 @@ const en: Translations = {
         hide: "Hide",
         file: "File",
         errorsLabel: "Errors",
+        section: "section",
+        sections: "sections",
+        error: "error",
+        tableList: "Table List",
+        openInNewWindow: "Open in new window",
+        searchPlaceholder: "Search...",
+        openHistoryWindow: "Open history window",
+        clearSearch: "Clear search",
+        clickToRoll: "Click to roll",
+        noHistoryYet: "No history yet",
     },
 
     rollResults: {
@@ -196,12 +235,19 @@ const en: Translations = {
     history: {
         title: "History",
         hideHistory: "Hide roll history",
+        historyFor: "History - {tableName}",
     },
 
     tooltips: {
         viewOnGitHub: "View on GitHub",
         visitScriptWizards: "Visit Script Wizards",
         selectVaultFolder: "Select vault folder",
+        toggleCanvasMode: "Toggle canvas mode",
+        addWindow: "Add window",
+        welcome: "Welcome",
+        search: "Search",
+        rollHistory: "Roll history",
+        currentRoll: "Current roll",
     },
 
     clearStorage: {
@@ -258,6 +304,12 @@ const isValidLanguage = (lang: string): boolean => {
 const ja: Translations = {
     search: {
         placeholder: "検索...",
+        ariaLabel: {
+            searchTables: "テーブルを検索",
+            resultsFound: "結果が見つかりました",
+            noResultsFound: "結果が見つかりません",
+            selectedOf: "選択された",
+        },
         hints: {
             navigate: "↑↓ ナビゲート",
             enterToRoll: "Enter でロール",
@@ -317,6 +369,16 @@ const ja: Translations = {
         hide: "非表示",
         file: "ファイル",
         errorsLabel: "エラー",
+        section: "セクション",
+        sections: "セクション",
+        error: "エラー",
+        tableList: "テーブルリスト",
+        openInNewWindow: "新しいウィンドウで開く",
+        searchPlaceholder: "検索...",
+        openHistoryWindow: "履歴ウィンドウを開く",
+        clearSearch: "検索をクリア",
+        clickToRoll: "ロールをクリック",
+        noHistoryYet: "履歴がありません",
     },
 
     rollResults: {
@@ -340,12 +402,19 @@ const ja: Translations = {
     history: {
         title: "履歴",
         hideHistory: "ロール履歴を非表示",
+        historyFor: "History - {tableName}",
     },
 
     tooltips: {
         viewOnGitHub: "GitHubで表示",
         visitScriptWizards: "Script Wizardsを訪問",
         selectVaultFolder: "ボルトフォルダを選択",
+        toggleCanvasMode: "キャンバスモードを切り替える",
+        addWindow: "ウィンドウを追加",
+        welcome: "ウェルカム",
+        search: "検索",
+        rollHistory: "ロール履歴",
+        currentRoll: "現在のロール",
     },
 
     clearStorage: {
@@ -358,6 +427,12 @@ const ja: Translations = {
 const fr: Translations = {
     search: {
         placeholder: "Rechercher...",
+        ariaLabel: {
+            searchTables: "Rechercher des tables",
+            resultsFound: "Résultats trouvés",
+            noResultsFound: "Aucun résultat trouvé",
+            selectedOf: "Sélectionné de",
+        },
         hints: {
             navigate: "↑↓ naviguer",
             enterToRoll: "Entrée pour lancer",
@@ -417,6 +492,16 @@ const fr: Translations = {
         hide: "Masquer",
         file: "Fichier",
         errorsLabel: "Erreurs",
+        section: "section",
+        sections: "sections",
+        error: "erreur",
+        tableList: "Liste des tables",
+        openInNewWindow: "Ouvrir dans une nouvelle fenêtre",
+        searchPlaceholder: "Rechercher...",
+        openHistoryWindow: "Ouvrir la fenêtre d'historique",
+        clearSearch: "Effacer la recherche",
+        clickToRoll: "Cliquer pour lancer",
+        noHistoryYet: "Historique vide",
     },
 
     rollResults: {
@@ -440,12 +525,19 @@ const fr: Translations = {
     history: {
         title: "Histoire",
         hideHistory: "Masquer l'historique des lancers",
+        historyFor: "History - {tableName}",
     },
 
     tooltips: {
         viewOnGitHub: "Voir sur GitHub",
         visitScriptWizards: "Visiter Script Wizards",
         selectVaultFolder: "Sélectionner le dossier du coffre",
+        toggleCanvasMode: "Basculer le mode de canevas",
+        addWindow: "Ajouter une fenêtre",
+        welcome: "Bienvenue",
+        search: "Rechercher",
+        rollHistory: "Historique des lancers",
+        currentRoll: "Lancer actuel",
     },
 
     clearStorage: {

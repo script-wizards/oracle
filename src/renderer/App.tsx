@@ -1249,7 +1249,7 @@ const App: React.FC = () => {
           <button
             onClick={toggleCanvasMode}
             className={`header-button ${isCanvasMode ? "active" : ""}`}
-            title="Toggle Canvas Mode"
+            title={t.tooltips.toggleCanvasMode}
           >
             <i className={`fas ${isCanvasMode ? "fa-table-list" : "fa-layer-group"}`}></i>
           </button>
@@ -1438,7 +1438,7 @@ const App: React.FC = () => {
                   document.addEventListener("mousemove", handleMouseMove);
                   document.addEventListener("mouseup", handleMouseUp);
                 }}
-                title="Add Window (drag to move)"
+                title={t.tooltips.addWindow}
               >
                 <i className="fas fa-plus"></i>
               </button>
@@ -1455,7 +1455,7 @@ const App: React.FC = () => {
                     disabled={openWindows.welcome}
                   >
                     <i className="fas fa-home"></i>
-                    Welcome
+                    {t.tooltips.welcome}
                   </button>
                   <button
                     onClick={() => {
@@ -1466,7 +1466,7 @@ const App: React.FC = () => {
                     disabled={openWindows.search}
                   >
                     <i className="fas fa-search"></i>
-                    Search
+                    {t.tooltips.search}
                   </button>
                   <button
                     onClick={() => {
@@ -1481,7 +1481,7 @@ const App: React.FC = () => {
                     disabled={rollHistory.length === 0}
                   >
                     <i className="fas fa-history"></i>
-                    {openWindows.history ? 'Hide History' : 'Show History'}
+                    {openWindows.history ? t.mobileMenu.hideHistory : t.mobileMenu.showHistory}
                   </button>
                   <button
                     onClick={() => {
@@ -1492,7 +1492,7 @@ const App: React.FC = () => {
                     disabled={openWindows.currentResult || !lastRollResult}
                   >
                     <i className="fas fa-dice-d20"></i>
-                    Current Roll
+                    {t.tooltips.currentRoll}
                   </button>
                 </div>
               )}
@@ -1501,7 +1501,7 @@ const App: React.FC = () => {
             {/* Welcome Window */}
             {openWindows.welcome && !appState.vaultPath && (
               <DraggableWindow
-                title="Welcome"
+                title={t.tooltips.welcome}
                 initialPosition={windowStates.welcome.position}
                 initialSize={windowStates.welcome.size}
                 onClose={() => closeWindow('welcome')}
@@ -1551,7 +1551,7 @@ const App: React.FC = () => {
             {/* Search Window */}
             {openWindows.search && (
               <DraggableWindow
-                title="Search"
+                title={t.tooltips.search}
                 initialPosition={windowStates.search.position}
                 initialSize={windowStates.search.size}
                 onClose={() => closeWindow('search')}
@@ -1603,7 +1603,7 @@ const App: React.FC = () => {
             {/* History Window */}
             {openWindows.history && rollHistory.length > 0 && (
               <DraggableWindow
-                title="Roll History"
+                title={t.tooltips.rollHistory}
                 initialPosition={windowStates.history.position}
                 initialSize={windowStates.history.size}
                 onClose={() => closeWindow('history')}

@@ -5,6 +5,7 @@ import InteractiveRollResult from './InteractiveRollResult';
 import TableEntryViewer from './TableEntryViewer';
 import { DraggableWindow } from './DraggableWindow';
 import './TableWindow.css';
+import { useTranslations } from '../i18n';
 
 interface TableWindowProps {
   table: Table;
@@ -158,12 +159,12 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     
     // Show number of sections (the actual functional units)
     if (table.sections && table.sections.length > 0) {
-      parts.push(`${table.sections.length} ${table.sections.length === 1 ? 'section' : 'sections'}`);
+      parts.push(`${table.sections.length} ${table.sections.length === 1 ? t.tables.section : t.tables.sections}`);
     }
     
     // Show errors if any
     if (table.errors && table.errors.length > 0) {
-      parts.push(`${table.errors.length} ${table.errors.length === 1 ? 'error' : 'errors'}`);
+      parts.push(`${table.errors.length} ${table.errors.length === 1 ? t.tables.error : t.tables.errors}`);
     }
     
     return parts.join(' • ');
@@ -198,11 +199,13 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     setCurrentResult(rollResult);
   }, [table, allTables]); // Removed currentSection dependency to prevent double-rolling
 
+  const t = useTranslations();
+
   const headerContent = (
     <button
       className="history-toggle-button"
       onClick={() => setShowHistoryPopup(!showHistoryPopup)}
-      title="Open history window"
+      title={t.tables.openHistoryWindow}
     >
       <i className="fas fa-clock-rotate-left"></i>
     </button>
@@ -244,7 +247,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
             <input
               type="text"
               className="table-search-input"
-              placeholder="Search table entries..."
+              placeholder={t.tables.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -252,7 +255,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
               <button
                 className="table-search-clear"
                 onClick={() => setSearchQuery('')}
-                title="Clear search"
+                title={t.tables.clearSearch}
               >
                 <i className="fas fa-times"></i>
               </button>
@@ -274,7 +277,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
             }}
             style={{ cursor: 'pointer' }}
           >
-            <div className="empty-message">Click here to roll!</div>
+            <div className="empty-message">{t.tables.clickToRoll}</div>
           </div>
         )}
 
@@ -294,7 +297,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
     {/* History Popup Window */}
     {showHistoryPopup && (
       <DraggableWindow
-        title={`History - ${table.title}`}
+        title={t.history.historyFor.replace('{tableName}', table.title)}
         initialPosition={{ x: position.x + 50, y: position.y + 50 }}
         initialSize={{ width: 400, height: 500 }}
         onClose={() => setShowHistoryPopup(false)}
@@ -372,7 +375,7 @@ export const TableWindow: React.FC<TableWindowProps> = ({
               color: 'var(--text-muted)',
               fontSize: '12px'
             }}>
-              No history yet. Roll on the table to see results here.
+              {t.tables.noHistoryYet}
             </div>
           )}
         </div>
