@@ -1,5 +1,12 @@
 # Oracle
 
+> [!IMPORTANT]
+> Oracle is retired and this repo is archived. Its successor is
+> [perhaps](https://github.com/script-wizards/perhaps): random tables in plain
+> text with the same Perchance-style syntax, rebuilt as a documented spec with
+> a zero-dependency engine, a CLI, an Obsidian plugin, and a browser roller at
+> [perhaps.sh](https://perhaps.sh). Existing Oracle downloads keep working.
+
 A desktop application for tabletop gaming that parses and rolls on random tables using Perchance syntax.
 
 ## Features
